@@ -23,18 +23,18 @@ export default function LoginBody() {
 
               <div>
                 <label
-                  htmlFor="username"
+                  htmlFor="email"
                   className="text-gray-800 text-sm mb-2 block"
                 >
-                  Username
+                  Email
                 </label>
                 <input
-                  id="username"
-                  name="username"
-                  type="text"
+                  id="email"
+                  name="email"
+                  type="email"
                   required
                   className="w-full text-sm text-gray-800 border border-gray-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
-                  placeholder="Enter username"
+                  placeholder="Enter Email Address"
                 />
               </div>
 
