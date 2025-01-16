@@ -1,4 +1,4 @@
-import sidepic from '../images/login-sidepic.svg';
+import sidepic from "../images/login-sidepic.svg";
 
 export default function body() {
   return (
@@ -9,12 +9,17 @@ export default function body() {
             <form className="space-y-4">
               <div className="mb-8">
                 <h3 className="text-gray-800 text-3xl font-bold">Sign in</h3>
-                <p className="text-gray-500 text-sm mt-4 leading-relaxed">Sign in to your account</p>
+                <p className="text-gray-500 text-sm mt-4 leading-relaxed">
+                  Sign in to your account
+                </p>
               </div>
 
               <div>
-                <label htmlFor="username" className="text-gray-800 text-sm mb-2 block">
-                  User name
+                <label
+                  htmlFor="username"
+                  className="text-gray-800 text-sm mb-2 block"
+                >
+                  Username
                 </label>
                 <input
                   id="username"
@@ -26,7 +31,10 @@ export default function body() {
                 />
               </div>
               <div>
-                <label htmlFor="password" className="text-gray-800 text-sm mb-2 block">
+                <label
+                  htmlFor="password"
+                  className="text-gray-800 text-sm mb-2 block"
+                >
                   Password
                 </label>
                 <input
@@ -47,13 +55,19 @@ export default function body() {
                     type="checkbox"
                     className="h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="remember-me" className="ml-3 block text-sm text-gray-800">
+                  <label
+                    htmlFor="remember-me"
+                    className="ml-3 block text-sm text-gray-800"
+                  >
                     Remember me
                   </label>
                 </div>
 
                 <div className="text-sm">
-                  <a href="#" className="text-yellow-400 hover:underline font-semibold">
+                  <a
+                    href="#"
+                    className="text-yellow-400 hover:underline font-semibold"
+                  >
                     Forgot your password?
                   </a>
                 </div>
@@ -61,14 +75,19 @@ export default function body() {
 
               <button
                 type="submit"
-                className="w-full shadow-xl py-2.5 px-4 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none">
+                className="w-full shadow-xl py-2.5 px-4 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
+              >
                 Sign in
               </button>
             </form>
           </div>
 
           <div className="max-md:mt-8 hidden md:flex">
-            <img src={sidepic} className="w-5/6 max-md:w-2/3 mx-auto block object-cover" alt="Login" />
+            <img
+              src={sidepic}
+              className="w-5/6 max-md:w-2/3 mx-auto block object-cover"
+              alt="Login"
+            />
           </div>
         </div>
       </div>
