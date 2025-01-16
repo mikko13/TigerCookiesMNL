@@ -8,7 +8,7 @@ export default function ForgotPasswordPage() {
     <div className="flex flex-col min-h-screen">
       <FPHeader />
 
-      <div className="flex-grow mt-48">
+      <div className="flex-grow mt-40">
         <FPBody />
       </div>
 
