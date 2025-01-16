@@ -61,14 +61,13 @@ export default function body() {
 
               <button
                 type="submit"
-                className="w-full shadow-xl py-2.5 px-4 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
-              >
+                className="w-full shadow-xl py-2.5 px-4 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none">
                 Sign in
               </button>
             </form>
           </div>
 
-          <div className="max-md:mt-8">
+          <div className="max-md:mt-8 hidden md:flex">
             <img src={sidepic} className="w-5/6 max-md:w-2/3 mx-auto block object-cover" alt="Login" />
           </div>
         </div>
