@@ -12,7 +12,6 @@ export default function LoginBody() {
     <main className="font-[sans-serif]">
       <div className="mt-1 md:mt-[-70px] min-h-screen flex flex-col items-center justify-center py-6 px-4">
         <div className="grid md:grid-cols-2 items-center gap-6 max-w-6xl w-full">
-          {/* Left Side - Form */}
           <div className="border border-gray-300 rounded-lg p-6 max-w-md shadow-[0_2px_22px_-4px_rgba(93,96,127,0.2)] max-md:mx-auto">
             <form className="space-y-4">
               <div className="mb-8">
@@ -22,7 +21,6 @@ export default function LoginBody() {
                 </p>
               </div>
 
-              {/* Username Field */}
               <div>
                 <label
                   htmlFor="username"
@@ -41,7 +39,10 @@ export default function LoginBody() {
               </div>
 
               <div className="relative">
-                <label htmlFor="password" className="text-gray-800 text-sm mb-2 block">
+                <label
+                  htmlFor="password"
+                  className="text-gray-800 text-sm mb-2 block"
+                >
                   Password
                 </label>
                 <input
@@ -56,20 +57,25 @@ export default function LoginBody() {
                   type="button"
                   onClick={togglePasswordVisibility}
                   className="absolute right-4 top-3 text-gray-500 hover:text-gray-700"
->
+                >
                   {showPassword ? (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       stroke="currentColor"
-                      className="w-5 h-5"
+                      className="w-5 h-5 mt-7"
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        d="M3.98 8.223a10.477 10.477 0 0116.04 0M1.5 12c1.272-2.18 3.276-4 6.186-4.905M12 15.5c2.209 0 4-2.015 4-4.5s-1.791-4.5-4-4.5c-1.506 0-2.823.998-3.524 2.342m7.048 6.158a6.482 6.482 0 01-7.048 0M12 19c-5.177 0-9.64-2.94-11.5-7.5C2.36 7.44 6.823 4.5 12 4.5c5.178 0 9.64 2.94 11.5 7.5-.97 2.445-2.455 4.24-4.263 5.425"
+                        d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
                       />
                     </svg>
                   ) : (
@@ -77,14 +83,14 @@ export default function LoginBody() {
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       stroke="currentColor"
-                      className="w-5 h-5"
+                      className="w-5 h-5 mt-7"
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        d="M3.98 8.223a10.477 10.477 0 0116.04 0M1.5 12c1.272-2.18 3.276-4 6.186-4.905M12 15.5c2.209 0 4-2.015 4-4.5s-1.791-4.5-4-4.5c-1.506 0-2.823.998-3.524 2.342m7.048 6.158a6.482 6.482 0 01-7.048 0M12 19c-5.177 0-9.64-2.94-11.5-7.5C2.36 7.44 6.823 4.5 12 4.5c5.178 0 9.64 2.94 11.5 7.5-.97 2.445-2.455 4.24-4.263 5.425"
+                        d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"
                       />
                     </svg>
                   )}
@@ -99,19 +105,28 @@ export default function LoginBody() {
                     type="checkbox"
                     className="h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="remember-me" className="ml-3 block text-sm text-gray-800">
+                  <label
+                    htmlFor="remember-me"
+                    className="ml-3 block text-sm text-gray-800"
+                  >
                     Remember me
                   </label>
                 </div>
 
                 <div className="text-sm">
-                  <a href="./forgotpassword" className="text-yellow-400 hover:underline font-semibold">
+                  <a
+                    href="./forgotpassword"
+                    className="text-yellow-400 hover:underline font-semibold"
+                  >
                     Forgot your password?
                   </a>
                 </div>
               </div>
 
-              <button type="submit" className="w-full shadow-xl py-2.5 px-4 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none">
+              <button
+                type="submit"
+                className="w-full shadow-xl py-2.5 px-4 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
+              >
                 Sign in
               </button>
             </form>
