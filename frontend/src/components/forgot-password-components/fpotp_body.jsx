@@ -5,8 +5,8 @@ export default function FpOtpBody() {
     <form className="space-y-2 font-sans text-gray-800 max-w-md mx-auto px-4 sm:px-6 md:px-8">
       <div className="relative flex items-center mb-4">
         <input
-          type="email"
-          placeholder="Verify Email"
+          type="otp"
+          placeholder="Enter OTP"
           className="px-4 py-3 bg-gray-100 focus:bg-transparent w-full text-sm border outline-blue-500 rounded-md transition-all focus:ring-2 focus:ring-blue-500"
         />
         <svg
@@ -44,7 +44,7 @@ export default function FpOtpBody() {
         Submit
       </button>
 
-      <a href="./">
+      <a href="./forgotpassword">
         <button
           type="button"
           className="px-6 py-3 mt-2 w-full text-sm bg-gray-700 hover:bg-gray-800 text-white rounded-md active:bg-gray-900 focus:ring-2 focus:ring-gray-900 transition-all"
