@@ -1,5 +1,5 @@
-import React from 'react';
-import Logo from '../images/logo.png';
+import React from "react";
+import Logo from "../images/logo.png";
 
 export default function Header() {
   return (
@@ -10,13 +10,12 @@ export default function Header() {
 
           <div className="absolute inset-0 flex items-center justify-center hidden md:flex">
             <h1 className="text-xl font-bold text-yellow-500 tracking-wide">
-              Welcome to TigerCookies MNL
+              Welcome to TigerCookies MNLa
             </h1>
           </div>
 
           <div className="flex ml-auto">
-            <button
-              className="bg-yellow-200 hover:bg-yellow-300 flex items-center transition-all text-base rounded-md px-4 py-2">
+            <button className="bg-yellow-200 hover:bg-yellow-300 flex items-center transition-all text-base rounded-md px-4 py-2">
               Contact Admin
             </button>
           </div>
