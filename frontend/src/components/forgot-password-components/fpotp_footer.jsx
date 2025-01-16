@@ -1,7 +1,7 @@
 import React from "react";
 import Logo from "../images/logo.png";
 
-export default function FpFooter() {
+export default function FpOtpFooter() {
   return (
     <footer class="bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-300 py-5 px-8 font-sans">
       <div class="max-w-screen-xl mx-auto">

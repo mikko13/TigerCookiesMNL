@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function FpBody() {
+export default function FpOtpBody() {
   return (
     <form className="space-y-2 font-sans text-gray-800 max-w-md mx-auto px-4 sm:px-6 md:px-8">
       <div className="relative flex items-center mb-4">
