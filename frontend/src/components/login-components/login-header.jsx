@@ -10,7 +10,7 @@ export default function Header() {
 
           <div className="absolute inset-0 flex items-center justify-center hidden md:flex">
             <h1 className="text-xl font-bold text-yellow-500 tracking-wide">
-              Welcome to TigerCookies MNLa
+              Welcome to TigerCookies MNL
             </h1>
           </div>
 
