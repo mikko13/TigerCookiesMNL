@@ -5,7 +5,7 @@ export default function Header() {
   return (
     <header className="flex items-center w-full px-4 sm:px-8 min-h-[80px] bg-white tracking-wide sticky top-0 shadow-[rgba(0,0,0,0.1)_-4px_9px_25px_-6px] font-[sans-serif]">
       <div className="relative w-full">
-        <div className="max-w-screen-xl w-full mx-auto flex flex-wrap items-center gap-20 justify-center">
+        <div className="max-w-screen-xl w-full flex items-center gap-20">
           <img src={Logo} alt="logo" className="w-20" />
 
           <div className="absolute inset-0 flex items-center justify-center hidden md:flex">
