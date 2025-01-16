@@ -15,10 +15,7 @@ export default function loginBody() {
               </div>
 
               <div>
-                <label
-                  htmlFor="username"
-                  className="text-gray-800 text-sm mb-2 block"
-                >
+                <label htmlFor="username" className="text-gray-800 text-sm mb-2 block">
                   Username
                 </label>
                 <input
@@ -30,11 +27,9 @@ export default function loginBody() {
                   placeholder="Enter username"
                 />
               </div>
+
               <div>
-                <label
-                  htmlFor="password"
-                  className="text-gray-800 text-sm mb-2 block"
-                >
+                <label htmlFor="password" className="text-gray-800 text-sm mb-2 block">
                   Password
                 </label>
                 <input
