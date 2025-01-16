@@ -3,7 +3,7 @@ import LoginHeader from "./login-header";
 import LoginBody from "./login-body";
 import LoginFooter from "./login-footer";
 
-function login() {
+export default function loginPage() {
   return (
     <div>
       <LoginHeader />
@@ -13,4 +13,3 @@ function login() {
   );
 }
 
-export default login;

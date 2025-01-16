@@ -1,6 +1,6 @@
 import sidepic from "../images/login-sidepic.svg";
 
-export default function body() {
+export default function loginBody() {
   return (
     <main className="font-[sans-serif]">
       <div className=" mt-1 md:mt-[-70px] min-h-screen flex flex-col items-center justify-center py-6 px-4">
@@ -65,7 +65,7 @@ export default function body() {
 
                 <div className="text-sm">
                   <a
-                    href="#"
+                    href="./forgot-password"
                     className="text-yellow-400 hover:underline font-semibold"
                   >
                     Forgot your password?
