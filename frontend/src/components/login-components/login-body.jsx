@@ -65,7 +65,7 @@ export default function loginBody() {
 
                 <div className="text-sm">
                   <a
-                    href="./forgot-password"
+                    href="./forgotpassword"
                     className="text-yellow-400 hover:underline font-semibold"
                   >
                     Forgot your password?

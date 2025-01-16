@@ -2,9 +2,8 @@ import React from "react";
 
 export default function fpbody() {
   return (
-    <form className="space-y-6 font-sans text-gray-800 max-w-md mx-auto px-4 sm:px-6 md:px-8">
-      {/* Input field with email icon */}
-      <div className="relative flex items-center">
+    <form className="space-y-2 font-sans text-gray-800 max-w-md mx-auto px-4 sm:px-6 md:px-8">
+      <div className="relative flex items-center mb-4">
         <input
           type="email"
           placeholder="Verify Email"
@@ -38,12 +37,14 @@ export default function fpbody() {
         </svg>
       </div>
 
-      <button
-        type="button"
-        className="px-6 py-3 w-full mt-8 text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all"
-      >
+      <button type="button" className="px-6 py-3 w-full text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all">
         Submit
       </button>
+
+      <a href='./'><button type="button" className="px-6 py-3 mt-2 w-full text-sm bg-gray-700 hover:bg-gray-800 text-white rounded-md active:bg-gray-900 focus:ring-2 focus:ring-gray-900 transition-all">
+        Back
+      </button>
+      </a>
     </form>
   );
 }
