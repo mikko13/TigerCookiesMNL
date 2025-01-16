@@ -1,7 +1,7 @@
 import React from "react";
-import FpOtpHeader from "./fpotp_header";
-import FpOtpBody from "./fpotp_body";
-import FpOtpFooter from "./fpotp_footer";
+import FpOtpHeader from "./fpOtp_header";
+import FpOtpBody from "./fpOtp_body";
+import FpOtpFooter from "./fpOtp_footer";
 
 export default function ForgotPasswordOtp() {
   return (

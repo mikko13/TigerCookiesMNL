@@ -1,7 +1,7 @@
 import React from "react";
-import FPHeader from "./fpheader";
-import FPBody from "./fpbody";
-import FPFooter from "./fpfooter";
+import FPHeader from "./fpHeader";
+import FPBody from "./fpBody";
+import FPFooter from "./fpFooter";
 
 export default function ForgotPasswordPage() {
   return (
