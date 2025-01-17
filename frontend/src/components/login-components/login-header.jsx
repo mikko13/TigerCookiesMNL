@@ -16,7 +16,7 @@ export default function loginHeader() {
 
           <div className="flex ml-auto z-50">
             <a href="../testing">
-              <button className="bg-blue-200 hover:bg-yellow-300 flex items-center transition-all text-base rounded-md px-4 py-2">
+              <button className="bg-yellow-200 hover:bg-yellow-300 flex items-center transition-all text-base rounded-md px-4 py-2">
                 Contact Admin
               </button>
             </a>
