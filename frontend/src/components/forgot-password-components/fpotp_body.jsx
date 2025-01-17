@@ -36,13 +36,14 @@ export default function FpOtpBody() {
           </g>
         </svg>
       </div>
-
-      <button
-        type="button"
-        className="px-6 py-3 w-full text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all"
-      >
-        Submit
-      </button>
+      <a href="./testing">
+        <button
+          type="button"
+          className="px-6 py-3 w-full text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all"
+        >
+          Submit
+        </button>
+      </a>
 
       <a href="./forgotpassword">
         <button

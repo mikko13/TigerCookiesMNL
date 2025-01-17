@@ -122,13 +122,14 @@ export default function LoginBody() {
                   </a>
                 </div>
               </div>
-
-              <button
-                type="submit"
-                className="w-full shadow-xl py-2.5 px-4 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
-              >
-                Sign in
-              </button>
+              <a href="./testing">
+                <button
+                  type="submit"
+                  className="w-full shadow-xl py-2.5 px-4 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
+                >
+                  Sign in
+                </button>
+              </a>
             </form>
           </div>
 
