@@ -125,7 +125,7 @@ export default function LoginBody() {
               <a href="./testing">
                 <button
                   type="submit"
-                  className="w-full shadow-xl py-2.5 px-4 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
+                  className="w-full shadow-xl py-2.5 px-4 mt-3 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
                 >
                   Sign in
                 </button>
