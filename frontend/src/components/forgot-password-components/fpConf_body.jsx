@@ -8,7 +8,7 @@ export default function FpConfBody() {
   };
 
   return (
-    <form className="space-y-2 font-sans text-gray-800 max-w-md mx-auto px-4 sm:px-6 md:px-8">
+    <form className="space-y-2 font-sans text-gray-800 max-w-md mx-auto px-4 sm:px-6 md:px-8 mt-12">
       {/* New Password Field */}
       <div className="relative flex items-center mb-4">
         <input
