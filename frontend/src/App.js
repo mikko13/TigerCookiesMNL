@@ -4,8 +4,9 @@ import Login from "./components/login-components/loginPage";
 import ForgotPassword from "./components/forgot-password-components/forgotpasswordPage";
 import ForgotPasswordOtp from "./components/forgot-password-components/forgotpasswordOTP";
 import ForgotPasswordConfirm from "./components/forgot-password-components/forgotpasswordConfirm";
-import EmployeeAttendance from "./components/employee_attendance_components/empAttendance";
+import EmployeeAttendance from "./components/employee-attendance-components/empAttendance";
 import EmployeePayroll from "./components/payroll-employee-components/payrollemployeePage";
+import AdminManageAccount from "./components/admin-manage-account-components/adminManageAccount_sidebar"
 
 export default function App() {
   return (
@@ -20,6 +21,9 @@ export default function App() {
         />
         <Route path="/attendance" element={<EmployeeAttendance />} />
         <Route path="/payroll" element={<EmployeePayroll />} />
+
+        {/* Admin Side*/}
+        <Route path ="/adminmanageaccount" element={<AdminManageAccount />} />
       </Routes>
     </Router>
   );
