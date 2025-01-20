@@ -1,7 +1,7 @@
 import React from "react";
 import Logo from "../images/logo.png";
 
-export default function EmpAttendanceSideBar() {
+export default function AdminManageAccountSideBar() {
   return (
     <nav className="bg-gradient-to-b from-yellow-500 via-yellow-400 to-yellow-300 h-screen fixed top-0 left-0 min-w-[250px] py-6 px-4 font-[sans-serif] tracking-wide overflow-auto shadow-lg shadow-gray-500/50">
       <div className="flex justify-center mb-6">
@@ -15,8 +15,8 @@ export default function EmpAttendanceSideBar() {
           className="w-10 h-10 rounded-full border-2 border-gray-600"
         />
         <div>
-          <p className="text-sm text-gray-800">pangalan mo!</p>
-          <p className="text-xs text-gray-500 mt-0.5">email mo!</p>
+          <p className="text-sm text-gray-800">pangalan ng admin!</p>
+          <p className="text-xs text-gray-500 mt-0.5">email ng admin!</p>
         </div>
       </div>
 

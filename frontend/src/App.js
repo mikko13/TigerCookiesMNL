@@ -6,7 +6,7 @@ import ForgotPasswordOtp from "./components/forgot-password-components/forgotpas
 import ForgotPasswordConfirm from "./components/forgot-password-components/forgotpasswordConfirm";
 import EmployeeAttendance from "./components/employee-attendance-components/empAttendance";
 import EmployeePayroll from "./components/payroll-employee-components/payrollemployeePage";
-import AdminManageAccount from "./components/admin-manage-account-components/adminManageAccount_sidebar"
+import AdminManageAccount from "./components/admin-manage-account-components/adminManageAccount"
 
 export default function App() {
   return (
