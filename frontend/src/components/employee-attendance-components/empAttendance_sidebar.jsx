@@ -3,7 +3,7 @@ import Logo from "../images/logo.png";
 
 export default function EmpAttendanceSideBar() {
   return (
-    <nav className="bg-gradient-to-b from-yellow-500 via-yellow-400 to-yellow-300 h-screen fixed top-0 left-0 min-w-[250px] py-6 px-4 font-[sans-serif] tracking-wide overflow-auto shadow-lg shadow-gray-500/50">
+    <nav className="bg-gradient-to-b from-yellow-500 via-yellow-400 to-yellow-300 h-screen fixed top-0 left-0 min-w-[250px] py-6 px-4 font-[sans-serif] tracking-wide overflow-auto shadow-lg shadow-gray-500/50 overflow-hidden">
       <div className="flex justify-center mb-6">
         <img src={Logo} alt="logo" className="w-[140px]" />
       </div>

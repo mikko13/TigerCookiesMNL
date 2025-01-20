@@ -21,7 +21,7 @@ export default function AdminManageAccount() {
       </div>
 
       <div
-        className={`flex-grow flex items-center justify-center transition-all duration-300 ${
+        className={`flex-grow flex items-center justify-center overflow-auto transition-all duration-300 ${
           isSidebarVisible ? "ml-[250px]" : "ml-0"
         }`}
       >
