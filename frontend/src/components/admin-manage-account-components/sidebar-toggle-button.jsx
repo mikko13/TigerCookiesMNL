@@ -1,6 +1,9 @@
 import React from "react";
 
-export default function SidebarToggleButton({ isSidebarVisible, toggleSidebar }) {
+export default function SidebarToggleButton({
+  isSidebarVisible,
+  toggleSidebar,
+}) {
   return (
     <button
       onClick={toggleSidebar}

@@ -1,16 +1,15 @@
 import React, { useState } from "react";
 import Sidebar from "./empAttendance_sidebar";
-import Main from "./empAttendance_main"
+import Main from "./empAttendance_main";
 import SidebarToggleButton from "./sidebar-toggle-button";
-
 
 export default function EmpAttendance() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-  
-    const toggleSidebar = () => {
-      setIsSidebarVisible(!isSidebarVisible);
-    };
-    
+
+  const toggleSidebar = () => {
+    setIsSidebarVisible(!isSidebarVisible);
+  };
+
   return (
     <div className="flex h-screen">
       <div
