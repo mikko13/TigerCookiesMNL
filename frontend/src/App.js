@@ -7,6 +7,7 @@ import ForgotPasswordConfirm from "./components/forgot-password-components/forgo
 import EmployeeAttendance from "./components/employee-attendance-components/empAttendance";
 import EmployeePayroll from "./components/payroll-employee-components/payrollemployeePage";
 import AdminManageAccount from "./components/admin-manage-account-components/adminManageAccount"
+import CreateAccount from "./components/admin-create-account-components/adminCreateAccount"
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
 
         {/* Admin Side*/}
         <Route path ="/adminmanageaccount" element={<AdminManageAccount />} />
+        <Route path ="/createaccount" element={<CreateAccount />} />
       </Routes>
     </Router>
   );
