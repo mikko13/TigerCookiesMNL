@@ -1,18 +1,37 @@
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "./empAttendance_sidebar";
 import Main from "./empAttendance_main"
+import SidebarToggleButton from "./sidebar-toggle-button";
+
 
 export default function EmpAttendance() {
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  
+    const toggleSidebar = () => {
+      setIsSidebarVisible(!isSidebarVisible);
+    };
+    
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex flex-col min-h-screen bg-[#fefee6]">
-        <div className="flex h-screen">
-          <Sidebar />
+    <div className="flex h-screen">
+      <div
+        className={`transform ${
+          isSidebarVisible ? "translate-x-0" : "-translate-x-[250px]"
+        } transition-transform duration-300 fixed h-full z-10`}
+      >
+        <Sidebar />
+      </div>
 
-          <div className="ml-[250px] flex-grow flex items-center justify-center">
-            <Main />
-          </div>
-        </div>
+      <div
+        className={`flex-grow flex items-center justify-center transition-all duration-300 ${
+          isSidebarVisible ? "ml-[250px]" : "ml-0"
+        }`}
+      >
+        <SidebarToggleButton
+          isSidebarVisible={isSidebarVisible}
+          toggleSidebar={toggleSidebar}
+        />
+
+        <Main />
       </div>
     </div>
   );
