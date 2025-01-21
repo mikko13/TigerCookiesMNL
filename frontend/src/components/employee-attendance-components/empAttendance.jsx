@@ -21,8 +21,8 @@ export default function EmpAttendance() {
       </div>
 
       <div
-        className={`absolute z-50 top-1/2 transform -translate-y-1/2 ${
-          isSidebarVisible ? "left-[230px]" : "-left-5"
+        className={`absolute z-50 top-10 transform -translate-y-1/2 ${
+          isSidebarVisible ? "left-[240px]" : "-left-3"
         } transition-all duration-300`}
       >
         <SidebarToggleButton
