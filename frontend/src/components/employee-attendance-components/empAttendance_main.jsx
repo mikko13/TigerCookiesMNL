@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function EmpAttendanceMain() {
+export default function EmpAttendanceCheckOut() {
   return (
     <div className="text-center">
       <h1 className="text-2xl font-semibold mb-4">
