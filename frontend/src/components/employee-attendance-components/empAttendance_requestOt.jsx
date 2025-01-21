@@ -34,7 +34,7 @@ export default function EmpAttendanceRequestOt() {
           ></textarea>
         </div>
         <div className="flex space-x-4">
-          <a href="./requestovertime">
+          <a href="./checkout">
             <button
               type="button"
               class="px-6 py-3 w-full text-sm bg-gray-700 hover:bg-gray-800 text-white rounded-md active:bg-gray-900 focus:ring-2 focus:ring-gray-900 transition-all"
