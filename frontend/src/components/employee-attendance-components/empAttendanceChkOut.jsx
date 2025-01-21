@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import Sidebar from "./empAttendance_sidebar";
-import Request from "./empAttendance_requestOt";
+import CheckOut from "./empAttendance_checkOut";
 import SidebarToggleButton from "./sidebar-toggle-button";
 
-export default function EmpAttendanceReqOT() {
+export default function EmpAttendanceCheckOut() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
-
   return (
     <div className="flex h-screen">
       <div
@@ -36,7 +35,7 @@ export default function EmpAttendanceReqOT() {
           isSidebarVisible ? "ml-[250px]" : "ml-0"
         }`}
       >
-        <Request />
+        <CheckOut />
       </div>
     </div>
   );

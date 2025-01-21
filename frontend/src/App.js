@@ -5,7 +5,8 @@ import ForgotPassword from "./components/forgot-password-components/forgotpasswo
 import ForgotPasswordOtp from "./components/forgot-password-components/forgotpasswordOTP";
 import ForgotPasswordConfirm from "./components/forgot-password-components/forgotpasswordConfirm";
 import EmployeeAttendance from "./components/employee-attendance-components/empAttendance";
-import EmpAttendanceReqOT from "./components/employee-attendance-components/empAttendanceReqOT";
+import EmployeeAttendanceChkOut from "./components/employee-attendance-components/empAttendanceChkOut";
+import EmployeeAttendanceReqOT from "./components/employee-attendance-components/empAttendanceReqOT";
 import EmployeePayroll from "./components/payroll-employee-components/payrollemployeePage";
 import AdminManageAccount from "./components/admin-manage-account-components/adminManageAccount";
 import CreateAccount from "./components/admin-create-account-components/adminCreateAccount";
@@ -22,7 +23,8 @@ export default function App() {
           element={<ForgotPasswordConfirm />}
         />
         <Route path="/attendance" element={<EmployeeAttendance />} />
-        <Route path="/requestovertime" element={<EmpAttendanceReqOT />} />
+        <Route path="/checkout" element={<EmployeeAttendanceChkOut />} />
+        <Route path="/requestovertime" element={<EmployeeAttendanceReqOT />} />
         <Route path="/payroll" element={<EmployeePayroll />} />
 
         {/* Admin Side */}
