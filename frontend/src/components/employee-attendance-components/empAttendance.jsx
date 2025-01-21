@@ -21,15 +21,21 @@ export default function EmpAttendance() {
       </div>
 
       <div
-        className={`flex-grow flex items-center justify-center overflow-auto transition-all duration-300 ${
-          isSidebarVisible ? "ml-[250px]" : "ml-0"
-        }`}
+        className={`absolute z-50 top-1/2 transform -translate-y-1/2 ${
+          isSidebarVisible ? "left-[230px]" : "-left-5"
+        } transition-all duration-300`}
       >
         <SidebarToggleButton
           isSidebarVisible={isSidebarVisible}
           toggleSidebar={toggleSidebar}
         />
+      </div>
 
+      <div
+        className={`flex-grow flex items-center justify-center overflow-auto transition-all duration-300 ${
+          isSidebarVisible ? "ml-[250px]" : "ml-0"
+        }`}
+      >
         <Main />
       </div>
     </div>

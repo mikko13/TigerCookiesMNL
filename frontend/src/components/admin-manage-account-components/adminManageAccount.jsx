@@ -15,9 +15,20 @@ export default function AdminManageAccount() {
       <div
         className={`transform ${
           isSidebarVisible ? "translate-x-0" : "-translate-x-[250px]"
-        } transition-transform duration-300 fixed h-full z-10`}
+        } transition-transform duration-300 fixed h-full`}
       >
         <Sidebar />
+      </div>
+
+      <div
+        className={`absolute z-50 top-1/2 transform -translate-y-1/2 ${
+          isSidebarVisible ? "left-[230px]" : "-left-5"
+        } transition-all duration-300`}
+      >
+        <SidebarToggleButton
+          isSidebarVisible={isSidebarVisible}
+          toggleSidebar={toggleSidebar}
+        />
       </div>
 
       <div
@@ -25,11 +36,6 @@ export default function AdminManageAccount() {
           isSidebarVisible ? "ml-[250px]" : "ml-0"
         }`}
       >
-        <SidebarToggleButton
-          isSidebarVisible={isSidebarVisible}
-          toggleSidebar={toggleSidebar}
-        />
-
         <Main />
       </div>
     </div>

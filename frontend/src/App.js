@@ -23,7 +23,7 @@ export default function App() {
         <Route path="/attendance" element={<EmployeeAttendance />} />
         <Route path="/payroll" element={<EmployeePayroll />} />
 
-        {/* Admin Side*/}
+        {/* Admin Side */}
         <Route path ="/adminmanageaccount" element={<AdminManageAccount />} />
         <Route path ="/createaccount" element={<CreateAccount />} />
       </Routes>

@@ -7,7 +7,7 @@ export default function SidebarToggleButton({
   return (
     <button
       onClick={toggleSidebar}
-      className="fixed top-4 left-4 z-20 w-10 h-10 flex items-center justify-center bg-yellow-400 rounded-full shadow-md hover:bg-yellow-500 transition-colors"
+      className="left-4 w-10 h-10 flex items-center justify-center bg-yellow-400 rounded-full shadow-md hover:bg-yellow-500 transition-colors"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -16,7 +16,7 @@ export default function SidebarToggleButton({
         strokeWidth={2}
         stroke="currentColor"
         className={`w-5 h-5 transform transition-transform ${
-          isSidebarVisible ? "rotate-0" : "rotate-180"
+          isSidebarVisible ? "rotate-180" : "rotate-0"
         }`}
       >
         <path
