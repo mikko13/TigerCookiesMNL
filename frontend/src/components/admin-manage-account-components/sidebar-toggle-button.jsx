@@ -7,7 +7,7 @@ export default function SidebarToggleButton({
   return (
     <button
       onClick={toggleSidebar}
-      className="left-4 w-6 h-10 flex items-center justify-center bg-yellow-500 rounded-[5px] transition-colors"
+      className="left-4 w-6 h-10 flex items-center justify-center bg-[#ecb609] rounded-[5px] transition-colors"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
