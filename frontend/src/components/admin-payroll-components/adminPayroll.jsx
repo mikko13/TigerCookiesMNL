@@ -1,9 +1,9 @@
 import { useState } from "react";
-import Sidebar from "./empPayroll_sidebar";
+import Sidebar from "./adminPayroll_sidebar";
 import SidebarToggleButton from "./sidebar-toggle-button";
-import Main from "./empPayroll_Main";
+import Main from "./adminPayroll_Main";
 
-export default function EmployeePayroll() {
+export default function AdminPayroll() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   const toggleSidebar = () => {

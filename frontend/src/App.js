@@ -12,6 +12,8 @@ import EmployeeAttendanceReqOT from "./components/employee-attendance-components
 import AdminManageAccount from "./components/admin-manage-account-components/adminManageAccount";
 import CreateAccount from "./components/admin-create-account-components/adminCreateAccount";
 import EmployeePayroll from "./components/employee-payroll-components/empPayroll";
+import AdminPayroll from "./components/admin-payroll-components/adminPayroll";
+
 
 export default function App() {
   return (
@@ -34,6 +36,7 @@ export default function App() {
         {/* Admin Side */}
         <Route path="/adminmanageaccount" element={<AdminManageAccount />} />
         <Route path="/createaccount" element={<CreateAccount />} />
+        <Route path="/adminpayroll" element={<AdminPayroll />} />
       </Routes>
     </Router>
   );
