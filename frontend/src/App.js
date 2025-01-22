@@ -7,9 +7,9 @@ import ForgotPasswordConfirm from "./components/forgot-password-components/forgo
 import EmployeeAttendance from "./components/employee-attendance-components/empAttendance";
 import EmployeeAttendanceChkOut from "./components/employee-attendance-components/empAttendanceChkOut";
 import EmployeeAttendanceReqOT from "./components/employee-attendance-components/empAttendanceReqOT";
-import EmployeePayroll from "./components/payroll-employee-components/payrollemployeePage";
 import AdminManageAccount from "./components/admin-manage-account-components/adminManageAccount";
 import CreateAccount from "./components/admin-create-account-components/adminCreateAccount";
+import EmployeePayroll from "./components/employee-payroll-components/empPayroll";
 
 export default function App() {
   return (
