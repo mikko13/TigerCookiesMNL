@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import Sidebar from "./empAttendance_sidebar";
-import Main from "./empAttendance_main";
+import Shift from "./empAttendance_selShift";
 import SidebarToggleButton from "./sidebar-toggle-button";
 
-export default function EmpAttendance() {
+export default function EmpAttendanceSelectShift() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
-
   return (
     <div className="flex h-screen">
       <div
@@ -30,13 +29,12 @@ export default function EmpAttendance() {
           toggleSidebar={toggleSidebar}
         />
       </div>
-
       <div
         className={`flex-grow flex items-center justify-center overflow-auto transition-all duration-300 ${
           isSidebarVisible ? "ml-[250px]" : "ml-0"
         }`}
       >
-        <Main />
+        <Shift />
       </div>
     </div>
   );

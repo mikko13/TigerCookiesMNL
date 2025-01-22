@@ -4,8 +4,9 @@ import Login from "./components/login-components/loginPage";
 import ForgotPassword from "./components/forgot-password-components/forgotpasswordPage";
 import ForgotPasswordOtp from "./components/forgot-password-components/forgotpasswordOTP";
 import ForgotPasswordConfirm from "./components/forgot-password-components/forgotpasswordConfirm";
-import EmployeeAttendance from "./components/employee-attendance-components/empAttendance";
+import EmployeeAttendanceOpenCam from "./components/employee-attendance-components/empAttendanceOpenCam";
 import EmployeeAttendanceChkIn from "./components/employee-attendance-components/empAttendanceChkIn";
+import EmployeeAttendanceSelShift from "./components/employee-attendance-components/empAttendanceSelShift";
 import EmployeeAttendanceChkOut from "./components/employee-attendance-components/empAttendanceChkOut";
 import EmployeeAttendanceReqOT from "./components/employee-attendance-components/empAttendanceReqOT";
 import AdminManageAccount from "./components/admin-manage-account-components/adminManageAccount";
@@ -23,8 +24,9 @@ export default function App() {
           path="/forgotpasswordconfirm"
           element={<ForgotPasswordConfirm />}
         />
-        <Route path="/attendance" element={<EmployeeAttendance />} />
+        <Route path="/opencam" element={<EmployeeAttendanceOpenCam />} />
         <Route path="/checkin" element={<EmployeeAttendanceChkIn />} />
+        <Route path="/shift" element={<EmployeeAttendanceSelShift />} />
         <Route path="/checkout" element={<EmployeeAttendanceChkOut />} />
         <Route path="/requestovertime" element={<EmployeeAttendanceReqOT />} />
         <Route path="/payroll" element={<EmployeePayroll />} />
