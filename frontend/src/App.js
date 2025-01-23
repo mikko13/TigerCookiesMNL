@@ -20,6 +20,8 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
+
+        {/* Employee Side */}
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/forgotpasswordotp" element={<ForgotPasswordOtp />} />
         <Route
@@ -34,7 +36,7 @@ export default function App() {
         <Route path="/payroll" element={<EmployeePayroll />} />
 
         {/* Admin Side */}
-        <Route path="/adminmanageaccount" element={<AdminManageAccount />} />
+        <Route path="/manageemployeeaccounts" element={<AdminManageAccount />} />
         <Route path="/createaccount" element={<CreateAccount />} />
         <Route path="/adminpayroll" element={<AdminPayroll />} />
       </Routes>

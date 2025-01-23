@@ -1,39 +1,19 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const multer = require("multer");
-const nanoid = require("nanoid");
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+const connectDB = require('./config/db');
+const taskRoutes = require('./routes/employeeRoutes');
+
+dotenv.config();
+connectDB();
 
 const app = express();
 
-// Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-// Connect to MongoDB
-/*mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB connection error:", err));
-*/
-// Multer storage configuration for file uploads
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+app.use('/api/employees', taskRoutes);
 
-// API route for image upload
-app.post("/upload", upload.single("image"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: "No image uploaded" });
-  }
-
-  // Process the uploaded image (save to database or verify face)
-  console.log("Received image:", req.file.originalname);
-
-  res.json({ success: true, message: "Image uploaded successfully!" });
-});
-
-// Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
