@@ -17,7 +17,20 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const fileTypes = /jpeg|jpg|png/;
+    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = fileTypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error("Only images are allowed"));
+    }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 router.post("/", upload.single("profilePicture"), async (req, res) => {
   try {
@@ -78,6 +91,34 @@ router.get("/", async (req, res) => {
     res.status(200).json(employees);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const account = await Account.findOne({ email });
+    if (!account) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, account.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    res.status(200).json({
+      message: "Login successful",
+      account: {
+        id: account._id,
+        firstName: account.firstName,
+        lastName: account.lastName,
+        email: account.email,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred", error: error.message });
   }
 });
 

@@ -1,19 +1,21 @@
-import React, { useState } from "react";
+import React from "react";
+import { useLoginState } from "./loginConstants";
+import { errorToast, successToast } from "./toastMessages";
 import sidepic from "../images/login-sidepic.svg";
+import "./ToastStyles.css";
 
 export default function LoginBody() {
-  const [showPassword, setShowPassword] = useState(false);
-
-  const togglePasswordVisibility = () => {
-    setShowPassword((prevState) => !prevState);
-  };
+  const {
+    email, setEmail, password, setPassword, showPassword, setShowPassword,
+    error, setError, success, setSuccess, navigate, togglePasswordVisibility, handleLogin
+  } = useLoginState();
 
   return (
     <main className="font-[sans-serif] bg-[#fefee6]">
       <div className="mt-1 md:mt-[-70px] min-h-screen flex flex-col items-center justify-center py-6 px-4">
         <div className="grid md:grid-cols-2 items-center gap-6 max-w-6xl w-full">
           <div className="border bg-[#ffffff] border-gray-300 rounded-lg p-6 max-w-md shadow-[0_2px_22px_-4px_rgba(93,96,127,0.2)] max-md:mx-auto">
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleLogin}>
               <div className="mb-8 ">
                 <h3 className="text-gray-800 text-3xl font-bold">Sign in</h3>
                 <p className="text-gray-500 text-sm mt-4 leading-relaxed">
@@ -33,6 +35,8 @@ export default function LoginBody() {
                   name="email"
                   type="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full text-sm text-gray-800 border border-gray-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
                   placeholder="Enter Email Address"
                 />
@@ -50,6 +54,8 @@ export default function LoginBody() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full text-sm text-gray-800 border border-gray-300 pl-4 pr-10 py-3 rounded-lg outline-blue-600"
                   placeholder="Enter password"
                 />
@@ -97,39 +103,12 @@ export default function LoginBody() {
                 </button>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor="remember-me"
-                    className="ml-3 block text-sm text-gray-800"
-                  >
-                    Remember me
-                  </label>
-                </div>
-
-                <div className="text-sm">
-                  <a
-                    href="./forgotpassword"
-                    className="text-yellow-400 hover:underline font-semibold"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-              </div>
-              <a href="./testing">
-                <button
-                  type="submit"
-                  className="w-full shadow-xl py-2.5 px-4 mt-3 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
-                >
-                  Sign in
-                </button>
-              </a>
+              <button
+                type="submit"
+                className="w-full shadow-xl py-2.5 px-4 mt-3 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
+              >
+                Sign in
+              </button>
             </form>
           </div>
 
@@ -141,6 +120,9 @@ export default function LoginBody() {
             />
           </div>
         </div>
+
+        {error && errorToast}
+        {success && successToast}
       </div>
     </main>
   );
