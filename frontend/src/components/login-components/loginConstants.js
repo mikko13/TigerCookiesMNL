@@ -33,7 +33,6 @@ export function useLoginState() {
       setTimeout(() => {
         navigate("/checkin");
       }, 2000);
-
     } catch (err) {
       setError(err.response?.data?.message || "An error occurred");
 
@@ -42,7 +41,18 @@ export function useLoginState() {
   };
 
   return {
-    email, setEmail, password, setPassword, showPassword, setShowPassword, 
-    error, setError, success, setSuccess, navigate, togglePasswordVisibility, handleLogin
+    email,
+    setEmail,
+    password,
+    setPassword,
+    showPassword,
+    setShowPassword,
+    error,
+    setError,
+    success,
+    setSuccess,
+    navigate,
+    togglePasswordVisibility,
+    handleLogin,
   };
 }
