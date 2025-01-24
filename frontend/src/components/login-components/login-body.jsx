@@ -6,8 +6,19 @@ import "./ToastStyles.css";
 
 export default function LoginBody() {
   const {
-    email, setEmail, password, setPassword, showPassword, setShowPassword,
-    error, setError, success, setSuccess, navigate, togglePasswordVisibility, handleLogin
+    email,
+    setEmail,
+    password,
+    setPassword,
+    showPassword,
+    setShowPassword,
+    error,
+    setError,
+    success,
+    setSuccess,
+    navigate,
+    togglePasswordVisibility,
+    handleLogin,
   } = useLoginState();
 
   return (
@@ -102,7 +113,31 @@ export default function LoginBody() {
                   )}
                 </button>
               </div>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor="remember-me"
+                    className="ml-3 block text-sm text-gray-800"
+                  >
+                    Remember me
+                  </label>
+                </div>
 
+                <div className="text-sm">
+                  <a
+                    href="./forgotpassword"
+                    className="text-yellow-400 hover:underline font-semibold"
+                  >
+                    Forgot your password?
+                  </a>
+                </div>
+              </div>
               <button
                 type="submit"
                 className="w-full shadow-xl py-2.5 px-4 mt-3 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
