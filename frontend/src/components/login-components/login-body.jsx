@@ -3,6 +3,7 @@ import { useLoginState } from "./loginConstants";
 import { errorToast, successToast } from "./toastMessages";
 import sidepic from "../images/login-sidepic.svg";
 import "./ToastStyles.css";
+import Background from "../images/background.png";
 
 export default function LoginBody() {
   const {
@@ -22,7 +23,14 @@ export default function LoginBody() {
   } = useLoginState();
 
   return (
-    <main className="font-[sans-serif] bg-white">
+    <main
+      className="font-[sans-serif]"
+      style={{
+        backgroundImage: `url(${Background})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       <div className="mt-1 md:mt-[-70px] min-h-screen flex flex-col items-center justify-center py-6 px-4">
         <div className="grid md:grid-cols-2 items-center gap-6 max-w-6xl w-full">
           <div className="border bg-[#ffffff] border-gray-300 rounded-lg p-6 max-w-md shadow-[0_2px_22px_-4px_rgba(93,96,127,0.2)] max-md:mx-auto">

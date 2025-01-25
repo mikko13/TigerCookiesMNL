@@ -1,10 +1,11 @@
 import React from "react";
 import Header from "./adminManageAccount_Header";
 import { getStatusClass } from "./getStatusClass";
-import fetchEmployees from "./fetchEmployees";
+import useEmployees from "./fetchEmployees";
+import handleDelete from "./handleDelete";
 
 export default function AdminManageAccountMain() {
-  const employees = fetchEmployees();
+  const employees = useEmployees();
 
   return (
     <div className="relative flex flex-col w-full h-full text-gray-700 shadow-md bg-clip-border">
@@ -171,7 +172,11 @@ export default function AdminManageAccountMain() {
                         />
                       </svg>
                     </button>
-                    <button class="mr-4" title="Delete">
+                    <button
+                      class="mr-4"
+                      title="Delete"
+                      onClick={() => handleDelete(employee._id)}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         class="w-5 fill-red-500 hover:fill-red-700"
