@@ -1,7 +1,7 @@
 import React from "react";
-import LoginHeader from "./login-header";
-import LoginBody from "./login-body";
-import LoginFooter from "./login-footer";
+import LoginHeader from "./LoginHeader";
+import LoginBody from "./LoginBody";
+import LoginFooter from "./LoginFooter";
 
 export default function loginPage() {
   return (

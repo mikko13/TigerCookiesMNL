@@ -1,6 +1,6 @@
 import React from "react";
-import LoginForm from "./login-form";
-import LoginSidePic from "./login-sidepic";
+import LoginForm from "./LoginForm";
+import LoginSidePic from "./LoginSidePic";
 import Background from "../images/background.png";
 
 export default function LoginBody() {
