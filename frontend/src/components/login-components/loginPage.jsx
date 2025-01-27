@@ -1,9 +1,9 @@
 import React from "react";
-import LoginHeader from "./LoginHeader";
-import LoginBody from "./LoginBody";
-import LoginFooter from "./LoginFooter";
+import LoginHeader from "./loginHeader";
+import LoginBody from "./loginBody";
+import LoginFooter from "./loginFooter";
 
-export default function loginPage() {
+export default function LoginPage() {
   return (
     <div>
       <LoginHeader />

@@ -1,7 +1,7 @@
 import React from "react";
 import Logo from "../images/logo.png";
 
-export default function loginHeader() {
+export default function LoginHeader() {
   return (
     <header className="flex items-center w-full px-4 sm:px-8 min-h-[80px] bg-white tracking-wide sticky top-0 shadow-[rgba(0,0,0,0.1)_-4px_9px_25px_-6px] font-[sans-serif]">
       <div className="relative w-full">
