@@ -37,7 +37,7 @@ export default function AdminCreateAccount() {
         />
       </div>
       <div
-        className={`mt-0 md:mt-32 flex-grow flex justify-center overflow-auto transition-all duration-300 ${
+        className={`flex-grow flex justify-center overflow-auto transition-all duration-300 ${
           isSidebarVisible ? "ml-[200px]" : "ml-0"
         }`}
       >

@@ -11,6 +11,7 @@ import EmployeeAttendanceChkOut from "./components/employee-attendance-component
 import EmployeeAttendanceReqOT from "./components/employee-attendance-components/empAttendanceReqOT";
 import AdminManageAccount from "./components/admin-manage-account-components/adminManageAccount";
 import CreateAccount from "./components/admin-create-account-components/adminCreateAccount";
+import UpdateAccount from "./components/admin-update-account-components/adminUpdateAccount";
 import EmployeePayroll from "./components/employee-payroll-components/empPayroll";
 import AdminPayroll from "./components/admin-payroll-components/adminPayroll";
 
@@ -22,23 +23,24 @@ export default function App() {
         <Route path="/" element={<Login />} />
 
         {/* Employee Side */}
-        <Route path="/forgotpassword" element={<ForgotPassword />} />
-        <Route path="/forgotpasswordotp" element={<ForgotPasswordOtp />} />
+        <Route path="/ForgotPassword" element={<ForgotPassword />} />
+        <Route path="/ForgotPasswordOtp" element={<ForgotPasswordOtp />} />
         <Route
-          path="/forgotpasswordconfirm"
+          path="/ForgotPasswordConfirm"
           element={<ForgotPasswordConfirm />}
         />
-        <Route path="/opencam" element={<EmployeeAttendanceOpenCam />} />
-        <Route path="/checkin" element={<EmployeeAttendanceChkIn />} />
-        <Route path="/shift" element={<EmployeeAttendanceSelShift />} />
-        <Route path="/checkout" element={<EmployeeAttendanceChkOut />} />
-        <Route path="/requestovertime" element={<EmployeeAttendanceReqOT />} />
-        <Route path="/payroll" element={<EmployeePayroll />} />
+        <Route path="/Opencam" element={<EmployeeAttendanceOpenCam />} />
+        <Route path="/Checkin" element={<EmployeeAttendanceChkIn />} />
+        <Route path="/Shift" element={<EmployeeAttendanceSelShift />} />
+        <Route path="/Checkout" element={<EmployeeAttendanceChkOut />} />
+        <Route path="/Requestovertime" element={<EmployeeAttendanceReqOT />} />
+        <Route path="/Payroll" element={<EmployeePayroll />} />
 
         {/* Admin Side */}
-        <Route path="/manageemployeeaccounts" element={<AdminManageAccount />} />
-        <Route path="/createaccount" element={<CreateAccount />} />
-        <Route path="/adminpayroll" element={<AdminPayroll />} />
+        <Route path="/ManageEmployeeAccounts" element={<AdminManageAccount />} />
+        <Route path="/CreateAccount" element={<CreateAccount />} />
+        <Route path="/AdminPayroll" element={<AdminPayroll />} />
+        <Route path="/ModifyAccount/:employeeId" element={<UpdateAccount />} />
       </Routes>
     </Router>
   );

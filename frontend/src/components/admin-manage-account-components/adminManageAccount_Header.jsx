@@ -42,7 +42,7 @@ export default function AdminManageAccountMain() {
             </div>
           </div>
           <a
-            href="/createaccount"
+            href="/CreateAccount"
             className="flex select-none items-center gap-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 py-1 px-2 md:py-2 md:px-4 text-center align-middle font-sans text-[10px] md:text-xs font-bold uppercase text-white transition-all focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none sm:py-1 sm:px-3 sm:text-xs"
           >
             Create Account
