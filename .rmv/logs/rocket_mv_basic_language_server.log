@@ -8137,3 +8137,4 @@ Account{name=..., path=..., type=PREDICT}
 2025-01-28 22:05:10.749 [pool-3-thread-1] INFO  com.rs.mv.mvvs.client.catalog.from.scan.CurrentPathScanner - [client:400205]scan file in current open file directory(C:/Users/Mikko/Desktop/TigerCookiesMNL/frontend/src/components/admin-update-account-components)
 2025-01-28 22:05:18.882 [pool-3-thread-1] INFO  com.rs.mv.mvvs.client.catalog.from.scan.CurrentPathScanner - [client:400205]scan file in current open file directory(C:/Users/Mikko/Desktop/TigerCookiesMNL/frontend/src/components/admin-create-account-components)
 2025-01-28 22:05:19.911 [pool-3-thread-1] INFO  com.rs.mv.mvvs.client.catalog.from.scan.CurrentPathScanner - [client:400205]scan file in current open file directory(C:/Users/Mikko/Desktop/TigerCookiesMNL/frontend/src/components/admin-update-account-components)
+2025-01-28 22:12:31.499 [main] WARN  com.rs.mv.mvvs.Startup - [LSP:100104]ROCKET MV BASIC EXTENSION exited
