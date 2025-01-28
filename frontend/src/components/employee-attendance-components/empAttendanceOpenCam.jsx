@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Sidebar from "./empAttendance_sidebar";
 import Open from "./empAttendance_openCam";
-import SidebarToggleButton from "./sidebar-toggle-button";
+import Sidebar from "../sidebar-components/employee-sidebar/employeeSidebar";
+import SidebarToggleButton from "../sidebar-components/employee-sidebar/sidebar-toggle-button";
 
 export default function EmpAttendance() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);

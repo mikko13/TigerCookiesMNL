@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Sidebar from "./empAttendance_sidebar";
 import Shift from "./empAttendance_selShift";
-import SidebarToggleButton from "./sidebar-toggle-button";
+import Sidebar from "../sidebar-components/employee-sidebar/employeeSidebar";
+import SidebarToggleButton from "../sidebar-components/employee-sidebar/sidebar-toggle-button";
 
 export default function EmpAttendanceSelectShift() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);

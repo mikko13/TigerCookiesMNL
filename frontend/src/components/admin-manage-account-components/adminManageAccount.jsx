@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Sidebar from "./adminManageAccount_sidebar";
 import Main from "./adminManageAccount_Main";
-import SidebarToggleButton from "./sidebar-toggle-button";
+import Sidebar from "../sidebar-components/admin-sidebar/adminSidebar";
+import SidebarToggleButton from "../sidebar-components/admin-sidebar/sidebar-toggle-button";
 
 export default function AdminManageAccount() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import Sidebar from "./adminPayroll_sidebar";
-import SidebarToggleButton from "./sidebar-toggle-button";
+import Sidebar from "../sidebar-components/admin-sidebar/adminSidebar";
+import SidebarToggleButton from "../sidebar-components/admin-sidebar/sidebar-toggle-button";
 import Main from "./adminPayroll_Main";
 
 export default function AdminPayroll() {

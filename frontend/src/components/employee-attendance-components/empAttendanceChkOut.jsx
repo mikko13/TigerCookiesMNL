@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Sidebar from "./empAttendance_sidebar";
 import CheckOut from "./empAttendance_checkOut";
-import SidebarToggleButton from "./sidebar-toggle-button";
+import Sidebar from "../sidebar-components/employee-sidebar/employeeSidebar";
+import SidebarToggleButton from "../sidebar-components/employee-sidebar/sidebar-toggle-button";
 
 export default function EmpAttendanceCheckOut() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);

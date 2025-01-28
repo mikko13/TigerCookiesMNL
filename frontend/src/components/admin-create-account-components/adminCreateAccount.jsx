@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Form from "./adminCreateAccount_form";
-import Sidebar from "./adminCreateAccount_sidebar";
-import SidebarToggleButton from "./sidebar-toggle-button";
+import Sidebar from "../sidebar-components/admin-sidebar/adminSidebar";
+import SidebarToggleButton from "../sidebar-components/admin-sidebar/sidebar-toggle-button";
 import Background from "../images/background.png";
 
 export default function AdminCreateAccount() {
