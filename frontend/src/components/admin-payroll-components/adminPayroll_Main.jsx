@@ -7,7 +7,7 @@ export default function AdminPayrollMain() {
         <div className="flex flex-col justify-between gap-8 mb-4 md:flex-row md:items-center">
           <div>
             <h5 className="block font-sans text-md md:text-xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900">
-              Payroll
+              Payroll History
             </h5>
           </div>
           <div className="flex w-full gap-2 shrink-0 md:w-max">
@@ -105,13 +105,7 @@ export default function AdminPayrollMain() {
               <td className="p-4 border-b border-blue-gray-50">
                 <div className="flex gap-2">
                   <button className="px-3 py-1 text-sm font-semibold text-white bg-yellow-500 rounded hover:bg-yellow-700" title="Details">
-                    Details
-                  </button>
-                  <button className="px-3 py-1 text-sm font-semibold text-white bg-yellow-500 rounded hover:bg-yellow-700" title="Print">
-                    Print
-                  </button>
-                  <button className="px-3 py-1 text-sm font-semibold text-white bg-yellow-500 rounded hover:bg-yellow-700" title="Print">
-                    Edit
+                    Payroll
                   </button>
                   <button className="px-3 py-1 text-sm font-semibold text-white bg-yellow-500 rounded hover:bg-yellow-700" title="Print">
                     Delete
