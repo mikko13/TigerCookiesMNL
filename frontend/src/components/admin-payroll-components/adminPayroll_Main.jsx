@@ -105,10 +105,10 @@ export default function AdminPayrollMain() {
                 
                 <td className="p-4 border-b border-blue-gray-50">
                   <div className="flex gap-2">
-                    <button className="px-3 py-1 text-sm font-semibold text-white bg-yellow-500 rounded hover:bg-yellow-700" title="Details">
+                    <button className="px-3 py-1 text-sm font-semibold text-white bg-yellow-500 rounded hover:bg-yellow-700" title="Payroll">
                       Payroll
                     </button>
-                    <button className="px-3 py-1 text-sm font-semibold text-white bg-yellow-500 rounded hover:bg-yellow-700" title="Print">
+                    <button className="px-3 py-1 text-sm font-semibold text-white bg-red-500 rounded hover:bg-red-700" title="Delete">
                       Delete
                     </button>
                   </div>
