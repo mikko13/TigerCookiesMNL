@@ -84,6 +84,7 @@ export default function AdminPayrollMain() {
                       alt="Picture ng employee"
                       className="relative inline-block h-12 w-12 !rounded-full border border-blue-gray-50 bg-blue-gray-50/50 object-contain object-center p-1"
                     />
+                    <p className="">Josh Denziel Joves</p>
                   </div>
                 </td>
                 <td className="p-4 border-b border-blue-gray-50">
