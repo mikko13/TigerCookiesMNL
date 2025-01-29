@@ -107,6 +107,9 @@ export default function AdminPayrollHistoryMain() {
                   <button className="px-3 py-1 text-sm font-semibold text-white bg-yellow-500 rounded hover:bg-yellow-700" title="Details">
                     Payroll
                   </button>
+                  <button className="px-3 py-1 text-sm font-semibold text-white bg-yellow-500 rounded hover:bg-yellow-700" title="Details">
+                    Edit
+                  </button>
                   <button className="px-3 py-1 text-sm font-semibold text-white bg-yellow-500 rounded hover:bg-yellow-700" title="Print">
                     Delete
                   </button>
