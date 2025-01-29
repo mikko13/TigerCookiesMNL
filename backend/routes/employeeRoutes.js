@@ -192,6 +192,20 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     employee.ratePerHour = ratePerHour || employee.ratePerHour;
     employee.shift = shift || employee.shift;
 
+    if (req.body.profilePicture === "") {
+      const fs = require("fs");
+      const oldFilePath = path.join(
+        __dirname,
+        `../../frontend/public/employee-profile-pics/${employee.profilePicture}`
+      );
+
+      if (employee.profilePicture && fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+
+      employee.profilePicture = "";
+    }
+
     if (req.file) {
       const fs = require("fs");
       const oldFilePath = path.join(
@@ -213,9 +227,13 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     }
 
     await employee.save();
-    res
-      .status(200)
-      .json({ message: "Employee updated successfully", employee });
+    res.status(200).json({
+      message: "Employee updated successfully",
+      employee: {
+        ...employee.toObject(),
+        profilePicture: `/employee-profile-pics/${employee.profilePicture}`, // Ensure correct URL path
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

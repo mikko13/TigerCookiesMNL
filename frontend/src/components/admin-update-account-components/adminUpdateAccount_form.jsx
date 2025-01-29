@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 export default function AdminUpdateAccountForm() {
-  const { employeeId } = useParams(); // Get the employeeId from the URL parameters
-  const history = useNavigate(); // To navigate after successful update
+  const { employeeId } = useParams();
+  const history = useNavigate();
   const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePictureToDelete, setProfilePictureToDelete] = useState(false);
 
   const [employee, setEmployee] = useState({
     firstName: "",
@@ -30,7 +32,7 @@ export default function AdminUpdateAccountForm() {
           `http://localhost:5000/api/employees/${employeeId}`
         );
         setEmployee(response.data);
-        console.log(response.data);
+        setProfilePicture(response.data.profilePicture);
       } catch (error) {
         console.error("Error fetching employee data:", error);
       }
@@ -47,47 +49,85 @@ export default function AdminUpdateAccountForm() {
     }));
   };
 
-  // Handle file input change for profile picture
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setProfilePicture(file);
+    setProfilePictureToDelete(false);
+  };
+
+  const handleDeletePicture = () => {
+    setProfilePictureToDelete(true);
+    setProfilePicture(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    const formData = new FormData();
-    formData.append('firstName', employee.firstName);
-    formData.append('lastName', employee.lastName);
-    formData.append('email', employee.email);
-    formData.append('password', employee.password);
-    formData.append('address', employee.address);
-    formData.append('gender', employee.gender);
-    formData.append('dateOfBirth', employee.dateOfBirth);
-    formData.append('position', employee.position);
-    formData.append('hiredDate', employee.hiredDate);
-    formData.append('status', employee.status);
-    formData.append('ratePerHour', employee.ratePerHour);
-    formData.append('shift', employee.shift);
-    
-    if (profilePicture) {
-      formData.append('profilePicture', profilePicture);
+
+    // Form validation example
+    if (!employee.firstName || !employee.lastName || !employee.email) {
+      Swal.fire("Error", "Please fill in all required fields.", "error");
+      return;
     }
-  
+
+    const confirmResult = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to update this employee's details?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3b82f6",
+      cancelButtonColor: "#ef4444",
+      confirmButtonText: "Update",
+    });
+
+    if (!confirmResult.isConfirmed) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("firstName", employee.firstName);
+    formData.append("lastName", employee.lastName);
+    formData.append("email", employee.email);
+    formData.append("password", employee.password);
+    formData.append("address", employee.address);
+    formData.append("gender", employee.gender);
+    formData.append("dateOfBirth", employee.dateOfBirth);
+    formData.append("position", employee.position);
+    formData.append("hiredDate", employee.hiredDate);
+    formData.append("status", employee.status);
+    formData.append("ratePerHour", employee.ratePerHour);
+    formData.append("shift", employee.shift);
+
+    if (profilePicture) {
+      formData.append("profilePicture", profilePicture);
+    } else if (profilePictureToDelete) {
+      formData.append("profilePicture", "");
+    }
+
     try {
-      await axios.put(`http://localhost:5000/api/employees/${employeeId}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      history.push("/adminManageAccount");
+      const response = await axios.put(
+        `http://localhost:5000/api/employees/${employeeId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Response:", response);
+
+      setEmployee(response.data);
+      setProfilePicture(response.data.profilePicture);
+
+      history("/ManageEmployeeAccounts");
     } catch (error) {
-      console.error("Error updating employee data:", error);
+      console.error("Error updating employee:", error);
+      Swal.fire("Error", "There was an error updating the employee.", "error");
     }
   };
-  
+
   return (
-   <div>
+    <div>
       <form
         onSubmit={handleSubmit}
         className="mt-0 md:mt-16 font-[sans-serif] max-w-4xl mx-auto p-4 sm:p-1"
@@ -97,7 +137,13 @@ export default function AdminUpdateAccountForm() {
             <div className="relative w-32 h-32 rounded-full overflow-hidden border border-gray-300 bg-gray-200">
               {profilePicture ? (
                 <img
-                  src={URL.createObjectURL(profilePicture)}
+                  src={
+                    profilePicture instanceof File
+                      ? URL.createObjectURL(profilePicture)
+                      : profilePicture
+                      ? `/employee-profile-pics/${profilePicture}`
+                      : ""
+                  }
                   alt="Profile"
                   className="w-full h-full object-cover"
                 />
@@ -121,9 +167,18 @@ export default function AdminUpdateAccountForm() {
                 id="profilePicture"
                 accept="image/*"
                 className="hidden"
-                onChange={handleFileChange} // Ensure file changes are handled
+                onChange={handleFileChange}
               />
             </div>
+            {profilePicture && (
+              <button
+                type="button"
+                onClick={handleDeletePicture}
+                className="mt-2 px-4 py-2 bg-red-500 text-white text-sm rounded cursor-pointer hover:bg-red-600 transition-all"
+              >
+                Delete Profile Picture
+              </button>
+            )}
           </div>
 
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
