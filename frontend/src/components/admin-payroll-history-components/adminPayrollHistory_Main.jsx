@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function AdminPayrollMain() {
+export default function AdminPayrollHistoryMain() {
   return (
     <div className="relative flex flex-col w-full h-full text-gray-700 shadow-md bg-clip-border">
       <div className="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">

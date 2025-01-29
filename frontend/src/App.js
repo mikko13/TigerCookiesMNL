@@ -14,6 +14,7 @@ import CreateAccount from "./components/admin-create-account-components/adminCre
 import UpdateAccount from "./components/admin-update-account-components/adminUpdateAccount";
 import EmployeePayroll from "./components/employee-payroll-components/empPayroll";
 import AdminPayrollHistory from "./components/admin-payroll-history-components/adminPayroll";
+import AdminPayroll from "./components/admin-payroll-components/adminPayrollMain";
 
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
         {/* Admin Side */}
         <Route path="/ManageEmployeeAccounts" element={<AdminManageAccount />} />
         <Route path="/CreateAccount" element={<CreateAccount />} />
+        <Route path="/AdminPayroll" element={<AdminPayroll />} />
         <Route path="/AdminPayrollHistory" element={<AdminPayrollHistory />} />
         <Route path="/ModifyAccount/:employeeId" element={<UpdateAccount />} />
       </Routes>
