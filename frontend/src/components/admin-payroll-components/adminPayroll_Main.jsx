@@ -42,9 +42,11 @@ export default function AdminPayrollMain() {
           <thead>
             <tr>
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Employee</th>
-              <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Hours Worked</th>
-              <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Salary</th>
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Pay Period</th>
+              <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Holiday Pay</th>
+              <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Incentives</th>
+              <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Total Deductions</th>
+              <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Total Earnings</th>
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Actions</th>
             </tr>
           </thead>
@@ -52,9 +54,13 @@ export default function AdminPayrollMain() {
             {filteredPayrollData.map((payroll) => (
               <tr key={payroll._id}>
                 <td className="p-4 border-b border-blue-gray-50">{payroll.employeeName}</td>
-                <td className="p-4 border-b border-blue-gray-50">{payroll.hoursWorked} hrs</td>
-                <td className="p-4 border-b border-blue-gray-50">₱{payroll.salary.toFixed(2)}</td>
                 <td className="p-4 border-b border-blue-gray-50">{payroll.payPeriod}</td>
+                <td className="p-4 border-b border-blue-gray-50">₱{payroll.holidayPay.toFixed(2)}</td>
+                <td className="p-4 border-b border-blue-gray-50">₱{payroll.incentives.toFixed(2)}</td>
+                <td className="p-4 border-b border-blue-gray-50">₱{payroll.totalDeduction.toFixed(2)}</td>
+                <td className="p-4 border-b border-blue-gray-50 font-semibold text-green-700">
+                  ₱{payroll.totalEarnings.toFixed(2)}
+                </td>
                 <td className="p-4 border-b border-blue-gray-50">
                   <div className="flex gap-2">
                     <button
