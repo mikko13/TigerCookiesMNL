@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Payroll = require('../models/payroll');
-const Attendance = require('../models/attendance');
-const Employee = require('../models/employee'); // Import Employee model
+const Employee = require('../models/Employees'); // Import Employee model
 
 // Helper function to calculate work hours
 function calculateHours(startTime, endTime) {

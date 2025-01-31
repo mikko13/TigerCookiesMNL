@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const payrollSchema = new mongoose.Schema({
-  employeeId: { type: String, required: true },
   employeeName: { type: String, required: true },
   payPeriod: { type: String, required: true },
   hoursWorked: { type: Number, required: true },
@@ -9,7 +8,9 @@ const payrollSchema = new mongoose.Schema({
   overtimeHours: { type: Number, default: 0 }, // Track overtime hours separately
   overtimePay: { type: Number, default: 0 }, // Track overtime pay separately
   salary: { type: Number, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
+},
+{ timestamps: true, collection: "empPayrolls" });
+
+// sa gumagawa neto adjust nyo yung laman nito, itugma nyo sa class diagram sa sdd
 
 module.exports = mongoose.model('Payroll', payrollSchema);
