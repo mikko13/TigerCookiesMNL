@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import Webcam from "react-webcam";
 import axios from "axios";
-import * as faceapi from 'face-api.js/dist/face-api.min.js';
+import * as faceapi from "face-api.js/dist/face-api.min.js";
 
 export default function EmpAttendanceOpenCam() {
   const webcamRef = useRef(null);
@@ -16,7 +16,7 @@ export default function EmpAttendanceOpenCam() {
         faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
         faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
         faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
-        faceapi.nets.faceExpressionNet.loadFromUri("/models")
+        faceapi.nets.faceExpressionNet.loadFromUri("/models"),
       ]);
       setMessage("Face detection models loaded.");
       startFaceDetection();
@@ -29,10 +29,10 @@ export default function EmpAttendanceOpenCam() {
       if (webcamRef.current) {
         const video = webcamRef.current.video;
         if (video && video.readyState === 4) {
-          const detections = await faceapi.detectAllFaces(
-            video,
-            new faceapi.TinyFaceDetectorOptions()
-          ).withFaceLandmarks().withFaceExpressions();
+          const detections = await faceapi
+            .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceExpressions();
 
           if (detections.length > 0) {
             setFaceDetected(true);
@@ -53,11 +53,11 @@ export default function EmpAttendanceOpenCam() {
     const context = canvas.getContext("2d");
     faceapi.matchDimensions(canvas, {
       width: video.videoWidth,
-      height: video.videoHeight
+      height: video.videoHeight,
     });
     const resized = faceapi.resizeResults(detections, {
       width: video.videoWidth,
-      height: video.videoHeight
+      height: video.videoHeight,
     });
     context.clearRect(0, 0, canvas.width, canvas.height);
     faceapi.draw.drawDetections(canvas, resized);
@@ -84,10 +84,18 @@ export default function EmpAttendanceOpenCam() {
     const formData = new FormData();
     formData.append("image", blob, "employee_picture.png");
     try {
-      const response = await axios.post("http://localhost:5000/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setMessage(response.data.success ? "Face verified successfully!" : "No matching face found. Try again.");
+      const response = await axios.post(
+        "http://localhost:5000/upload",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      setMessage(
+        response.data.success
+          ? "Face verified successfully!"
+          : "No matching face found. Try again."
+      );
     } catch (error) {
       console.error("Error uploading image:", error);
       setMessage("Error processing the image.");
@@ -115,13 +123,15 @@ export default function EmpAttendanceOpenCam() {
           </>
         )}
       </div>
-      <div className="max-w-md w-full items-center">
+      <div className="max-wd-lg w-full items-center">
         {!image ? (
           <button
             onClick={capture}
             disabled={!faceDetected}
             className={`px-6 py-3 w-full text-sm ${
-              faceDetected ? "bg-yellow-400 hover:bg-yellow-500" : "bg-gray-400 cursor-not-allowed"
+              faceDetected
+                ? "bg-yellow-400 hover:bg-yellow-500"
+                : "bg-gray-400 cursor-not-allowed"
             } text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all`}
           >
             {faceDetected ? "Capture Picture" : "Position Your Face"}
@@ -150,7 +160,9 @@ export default function EmpAttendanceOpenCam() {
             Back
           </button>
         </a>
-        {message && <p className="mt-4 text-lg font-semibold text-gray-700">{message}</p>}
+        {message && (
+          <p className="mt-4 text-lg font-semibold text-gray-700">{message}</p>
+        )}
       </div>
     </div>
   );
