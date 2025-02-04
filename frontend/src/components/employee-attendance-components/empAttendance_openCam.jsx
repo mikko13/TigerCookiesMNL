@@ -5,34 +5,39 @@ import * as faceapi from 'face-api.js/dist/face-api.min.js';
 
 export default function EmpAttendanceOpenCam() {
   const webcamRef = useRef(null);
+  const canvasRef = useRef(null);
   const [image, setImage] = useState(null);
   const [message, setMessage] = useState("");
   const [faceDetected, setFaceDetected] = useState(false);
 
-  // Load face detection models when component mounts
   useEffect(() => {
     async function loadModels() {
-      await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
+        faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+        faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+        faceapi.nets.faceExpressionNet.loadFromUri("/models")
+      ]);
       setMessage("Face detection models loaded.");
       startFaceDetection();
     }
     loadModels();
   }, []);
 
-  // Function to detect face in webcam feed
-  const startFaceDetection = async () => {
+  const startFaceDetection = () => {
     setInterval(async () => {
       if (webcamRef.current) {
         const video = webcamRef.current.video;
         if (video && video.readyState === 4) {
-          const detections = await faceapi.detectSingleFace(
+          const detections = await faceapi.detectAllFaces(
             video,
             new faceapi.TinyFaceDetectorOptions()
-          );
+          ).withFaceLandmarks().withFaceExpressions();
 
-          if (detections) {
+          if (detections.length > 0) {
             setFaceDetected(true);
             setMessage("Face detected, you can capture.");
+            drawDetections(detections);
           } else {
             setFaceDetected(false);
             setMessage("No face detected. Please position yourself.");
@@ -42,7 +47,24 @@ export default function EmpAttendanceOpenCam() {
     }, 1000);
   };
 
-  // Capture image from webcam only if a face is detected
+  const drawDetections = (detections) => {
+    const video = webcamRef.current.video;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+    faceapi.matchDimensions(canvas, {
+      width: video.videoWidth,
+      height: video.videoHeight
+    });
+    const resized = faceapi.resizeResults(detections, {
+      width: video.videoWidth,
+      height: video.videoHeight
+    });
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    faceapi.draw.drawDetections(canvas, resized);
+    faceapi.draw.drawFaceLandmarks(canvas, resized);
+    faceapi.draw.drawFaceExpressions(canvas, resized);
+  };
+
   const capture = () => {
     if (faceDetected) {
       const imgSrc = webcamRef.current.getScreenshot();
@@ -53,28 +75,19 @@ export default function EmpAttendanceOpenCam() {
     }
   };
 
-  // Upload the captured image to the backend
   const uploadImage = async () => {
     if (!image) {
       alert("Please capture an image first!");
       return;
     }
-
-    // Convert base64 to Blob
     const blob = await fetch(image).then((res) => res.blob());
     const formData = new FormData();
     formData.append("image", blob, "employee_picture.png");
-
     try {
       const response = await axios.post("http://localhost:5000/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (response.data.success) {
-        setMessage("Face verified successfully!");
-      } else {
-        setMessage("No matching face found. Try again.");
-      }
+      setMessage(response.data.success ? "Face verified successfully!" : "No matching face found. Try again.");
     } catch (error) {
       console.error("Error uploading image:", error);
       setMessage("Error processing the image.");
@@ -84,9 +97,7 @@ export default function EmpAttendanceOpenCam() {
   return (
     <div className="text-center">
       <h1 className="text-2xl font-semibold mb-4">Facial Recognition</h1>
-
-      {/* Webcam Preview or Captured Image */}
-      <div className="mb-6">
+      <div className="relative mb-6">
         {image ? (
           <img
             src={image}
@@ -94,15 +105,17 @@ export default function EmpAttendanceOpenCam() {
             className="mx-auto w-auto h-80 object-cover rounded-md border-4 border-gray-300"
           />
         ) : (
-          <Webcam
-            ref={webcamRef}
-            screenshotFormat="image/png"
-            className="mx-auto w-auto h-80 object-cover rounded-md border-4 border-gray-300"
-          />
+          <>
+            <Webcam
+              ref={webcamRef}
+              screenshotFormat="image/png"
+              className="mx-auto w-auto h-auto object-cover rounded-md border-4 border-gray-300"
+            />
+            <canvas ref={canvasRef} className="absolute top-0 left-0" />
+          </>
         )}
       </div>
-
-      <div className="max-w-md w-full">
+      <div className="max-w-md w-full items-center">
         {!image ? (
           <button
             onClick={capture}
@@ -129,7 +142,6 @@ export default function EmpAttendanceOpenCam() {
             </button>
           </>
         )}
-
         <a href="./shift">
           <button
             type="button"
@@ -138,7 +150,6 @@ export default function EmpAttendanceOpenCam() {
             Back
           </button>
         </a>
-
         {message && <p className="mt-4 text-lg font-semibold text-gray-700">{message}</p>}
       </div>
     </div>
