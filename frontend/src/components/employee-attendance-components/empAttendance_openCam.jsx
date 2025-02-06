@@ -33,13 +33,13 @@ export default function EmpAttendanceOpenCam() {
             .withFaceLandmarks()
             .withFaceExpressions();
 
-          if (detections.length > 0) {
+          if (detections.length === 1) {
             setFaceDetected(true);
             setMessage("Face detected, you can capture.");
             drawDetections(detections);
           } else {
             setFaceDetected(false);
-            setMessage("No face detected. Please position yourself.");
+            setMessage(detections.length > 1 ? "Multiple faces detected. Please position only one person." : "No face detected. Please position yourself.");
           }
         }
       }
@@ -84,36 +84,9 @@ export default function EmpAttendanceOpenCam() {
     }
   };
 
-  const uploadImage = async () => {
-    if (!image) {
-      alert("Please capture an image first!");
-      return;
-    }
-    const blob = await fetch(image).then((res) => res.blob());
-    const formData = new FormData();
-    formData.append("image", blob, "employee_picture.png");
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/upload",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      setMessage(
-        response.data.success
-          ? "Face verified successfully!"
-          : "No matching face found. Try again."
-      );
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      setMessage("Error processing the image.");
-    }
-  };
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-2xl font-semibold mb-4">Facial Recognition</h1>
+      <h1 className="text-2xl font-semibold mb-4">Take A Picture to Check In</h1>
       <div className="relative w-full max-w-2xl mb-6">
         {image ? (
           <img
@@ -126,7 +99,7 @@ export default function EmpAttendanceOpenCam() {
             <Webcam
               ref={webcamRef}
               screenshotFormat="image/png"
-              className="mx-auto w-full h-auto max-h-80 object-cover rounded-md border-4 border-gray-300"
+              className="mx-auto w-full h-auto max-h-[400px] object-cover rounded-md border-4 border-gray-300"
               mirrored={true}
             />
             <canvas
@@ -165,7 +138,6 @@ export default function EmpAttendanceOpenCam() {
         ) : (
           <>
             <button
-              onClick={uploadImage}
               className="px-6 py-3 w-full text-sm bg-green-500 hover:bg-green-600 text-white rounded-md active:bg-green-700 focus:ring-2 focus:ring-green-600 transition-all"
             >
               Upload Picture

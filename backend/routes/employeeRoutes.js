@@ -110,19 +110,39 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    req.session.user = {
+      id: account._id,
+      firstName: account.firstName,
+      lastName: account.lastName,
+      email: account.email,
+    };
+
     res.status(200).json({
       message: "Login successful",
-      account: {
-        id: account._id,
-        firstName: account.firstName,
-        lastName: account.lastName,
-        email: account.email,
-      },
+      user: req.session.user,
     });
   } catch (error) {
     res
       .status(500)
       .json({ message: "An error occurred", error: error.message });
+  }
+});
+
+router.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Logout failed" });
+    }
+    res.clearCookie("connect.sid");
+    res.status(200).json({ message: "Logged out successfully" });
+  });
+});
+
+router.get("/session", (req, res) => {
+  if (req.session.user) {
+    return res.status(200).json({ user: req.session.user });
+  } else {
+    return res.status(401).json({ message: "Not authenticated" });
   }
 });
 
@@ -249,6 +269,21 @@ router.get("/:id", async (req, res) => {
     res.status(200).json(employee);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+router.post("/check-email", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const account = await Account.findOne({ email });
+    if (account) {
+      return res.status(200).json({ exists: true });
+    } else {
+      return res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 

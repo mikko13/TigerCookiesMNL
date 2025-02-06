@@ -1,58 +1,113 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import Background from "../images/background.png";
 
 export default function FpOtpBody() {
-  return (
-    <form className="space-y-2 font-sans text-gray-800 max-w-md mx-auto px-4 sm:px-6 md:px-8 mt-12">
-      <div className="relative flex items-center mb-4">
-        <input
-          type="otp"
-          placeholder="Enter OTP"
-          className="px-4 py-3 bg-gray-100 focus:bg-transparent w-full text-sm border outline-blue-500 rounded-md transition-all focus:ring-2 focus:ring-blue-500"
-        />
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="#bbb"
-          stroke="#bbb"
-          className="w-5 h-5 absolute right-4"
-          viewBox="0 0 682.667 682.667"
-        >
-          <defs>
-            <clipPath id="a" clipPathUnits="userSpaceOnUse">
-              <path d="M0 512h512V0H0Z" data-original="#000000"></path>
-            </clipPath>
-          </defs>
-          <g clipPath="url(#a)" transform="matrix(1.33 0 0 -1.33 0 682.667)">
-            <path
-              fill="none"
-              strokeMiterlimit="10"
-              strokeWidth="40"
-              d="M452 444H60c-22.091 0-40-17.909-40-40v-39.446l212.127-157.782c14.17-10.54 33.576-10.54 47.746 0L492 364.554V404c0 22.091-17.909 40-40 40Z"
-              data-original="#000000"
-            ></path>
-            <path
-              d="M472 274.9V107.999c0-11.027-8.972-20-20-20H60c-11.028 0-20 8.973-20 20V274.9L0 304.652V107.999c0-33.084 26.916-60 60-60h392c33.084 0 60 26.916 60 60v196.653Z"
-              data-original="#000000"
-            ></path>
-          </g>
-        </svg>
-      </div>
-      <a href="./forgotpasswordconfirm">
-        <button
-          type="button"
-          className="px-6 py-3 w-full text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all"
-        >
-          Submit
-        </button>
-      </a>
+  const inputsRef = useRef([]);
 
-      <a href="./forgotpassword">
-        <button
-          type="button"
-          className="px-6 py-3 mt-2 w-full text-sm bg-gray-700 hover:bg-gray-800 text-white rounded-md active:bg-gray-900 focus:ring-2 focus:ring-gray-900 transition-all"
-        >
-          Back
-        </button>
-      </a>
-    </form>
+  useEffect(() => {
+    const inputs = inputsRef.current.filter(Boolean);
+
+    const handleKeyDown = (e, index) => {
+      if (
+        !/^[0-9]$/.test(e.key) &&
+        e.key !== "Backspace" &&
+        e.key !== "Delete"
+      ) {
+        e.preventDefault();
+      }
+
+      if ((e.key === "Delete" || e.key === "Backspace") && index > 0) {
+        inputs[index - 1].value = "";
+        inputs[index - 1].focus();
+      }
+    };
+
+    const handleInput = (e, index) => {
+      if (e.target.value && index < inputs.length - 1) {
+        inputs[index + 1].focus();
+      }
+    };
+
+    const handleFocus = (e) => e.target.select();
+
+    const handlePaste = (e) => {
+      e.preventDefault();
+      const text = e.clipboardData.getData("text");
+      if (!new RegExp(`^[0-9]{${inputs.length}}$`).test(text)) return;
+      const digits = text.split("");
+      inputs.forEach((input, index) => (input.value = digits[index] || ""));
+      inputs[inputs.length - 1].focus();
+    };
+
+    inputs.forEach((input, index) => {
+      input.addEventListener("input", (e) => handleInput(e, index));
+      input.addEventListener("keydown", (e) => handleKeyDown(e, index));
+      input.addEventListener("focus", handleFocus);
+      input.addEventListener("paste", handlePaste);
+    });
+
+    return () => {
+      inputs.forEach((input, index) => {
+        if (input) {
+          input.removeEventListener("input", (e) => handleInput(e, index));
+          input.removeEventListener("keydown", (e) => handleKeyDown(e, index));
+          input.removeEventListener("focus", handleFocus);
+          input.removeEventListener("paste", handlePaste);
+        }
+      });
+    };
+  }, []);
+
+  return (
+    <div
+      className="w-full mx-auto px-4 md:px-6 py-36 min-h-screen"
+      style={{
+        backgroundImage: `url(${Background})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="flex justify-center">
+        <div className="max-w-md mx-auto text-center bg-white px-4 sm:px-8 py-10 rounded-xl shadow-xl">
+          <header className="mb-8">
+            <h1 className="text-2xl font-bold mb-1">Email Verification</h1>
+            <p className="text-[15px] text-slate-500">
+              Enter the 4-digit verification code that was sent to your email.
+            </p>
+          </header>
+          <form id="otp-form">
+            <div className="flex items-center justify-center gap-3">
+              {[...Array(4)].map((_, index) => (
+                <input
+                  key={index}
+                  ref={(el) => (inputsRef.current[index] = el)}
+                  type="text"
+                  className="w-14 h-14 text-center text-2xl font-extrabold text-slate-900 bg-slate-100 border border-transparent hover:border-slate-200 appearance-none rounded p-4 outline-none focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  maxLength="1"
+                  pattern="\d*"
+                />
+              ))}
+            </div>
+            <div className="max-w-[260px] mx-auto mt-4">
+              <button
+                type="submit"
+                className="w-full inline-flex justify-center whitespace-nowrap rounded-lg bg-yellow-300 px-3.5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring focus:ring-indigo-300 transition-colors duration-150"
+              >
+                Verify Account
+              </button>
+            </div>
+          </form>
+          <div className="text-sm text-slate-500 mt-4">
+            Didn't receive code?{" "}
+            <a
+              className="font-medium text-yellow-400 hover:text-yellow-500"
+              href="#0"
+            >
+              Resend
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

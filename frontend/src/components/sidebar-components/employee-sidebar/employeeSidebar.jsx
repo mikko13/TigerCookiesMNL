@@ -1,7 +1,40 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import Logo from "./logo.png";
 
 export default function EmpAttendanceSideBar() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        "http://localhost:5000/api/employees/logout",
+        {},
+        { withCredentials: true }
+      );
+
+      localStorage.removeItem("user");
+      setUser(null);
+      navigate("/");
+    } catch (error) {
+      console.error(
+        "Logout failed:",
+        error.response?.data?.message || error.message
+      );
+    }
+  };
+
+  const profilePicPath = `/employee-profile-pics/${user?.id}_profilepic.jpg`;
+
   return (
     <nav className="bg-gradient-to-b from-yellow-500 via-yellow-400 to-yellow-300 h-screen fixed top-0 left-0 min-w-[250px] py-6 px-4 font-[sans-serif] tracking-wide overflow-auto shadow-lg shadow-gray-500/50 overflow-hidden">
       <div className="flex justify-center mb-6">
@@ -10,13 +43,15 @@ export default function EmpAttendanceSideBar() {
 
       <div className="flex flex-wrap items-center gap-4">
         <img
-          src="#"
+          src={profilePicPath}
           alt="Profile"
           className="w-10 h-10 rounded-full border-2 border-gray-600"
         />
         <div>
-          <p className="text-sm text-gray-800">pangalan mo!</p>
-          <p className="text-xs text-gray-500 mt-0.5">email mo!</p>
+          <p className="text-[12px] font-bold text-gray-700">
+            {user?.firstName} {user?.lastName}
+          </p>
+          <p className="text-[10px] text-gray-500 mt-0.5">{user?.email}</p>
         </div>
       </div>
 
@@ -69,7 +104,7 @@ export default function EmpAttendanceSideBar() {
         </li>
         <li>
           <a
-            href="#"
+            href="/Payroll"
             className="text-gray-800 text-sm flex items-center hover:bg-yellow-300 rounded px-4 py-3 transition-all"
           >
             <svg
@@ -91,9 +126,9 @@ export default function EmpAttendanceSideBar() {
         </li>
       </ul>
 
-      <div className="absolute bottom-6 left-4 right-4">
+      <div className="cursor-pointer absolute bottom-6 left-4 right-4">
         <a
-          href="#logout"
+          onClick={handleLogout}
           className="text-gray-800 text-sm flex items-center hover:bg-yellow-200 rounded px-4 py-3 transition-all"
         >
           <svg
