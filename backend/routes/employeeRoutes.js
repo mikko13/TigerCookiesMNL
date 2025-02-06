@@ -1,7 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const Account = require("../models/Employees");
 const router = express.Router();
 
