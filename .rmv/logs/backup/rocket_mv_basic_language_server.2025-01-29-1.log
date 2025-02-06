@@ -4,6 +4,7 @@
 2025-01-29 00:09:50.122 [pool-3-thread-1] INFO  com.rs.mv.mvvs.instance.workspace.WorkspaceManager - [workspace:200101]load all workspace folders start
 2025-01-29 00:09:50.123 [pool-3-thread-1] INFO  com.rs.mv.mvvs.instance.workspace.WorkspaceManager - [workspace:20010201]root uri: file:///c%3A/Users/Mikko/Desktop/TigerCookiesMNL
 2025-01-29 00:09:50.128 [pool-3-thread-1] INFO  com.rs.mv.mvvs.instance.workspace.handler.FolderHandler - [workspace:200103]workspace contains workspace folder: file:///c%3A/Users/Mikko/Desktop/TigerCookiesMNL
+2025-01-29 00:09:50.165 [pool-3-thread-1] INFO  com.rs.mv.mvvs.instance.workspace.handler.FolderHandler - [workspace:200104]workspace folder will be cached: file:///c%3A/Users/Mikko/Desktop/TigerCookiesMNL
 2025-01-29 00:09:50.169 [pool-3-thread-1] INFO  com.rs.mv.mvvs.rmv.config.Config - [framework:30010101]config load start
 2025-01-29 00:09:50.170 [pool-3-thread-1] INFO  com.rs.mv.mvvs.rmv.config.Config - [framework:30010102]project config path is : C:/Users/Mikko/Desktop/TigerCookiesMNL/.rmv/config
 2025-01-29 00:09:50.171 [pool-3-thread-1] INFO  com.rs.mv.mvvs.rmv.config.Config - [framework:30010103]resource config path is : /

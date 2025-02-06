@@ -18,7 +18,6 @@ export default function EmpAttendanceOpenCam() {
         faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
         faceapi.nets.faceExpressionNet.loadFromUri("/models"),
       ]);
-      setMessage("Face detection models loaded.");
       startFaceDetection();
     }
     loadModels();
@@ -51,18 +50,28 @@ export default function EmpAttendanceOpenCam() {
     const video = webcamRef.current.video;
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
+
     faceapi.matchDimensions(canvas, {
       width: video.videoWidth,
       height: video.videoHeight,
     });
+
     const resized = faceapi.resizeResults(detections, {
       width: video.videoWidth,
       height: video.videoHeight,
     });
+
     context.clearRect(0, 0, canvas.width, canvas.height);
-    faceapi.draw.drawDetections(canvas, resized);
-    faceapi.draw.drawFaceLandmarks(canvas, resized);
-    faceapi.draw.drawFaceExpressions(canvas, resized);
+
+    context.save();
+    context.scale(-1, 1);
+    context.translate(-canvas.width, 0);
+
+    faceapi.draw.drawDetections(context, resized);
+    faceapi.draw.drawFaceLandmarks(context, resized);
+    faceapi.draw.drawFaceExpressions(context, resized);
+
+    context.restore();
   };
 
   const capture = () => {
@@ -103,39 +112,56 @@ export default function EmpAttendanceOpenCam() {
   };
 
   return (
-    <div className="text-center">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <h1 className="text-2xl font-semibold mb-4">Facial Recognition</h1>
-      <div className="relative mb-6">
+      <div className="relative w-full max-w-2xl mb-6">
         {image ? (
           <img
             src={image}
             alt="Captured Employee"
-            className="mx-auto w-auto h-80 object-cover rounded-md border-4 border-gray-300"
+            className="mx-auto w-full h-auto max-h-80 object-cover rounded-md border-4 border-gray-300"
           />
         ) : (
           <>
             <Webcam
               ref={webcamRef}
               screenshotFormat="image/png"
-              className="mx-auto w-auto h-auto object-cover rounded-md border-4 border-gray-300"
+              className="mx-auto w-full h-auto max-h-80 object-cover rounded-md border-4 border-gray-300"
+              mirrored={true}
             />
-            <canvas ref={canvasRef} className="absolute top-0 left-0" />
+            <canvas
+              ref={canvasRef}
+              className="absolute top-0 left-0 w-full h-full"
+            />
           </>
         )}
       </div>
-      <div className="max-wd-lg w-full items-center">
+      <div className="w-full max-w-2xl">
         {!image ? (
-          <button
-            onClick={capture}
-            disabled={!faceDetected}
-            className={`px-6 py-3 w-full text-sm ${
-              faceDetected
-                ? "bg-yellow-400 hover:bg-yellow-500"
-                : "bg-gray-400 cursor-not-allowed"
-            } text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all`}
-          >
-            {faceDetected ? "Capture Picture" : "Position Your Face"}
-          </button>
+          <>
+            <button
+              onClick={capture}
+              disabled={!faceDetected}
+              className={`px-6 py-3 w-full text-sm ${
+                faceDetected
+                  ? "bg-yellow-400 hover:bg-yellow-500"
+                  : "bg-gray-400 cursor-not-allowed"
+              } text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all`}
+            >
+              {faceDetected ? "Capture Picture" : "Position Your Face"}
+            </button>
+
+            {(
+              <a href="./CheckIn">
+                <button
+                  type="button"
+                  className="px-6 py-3 mt-2 w-full text-sm bg-gray-700 hover:bg-gray-800 text-white rounded-md active:bg-gray-900 focus:ring-2 focus:ring-gray-900 transition-all"
+                >
+                  Back
+                </button>
+              </a>
+            )}
+          </>
         ) : (
           <>
             <button
@@ -152,18 +178,8 @@ export default function EmpAttendanceOpenCam() {
             </button>
           </>
         )}
-        <a href="./shift">
-          <button
-            type="button"
-            className="px-6 py-3 mt-2 w-full text-sm bg-gray-700 hover:bg-gray-800 text-white rounded-md active:bg-gray-900 focus:ring-2 focus:ring-gray-900 transition-all"
-          >
-            Back
-          </button>
-        </a>
-        {message && (
-          <p className="mt-4 text-lg font-semibold text-gray-700">{message}</p>
-        )}
       </div>
+      {message && <p className="mt-4 text-sm text-gray-600">{message}</p>}
     </div>
   );
 }
