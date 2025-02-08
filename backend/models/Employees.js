@@ -20,6 +20,8 @@ const accountSchema = new mongoose.Schema(
     status: { type: String },
     ratePerHour: { type: Number },
     shift: { type: String },
+    otp: { type: String },
+    otpExpires: { type: Date },
   },
   { timestamps: true, collection: "empAccounts" }
 );

@@ -14,26 +14,39 @@ export default function FpBody() {
     }, 4000);
   };
 
+  const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
   const handleEmailCheck = async () => {
     if (!email) {
       showToast("error");
       return;
     }
 
+    if (!isValidEmail(email)) {
+      showToast("error");
+      return;
+    }
+
     try {
       // Step 1: Check if email exists
-      const response = await axios.post("http://localhost:5000/api/employees/check-email", { email });
+      const response = await axios.post(
+        "http://localhost:5000/api/employees/check-email",
+        { email }
+      );
 
       if (response.data.exists) {
         // Step 2: Send OTP
-        const otpResponse = await axios.post("http://localhost:5000/api/auth/send-otp", { email });
+        const otpResponse = await axios.post(
+          "http://localhost:5000/api/auth/send-otp",
+          { email }
+        );
 
         if (otpResponse.data.success) {
           showToast("success");
-          
-          // Step 3: Store OTP temporarily (for demo purposes, you might store it in Redux or sessionStorage)
+
+          // Step 3: Store OTP temporarily
           sessionStorage.setItem("emailForOTP", email);
-          
+
           setTimeout(() => {
             window.location.href = "./forgotpasswordotp";
           }, 1000);
@@ -76,8 +89,12 @@ export default function FpBody() {
           </button>
         </a>
 
-        {toast === "error" && <div className="z-50 fixed bottom-4 left-4">{errorToast}</div>}
-        {toast === "success" && <div className="z-50 fixed bottom-4 left-4">{successToast}</div>}
+        {toast === "error" && (
+          <div className="z-50 fixed bottom-4 left-4">{errorToast}</div>
+        )}
+        {toast === "success" && (
+          <div className="z-50 fixed bottom-4 left-4">{successToast}</div>
+        )}
       </form>
     </div>
   );
