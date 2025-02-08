@@ -113,7 +113,6 @@ export default function EmpAttendanceOpenCam() {
     const checkInDate = currentDateTime.toISOString().split("T")[0];
     const checkInTime = currentDateTime.toTimeString().split(" ")[0]; 
 
-    // Convert base64 to file
     const blob = await fetch(image).then((res) => res.blob());
     const file = new File([blob], `checkin_${employeeID}.png`, {
       type: "image/png",
@@ -135,7 +134,6 @@ export default function EmpAttendanceOpenCam() {
       );
 
       if (response.data.success) {
-        // Show SweetAlert and redirect to /checkout
         Swal.fire({
           title: "Check-In Successful!",
           text: "You have successfully checked in.",

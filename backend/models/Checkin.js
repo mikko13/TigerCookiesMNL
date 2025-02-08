@@ -16,7 +16,7 @@ const CheckinSchema = new mongoose.Schema(
       required: true,
     },
     checkInPhoto: {
-      type: String, // Now stores only filename
+      type: String,
       required: true,
     },
   },
