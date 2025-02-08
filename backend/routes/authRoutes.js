@@ -8,13 +8,6 @@ const bcrypt = require("bcryptjs");
 
 const OAuth2 = google.auth.OAuth2;
 
-const oauth2Client = new OAuth2(
-  "your-client-id",
-  "your-client-secret",
-  "https://developers.google.com/oauthplayground"
-);
-
-
 oauth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
 
 const sendMail = async (email, firstName, otp) => {
