@@ -10,6 +10,7 @@ const payrollRoutes = require("./routes/payrollRoutes");
 const checkinRoutes = require("./routes/checkinRoutes");
 const authRoutes = require("./routes/authRoutes");
 
+
 dotenv.config();
 connectDB();
 

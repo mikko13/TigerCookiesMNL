@@ -1,12 +1,26 @@
 const mongoose = require("mongoose");
 
-const checkinSchema = new mongoose.Schema(
+const CheckinSchema = new mongoose.Schema(
   {
-    inFace: { type: String },
-    checkinTime: { type: String },
-    checkinDate: { type: String },
+    employeeID: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      required: true,
+    },
+    checkInTime: {
+      type: String,
+      required: true,
+    },
+    checkInDate: {
+      type: String,
+      required: true,
+    },
+    checkInPhoto: {
+      type: String, // Now stores only filename
+      required: true,
+    },
   },
-  { timestamps: true, collection: "empCheckin" }
+  { timestamps: true, collection: "empCheckIn" }
 );
 
-module.exports = mongoose.model("Checkin", checkinSchema);
+module.exports = mongoose.model("Checkin", CheckinSchema);

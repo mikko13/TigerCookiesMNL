@@ -1,14 +1,18 @@
 import React, { useRef, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
 import axios from "axios";
+import Swal from "sweetalert2";
 import * as faceapi from "face-api.js/dist/face-api.min.js";
 
 export default function EmpAttendanceOpenCam() {
+  const navigate = useNavigate();
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
   const [image, setImage] = useState(null);
   const [message, setMessage] = useState("");
   const [faceDetected, setFaceDetected] = useState(false);
+  const [employeeID, setEmployeeID] = useState(null);
 
   useEffect(() => {
     async function loadModels() {
@@ -21,6 +25,12 @@ export default function EmpAttendanceOpenCam() {
       startFaceDetection();
     }
     loadModels();
+
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setEmployeeID(user.id);
+    }
   }, []);
 
   const startFaceDetection = () => {
@@ -39,7 +49,11 @@ export default function EmpAttendanceOpenCam() {
             drawDetections(detections);
           } else {
             setFaceDetected(false);
-            setMessage(detections.length > 1 ? "Multiple faces detected. Please position only one person." : "No face detected. Please position yourself.");
+            setMessage(
+              detections.length > 1
+                ? "Multiple faces detected. Please position only one person."
+                : "No face detected. Please position yourself."
+            );
           }
         }
       }
@@ -84,9 +98,76 @@ export default function EmpAttendanceOpenCam() {
     }
   };
 
+  const uploadAttendance = async () => {
+    if (!image) {
+      setMessage("No image captured.");
+      return;
+    }
+
+    if (!employeeID) {
+      setMessage("Employee ID not found. Please log in again.");
+      return;
+    }
+
+    const currentDateTime = new Date();
+    const checkInDate = currentDateTime.toISOString().split("T")[0];
+    const checkInTime = currentDateTime.toTimeString().split(" ")[0]; 
+
+    // Convert base64 to file
+    const blob = await fetch(image).then((res) => res.blob());
+    const file = new File([blob], `checkin_${employeeID}.png`, {
+      type: "image/png",
+    });
+
+    const formData = new FormData();
+    formData.append("employeeID", employeeID);
+    formData.append("checkInDate", checkInDate);
+    formData.append("checkInTime", checkInTime);
+    formData.append("checkInPhoto", file);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/checkin",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      if (response.data.success) {
+        // Show SweetAlert and redirect to /checkout
+        Swal.fire({
+          title: "Check-In Successful!",
+          text: "You have successfully checked in.",
+          icon: "success",
+          confirmButtonText: "Proceed",
+        }).then(() => {
+          navigate("/checkout");
+        });
+      } else {
+        Swal.fire({
+          title: "Check-In Failed",
+          text: "Try again.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting attendance:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Error checking in. Please try again later.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-2xl font-semibold mb-4">Take A Picture to Check In</h1>
+      <h1 className="text-2xl font-semibold mb-4">
+        Take A Picture to Check In
+      </h1>
       <div className="relative w-full max-w-2xl mb-6">
         {image ? (
           <img
@@ -123,24 +204,14 @@ export default function EmpAttendanceOpenCam() {
             >
               {faceDetected ? "Capture Picture" : "Position Your Face"}
             </button>
-
-            {(
-              <a href="./CheckIn">
-                <button
-                  type="button"
-                  className="px-6 py-3 mt-2 w-full text-sm bg-gray-700 hover:bg-gray-800 text-white rounded-md active:bg-gray-900 focus:ring-2 focus:ring-gray-900 transition-all"
-                >
-                  Back
-                </button>
-              </a>
-            )}
           </>
         ) : (
           <>
             <button
+              onClick={uploadAttendance}
               className="px-6 py-3 w-full text-sm bg-green-500 hover:bg-green-600 text-white rounded-md active:bg-green-700 focus:ring-2 focus:ring-green-600 transition-all"
             >
-              Upload Picture
+              Upload Attendance
             </button>
             <button
               onClick={() => setImage(null)}
