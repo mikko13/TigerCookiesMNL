@@ -45,7 +45,7 @@ const sendMail = async (email, firstName, otp) => {
             <h1 style="margin: 0; font-size: 24px; color: #333;">🔒 Password Reset Request</h1>
           </div>
           <div style="padding: 20px; background-color: #ffffff;">
-            <p style="font-size: 18px; color: #555;">Hello, <strong>${firstName}</strong></p>
+            <p style="font-size: 18px; color: #555;">Hello <strong>${firstName}</strong>,</p>
             <p style="font-size: 16px; color: #777;">
               You have requested an OTP to change your password. Please use the code below to proceed with resetting your password:
             </p>
@@ -53,10 +53,10 @@ const sendMail = async (email, firstName, otp) => {
               <h2 style="margin: 0; font-size: 30px; color: #333; font-weight: bold;">${otp}</h2>
             </div>
             <p style="font-size: 14px; color: #777;">
-              This OTP is valid for **5 minutes**. Do not share it with anyone.
+              This OTP is valid for 5 minutes. Do not share it with anyone.
             </p>
             <p style="font-size: 14px; color: #ff0000; font-weight: bold;">
-              If you did NOT request this change, please ignore this email or contact support immediately.
+              If you did NOT request this change, please ignore this email.
             </p>
             <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;" />
             <p style="font-size: 12px; color: #999;">Tiger Cookies MNL | Secure Login System</p>

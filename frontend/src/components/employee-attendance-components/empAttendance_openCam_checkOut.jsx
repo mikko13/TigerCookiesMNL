@@ -140,7 +140,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
           icon: "success",
           confirmButtonText: "Proceed",
         }).then(() => {
-          navigate("/login");
+          navigate("/AttendanceRecorded");
         });
       } else {
         Swal.fire({
