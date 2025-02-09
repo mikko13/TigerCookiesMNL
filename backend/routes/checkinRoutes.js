@@ -57,4 +57,18 @@ router.post("/", upload.single("checkInPhoto"), async (req, res) => {
   }
 });
 
+router.get("/status/:employeeID", async (req, res) => {
+  try {
+    const { employeeID } = req.params;
+    const today = DateTime.now().setZone("Asia/Manila").toFormat("MM-dd-yyyy");
+
+    const checkinRecord = await Checkin.findOne({ employeeID, checkInDate: today });
+
+    res.json({ checkedIn: !!checkinRecord });
+  } catch (error) {
+    console.error("Error checking check-in status:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 module.exports = router;

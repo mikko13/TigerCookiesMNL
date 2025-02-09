@@ -46,15 +46,13 @@ router.post("/", upload.single("checkOutPhoto"), async (req, res) => {
     const philippineTime = DateTime.now().setZone("Asia/Manila");
     const checkOutTime = philippineTime.toFormat("HH:mm:ss");
 
-    // Extract checkOutDate from the filename
     const filenameParts = req.file.filename.split("_");
-    const checkOutDateWithExt = filenameParts[2]; // Example: "02-10-2025.png"
+    const checkOutDateWithExt = filenameParts[2]; 
     const checkOutDate = checkOutDateWithExt.replace(
       path.extname(checkOutDateWithExt),
       ""
     );
 
-    // Save Check-out Entry
     const newCheckout = new Checkout({
       employeeID,
       checkOutTime,
@@ -64,7 +62,6 @@ router.post("/", upload.single("checkOutPhoto"), async (req, res) => {
 
     await newCheckout.save();
 
-    // Attempt to record attendance
     let attendanceResponse;
     try {
       attendanceResponse = await axios.post(
@@ -83,6 +80,20 @@ router.post("/", upload.single("checkOutPhoto"), async (req, res) => {
   } catch (error) {
     console.error("Check-out error:", error);
     res.status(500).json({ success: false, message: "Server error. Please try again." });
+  }
+});
+
+router.get("/status/:employeeID", async (req, res) => {
+  try {
+    const { employeeID } = req.params;
+    const today = DateTime.now().setZone("Asia/Manila").toFormat("MM-dd-yyyy");
+
+    const checkoutRecord = await Checkout.findOne({ employeeID, checkOutDate: today });
+
+    res.json({ checkedOut: !!checkoutRecord });
+  } catch (error) {
+    console.error("Error checking check-out status:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

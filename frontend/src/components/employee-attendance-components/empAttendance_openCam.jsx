@@ -13,6 +13,7 @@ export default function EmpAttendanceOpenCam() {
   const [message, setMessage] = useState("");
   const [faceDetected, setFaceDetected] = useState(false);
   const [employeeID, setEmployeeID] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadModels() {
@@ -34,8 +35,25 @@ export default function EmpAttendanceOpenCam() {
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setEmployeeID(user.id);
+      checkIfCheckedIn(user.id);
+    } else {
+      navigate("/CheckIn");
     }
   }, []);
+
+  const checkIfCheckedIn = async (id) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/checkin/status/${id}`
+      );
+      if (response.data.checkedIn) {
+        navigate("/CheckIn");
+      }
+    } catch (error) {
+      console.error("Error checking attendance status:", error);
+    }
+    setLoading(false);
+  };
 
   const startFaceDetection = () => {
     setInterval(async () => {
@@ -161,7 +179,7 @@ export default function EmpAttendanceOpenCam() {
           confirmButtonText: "Proceed",
         });
 
-        navigate("/checkout"); // Ensure navigation happens after SweetAlert
+        navigate("/checkout");
       } else {
         await Swal.fire({
           title: "Check-In Failed",

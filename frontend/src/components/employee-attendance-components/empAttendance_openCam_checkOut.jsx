@@ -13,6 +13,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
   const [message, setMessage] = useState("");
   const [faceDetected, setFaceDetected] = useState(false);
   const [employeeID, setEmployeeID] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadModels() {
@@ -30,8 +31,25 @@ export default function EmpAttendanceOpenCamCheckOut() {
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setEmployeeID(user.id);
+      checkIfCheckedOut(user.id);
+    } else {
+      navigate("/CheckOut");
     }
   }, []);
+
+  const checkIfCheckedOut = async (id) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/checkout/status/${id}`
+      );
+      if (response.data.checkedOut) {
+        navigate("/CheckOut");
+      }
+    } catch (error) {
+      console.error("Error checking check-out status:", error);
+    }
+    setLoading(false);
+  };
 
   const startFaceDetection = () => {
     setInterval(async () => {
