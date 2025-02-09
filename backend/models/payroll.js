@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const payrollSchema = new mongoose.Schema(
   {
@@ -11,8 +11,7 @@ const payrollSchema = new mongoose.Schema(
     incentives: { type: Number, default: 0 },
     totalEarnings: { type: Number, required: true },
   },
-  { timestamps: true, collection: 'empPayrolls' }
+  { timestamps: true, collection: "empPayrolls" }
 );
 
-module.exports = mongoose.model('Payroll', payrollSchema);
-
+module.exports = mongoose.model("Payroll", payrollSchema);

@@ -134,16 +134,16 @@ export default function EmpAttendanceOpenCamCheckOut() {
       );
 
       if (response.data.success) {
-        Swal.fire({
-          title: "Check-Out Successful!",
+        await Swal.fire({
+          title: "Check Out Successful!",
           text: "You have successfully checked out.",
           icon: "success",
           confirmButtonText: "Proceed",
-        }).then(() => {
-          navigate("/AttendanceRecorded");
         });
+
+        navigate("/AttendanceRecorded"); // Navigate only AFTER alert
       } else {
-        Swal.fire({
+        await Swal.fire({
           title: "Check-Out Failed",
           text: "Try again.",
           icon: "error",
@@ -152,9 +152,10 @@ export default function EmpAttendanceOpenCamCheckOut() {
       }
     } catch (error) {
       console.error("Error submitting attendance:", error);
-      Swal.fire({
+
+      await Swal.fire({
         title: "Error",
-        text: "Error checking Out. Please try again later.",
+        text: "Error checking out. Please try again later.",
         icon: "error",
         confirmButtonText: "OK",
       });

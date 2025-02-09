@@ -10,6 +10,7 @@ const payrollRoutes = require("./routes/payrollRoutes");
 const checkinRoutes = require("./routes/checkinRoutes");
 const checkoutRoutes = require("./routes/checkoutRoutes");
 const authRoutes = require("./routes/authRoutes");
+const attendanceRoutes = require("./routes/attendanceRoutes");
 
 dotenv.config();
 connectDB();
@@ -47,6 +48,7 @@ app.use("/api/payroll", payrollRoutes);
 app.use("/api/checkin", checkinRoutes);
 app.use("/api/checkout", checkoutRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

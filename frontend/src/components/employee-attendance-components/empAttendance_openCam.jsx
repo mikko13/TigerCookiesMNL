@@ -22,8 +22,12 @@ export default function EmpAttendanceOpenCam() {
         faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
         faceapi.nets.faceExpressionNet.loadFromUri("/models"),
       ]);
-      startFaceDetection();
+
+      console.log("Face API models loaded!");
+
+      setTimeout(() => startFaceDetection(), 500);
     }
+
     loadModels();
 
     const storedUser = localStorage.getItem("user");
@@ -35,9 +39,9 @@ export default function EmpAttendanceOpenCam() {
 
   const startFaceDetection = () => {
     setInterval(async () => {
-      if (webcamRef.current) {
+      if (webcamRef.current && webcamRef.current.video) {
         const video = webcamRef.current.video;
-        if (video && video.readyState === 4) {
+        if (video.readyState === 4) {
           const detections = await faceapi
             .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
             .withFaceLandmarks()
@@ -61,7 +65,11 @@ export default function EmpAttendanceOpenCam() {
   };
 
   const drawDetections = (detections) => {
+    if (!detections || detections.length === 0) return;
+
     const video = webcamRef.current.video;
+    if (!video) return;
+
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
@@ -98,20 +106,32 @@ export default function EmpAttendanceOpenCam() {
     }
   };
 
-  const uploadAttendance = async () => {
+  const uploadAttendance = async (e) => {
+    e.preventDefault();
+
     if (!image) {
-      setMessage("No image captured.");
+      await Swal.fire({
+        title: "No Image Captured",
+        text: "Please capture an image before checking in.",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
       return;
     }
 
     if (!employeeID) {
-      setMessage("Employee ID not found. Please log in again.");
+      await Swal.fire({
+        title: "Error",
+        text: "Employee ID not found. Please log in again.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
       return;
     }
 
     const currentDateTime = new Date();
     const checkInDate = currentDateTime.toISOString().split("T")[0];
-    const checkInTime = currentDateTime.toTimeString().split(" ")[0]; 
+    const checkInTime = currentDateTime.toTimeString().split(" ")[0];
 
     const blob = await fetch(image).then((res) => res.blob());
     const file = new File([blob], `checkin_${employeeID}.png`, {
@@ -128,33 +148,34 @@ export default function EmpAttendanceOpenCam() {
       const response = await axios.post(
         "http://localhost:5000/api/checkin",
         formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
 
+      console.log("Server Response:", response.data);
+
       if (response.data.success) {
-        Swal.fire({
+        await Swal.fire({
           title: "Check-In Successful!",
           text: "You have successfully checked in.",
           icon: "success",
           confirmButtonText: "Proceed",
-        }).then(() => {
-          navigate("/checkout");
         });
+
+        navigate("/checkout"); // Ensure navigation happens after SweetAlert
       } else {
-        Swal.fire({
+        await Swal.fire({
           title: "Check-In Failed",
-          text: "Try again.",
+          text: response.data.message || "An error occurred. Try again.",
           icon: "error",
           confirmButtonText: "OK",
         });
       }
     } catch (error) {
       console.error("Error submitting attendance:", error);
-      Swal.fire({
+
+      await Swal.fire({
         title: "Error",
-        text: "Error checking in. Please try again later.",
+        text: "Failed to check-in. Please try again later.",
         icon: "error",
         confirmButtonText: "OK",
       });
