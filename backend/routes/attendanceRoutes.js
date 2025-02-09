@@ -1,10 +1,10 @@
 const express = require("express");
-const mongoose = require("mongoose"); // 🔥 FIXED: Import mongoose
+const mongoose = require("mongoose");
 const { DateTime } = require("luxon");
 const Checkin = require("../models/Checkin");
 const Checkout = require("../models/Checkout");
 const Attendance = require("../models/Attendance");
-
+const Account = require("../models/Employees");
 const router = express.Router();
 
 const recordAttendance = async (employeeID) => {
@@ -66,6 +66,59 @@ router.post("/record", async (req, res) => {
   console.log(`🎯 Attendance API Result:`, result);
 
   res.status(result.success ? 201 : 400).json(result);
+});
+
+router.get("/", async (req, res) => {
+  try {
+    const attendanceRecords = await Attendance.find()
+      .populate("employeeID", "firstName lastName")
+      .lean();
+
+    const formattedRecords = attendanceRecords.map((record) => ({
+      _id: record._id,
+      employeeName:
+        record.employeeID && record.employeeID.firstName
+          ? `${record.employeeID.firstName} ${record.employeeID.lastName}`
+          : "Unknown Employee",
+      attendanceDate: record.attendanceDate,
+      checkinTime: record.checkInTime,
+      checkinPhoto: record.checkInPhoto.startsWith("/")
+        ? record.checkInPhoto
+        : `${record.checkInPhoto}`,
+      checkoutTime: record.checkOutTime,
+      checkoutPhoto: record.checkOutPhoto.startsWith("/")
+        ? record.checkOutPhoto
+        : `${record.checkOutPhoto}`,
+    }));
+
+    res.json(formattedRecords);
+  } catch (error) {
+    console.error("Error fetching attendance:", error);
+    res.status(500).json({ error: "Failed to fetch attendance records" });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedRecord = await Attendance.findByIdAndDelete(id);
+
+    if (!deletedRecord) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Attendance record not found." });
+    }
+
+    res.json({
+      success: true,
+      message: "Attendance record deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Error deleting attendance record:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Server error. Try again later." });
+  }
 });
 
 module.exports = router;

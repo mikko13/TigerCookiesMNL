@@ -4,27 +4,27 @@ const AttendanceSchema = new mongoose.Schema(
   {
     employeeID: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Employee",
+      ref: "Account",
       required: true,
     },
     checkInTime: {
-      type: String, // Format: HH:mm:ss
+      type: String,
       required: true,
     },
     checkOutTime: {
-      type: String, // Format: HH:mm:ss
+      type: String,
       required: true,
     },
     attendanceDate: {
-      type: String, // Format: MM-DD-YYYY
+      type: String,
       required: true,
     },
     checkInPhoto: {
-      type: String, // Stores filename of check-in photo
+      type: String, 
       required: true,
     },
     checkOutPhoto: {
-      type: String, // Stores filename of check-out photo
+      type: String,
       required: true,
     },
   },
