@@ -1,14 +1,15 @@
 import React, { useState } from "react";
+import OpenCam from "./empAttendance_openCam_checkOut";
 import Sidebar from "../sidebar-components/employee-sidebar/employeeSidebar";
 import SidebarToggleButton from "../sidebar-components/employee-sidebar/sidebar-toggle-button";
-import CheckOut from "./empAttendance_checkOut";
 
-export default function EmpAttendanceCheckOut() {
+export default function EmpAttendance() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
+
   return (
     <div className="flex h-screen">
       <div
@@ -35,7 +36,7 @@ export default function EmpAttendanceCheckOut() {
           isSidebarVisible ? "ml-[250px]" : "ml-0"
         }`}
       >
-        <CheckOut />
+        <OpenCam />
       </div>
     </div>
   );
