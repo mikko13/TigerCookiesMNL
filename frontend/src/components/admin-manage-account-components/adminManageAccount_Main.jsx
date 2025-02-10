@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import Header from "./adminManageAccount_Header";
 import { getStatusClass } from "./getStatusClass";
 import useEmployees from "./fetchEmployees";
@@ -7,10 +7,29 @@ import { Link } from "react-router-dom";
 
 export default function AdminManageAccountMain() {
   const employees = useEmployees();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredEmployees = employees.filter((employee) => {
+    const lowerQuery = searchQuery.toLowerCase();
+
+    return (
+      employee.firstName.toLowerCase().includes(lowerQuery) ||
+      employee.lastName.toLowerCase().includes(lowerQuery) ||
+      employee.email.toLowerCase().includes(lowerQuery) ||
+      employee.address.toLowerCase().includes(lowerQuery) ||
+      employee.gender.toLowerCase().includes(lowerQuery) ||
+      employee.dateOfBirth.toLowerCase().includes(lowerQuery) ||
+      employee.position.toLowerCase().includes(lowerQuery) ||
+      employee.hiredDate.toLowerCase().includes(lowerQuery) ||
+      employee.status.toLowerCase().includes(lowerQuery) ||
+      employee.ratePerHour.toString().includes(lowerQuery) ||
+      employee.shift.toLowerCase().includes(lowerQuery)
+    );
+  });
 
   return (
     <div className="relative flex flex-col w-full h-full text-gray-700 shadow-md bg-clip-border">
-      <Header />
+      <Header setSearchQuery={setSearchQuery} />
       <div className="overflow-x-auto max-h-[500px]">
         <table className="w-full text-left table-auto min-w-max">
           <thead>
@@ -83,7 +102,7 @@ export default function AdminManageAccountMain() {
             </tr>
           </thead>
           <tbody className="overflow-y-auto">
-            {employees.map((employee) => (
+            {filteredEmployees.map((employee) => (
               <tr key={employee._id}>
                 <td className="p-4 border-b border-blue-gray-50">
                   <div className="flex items-center gap-3">

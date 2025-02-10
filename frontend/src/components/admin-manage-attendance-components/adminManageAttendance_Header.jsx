@@ -29,7 +29,7 @@ export default function AdminManageAttendanceHeader({ searchTerm, setSearchTerm 
               </div>
             </div>
           </div>
-          <a href="/CreateAccount" className="flex items-center gap-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 py-2 px-4 text-xs font-bold uppercase text-white transition">
+          <a href="/CreateEmployeeAttendance" className="flex items-center gap-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 py-2 px-4 text-xs font-bold uppercase text-white transition">
             Create Attendance Record
           </a>
         </div>

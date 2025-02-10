@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLoginState } from "./loginConstants";
 import { errorToast, successToast } from "./toastMessages";
+import PrivacyPolicyModal from "./privacypolicyModal";
 
 export default function LoginForm() {
   const {
@@ -9,21 +10,31 @@ export default function LoginForm() {
     password,
     setPassword,
     showPassword,
-    setShowPassword,
-    error,
-    success,
     togglePasswordVisibility,
     handleLogin,
+    error,
+    success,
   } = useLoginState();
 
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [fadeEffect, setFadeEffect] = useState(false);
+
+  const openModal = () => {
+    setShowPrivacyPolicy(true);
+    setTimeout(() => setFadeEffect(true), 50);
+  };
+
+  const closeModal = () => {
+    setFadeEffect(false);
+    setTimeout(() => setShowPrivacyPolicy(false), 300);
+  };
+
   return (
-    <div className="border bg-[#ffffff] border-gray-300 rounded-lg p-6 max-w-md shadow-[0_2px_22px_-4px_rgba(93,96,127,0.2)] max-md:mx-auto">
+    <div className="border bg-[#ffffff] border-gray-300 rounded-lg p-6 max-w-md shadow-lg max-md:mx-auto">
       <form className="space-y-4" onSubmit={handleLogin}>
         <div className="mb-8">
           <h3 className="text-gray-800 text-3xl font-bold">Sign in</h3>
-          <p className="text-gray-500 text-sm mt-4 leading-relaxed">
-            Sign in to your account
-          </p>
+          <p className="text-gray-500 text-sm mt-4">Sign in to your account</p>
         </div>
 
         <div>
@@ -32,7 +43,6 @@ export default function LoginForm() {
           </label>
           <input
             id="email"
-            name="email"
             type="email"
             required
             value={email}
@@ -43,12 +53,14 @@ export default function LoginForm() {
         </div>
 
         <div className="relative">
-          <label htmlFor="password" className="text-gray-800 text-sm mb-2 block">
+          <label
+            htmlFor="password"
+            className="text-gray-800 text-sm mb-2 block"
+          >
             Password
           </label>
           <input
             id="password"
-            name="password"
             type={showPassword ? "text" : "password"}
             required
             value={password}
@@ -101,20 +113,13 @@ export default function LoginForm() {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label
-              htmlFor="remember-me"
-              className="ml-3 block text-sm text-gray-800"
-            >
-              Remember me
-            </label>
-          </div>
+          <button
+            type="button"
+            onClick={openModal}
+            className="text-sm text-yellow-400 hover:underline"
+          >
+            Privacy Policy
+          </button>
 
           <div className="text-sm">
             <a
@@ -125,9 +130,10 @@ export default function LoginForm() {
             </a>
           </div>
         </div>
+
         <button
           type="submit"
-          className="w-full shadow-xl py-2.5 px-4 mt-3 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
+          className="w-full shadow-xl py-2.5 px-4 mt-3 text-sm tracking-wide rounded-lg text-white bg-yellow-400 hover:bg-yellow-500"
         >
           Sign in
         </button>
@@ -135,6 +141,12 @@ export default function LoginForm() {
 
       {error && errorToast}
       {success && successToast}
+
+      <PrivacyPolicyModal
+        show={showPrivacyPolicy}
+        fadeEffect={fadeEffect}
+        closeModal={closeModal}
+      />
     </div>
   );
 }

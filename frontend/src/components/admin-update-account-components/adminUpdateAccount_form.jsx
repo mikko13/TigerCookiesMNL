@@ -8,6 +8,7 @@ export default function AdminUpdateAccountForm() {
   const history = useNavigate();
   const [profilePicture, setProfilePicture] = useState(null);
   const [profilePictureToDelete, setProfilePictureToDelete] = useState(false);
+  const [changePassword, setChangePassword] = useState(false); // New state for password toggle
 
   const [employee, setEmployee] = useState({
     firstName: "",
@@ -63,7 +64,6 @@ export default function AdminUpdateAccountForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Form validation example
     if (!employee.firstName || !employee.lastName || !employee.email) {
       Swal.fire("Error", "Please fill in all required fields.", "error");
       return;
@@ -79,15 +79,12 @@ export default function AdminUpdateAccountForm() {
       confirmButtonText: "Update",
     });
 
-    if (!confirmResult.isConfirmed) {
-      return;
-    }
+    if (!confirmResult.isConfirmed) return;
 
     const formData = new FormData();
     formData.append("firstName", employee.firstName);
     formData.append("lastName", employee.lastName);
     formData.append("email", employee.email);
-    formData.append("password", employee.password);
     formData.append("address", employee.address);
     formData.append("gender", employee.gender);
     formData.append("dateOfBirth", employee.dateOfBirth);
@@ -103,19 +100,20 @@ export default function AdminUpdateAccountForm() {
       formData.append("profilePicture", "");
     }
 
+    if (changePassword) {
+      formData.append("password", employee.password);
+    }
+
     try {
       const response = await axios.put(
         `http://localhost:5000/api/employees/${employeeId}`,
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
       console.log("Response:", response);
-
       setEmployee(response.data);
       setProfilePicture(response.data.profilePicture);
 
@@ -217,15 +215,34 @@ export default function AdminUpdateAccountForm() {
             </div>
             <div>
               <label className="text-sm text-gray-700">Password</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={employee.password}
-                onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
-              />
+              <div className="relative flex items-center">
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  onChange={handleInputChange}
+                  disabled={!changePassword} // Disable input when checkbox is unchecked
+                  className={`px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded ${
+                    !changePassword ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                />
+                <div className="absolute right-3 flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="changePassword"
+                    checked={changePassword}
+                    onChange={() => setChangePassword(!changePassword)}
+                    className="w-4 h-4 cursor-pointer"
+                  />
+                  <label
+                    htmlFor="changePassword"
+                    className="text-sm text-gray-700 cursor-pointer"
+                  >
+                  </label>
+                </div>
+              </div>
             </div>
+
             <div>
               <label className="text-sm text-gray-700">Address</label>
               <input
