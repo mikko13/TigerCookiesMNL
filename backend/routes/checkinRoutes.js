@@ -2,12 +2,15 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs-extra");
-const { DateTime } = require("luxon"); 
+const { DateTime } = require("luxon");
 const Checkin = require("../models/Checkin");
 
 const router = express.Router();
 
-const storageDir = path.join(__dirname, "../../frontend/public/employee-checkin-photos");
+const storageDir = path.join(
+  __dirname,
+  "../../frontend/public/employee-checkin-photos"
+);
 
 fs.ensureDirSync(storageDir);
 
@@ -21,7 +24,9 @@ const storage = multer.diskStorage({
     const philippineTime = DateTime.now().setZone("Asia/Manila");
     const formattedDate = philippineTime.toFormat("MM-dd-yyyy");
 
-    const uniqueFilename = `checkin_${employeeID}_${formattedDate}${path.extname(file.originalname)}`;
+    const uniqueFilename = `checkin_${employeeID}_${formattedDate}${path.extname(
+      file.originalname
+    )}`;
     cb(null, uniqueFilename);
   },
 });
@@ -33,7 +38,12 @@ router.post("/", upload.single("checkInPhoto"), async (req, res) => {
     const { employeeID } = req.body;
 
     if (!employeeID || !req.file) {
-      return res.status(400).json({ success: false, message: "Employee ID and photo are required." });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Employee ID and photo are required.",
+        });
     }
 
     const philippineTime = DateTime.now().setZone("Asia/Manila");
@@ -45,14 +55,18 @@ router.post("/", upload.single("checkInPhoto"), async (req, res) => {
     const newCheckin = new Checkin({
       employeeID,
       checkInTime,
-      checkInDate, 
+      checkInDate,
       checkInPhoto: req.file.filename,
     });
 
     await newCheckin.save();
-    res.status(201).json({ success: true, message: "Check-in recorded successfully!" });
+    res
+      .status(201)
+      .json({ success: true, message: "Check-in recorded successfully!" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error. Please try again." });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error. Please try again." });
   }
 });
 
@@ -61,7 +75,10 @@ router.get("/status/:employeeID", async (req, res) => {
     const { employeeID } = req.params;
     const today = DateTime.now().setZone("Asia/Manila").toFormat("MM-dd-yyyy");
 
-    const checkinRecord = await Checkin.findOne({ employeeID, checkInDate: today });
+    const checkinRecord = await Checkin.findOne({
+      employeeID,
+      checkInDate: today,
+    });
 
     res.json({ checkedIn: !!checkinRecord });
   } catch (error) {

@@ -5,7 +5,103 @@ const Checkin = require("../models/Checkin");
 const Checkout = require("../models/Checkout");
 const Attendance = require("../models/Attendance");
 const Account = require("../models/Employees");
+const multer = require("multer");
 const router = express.Router();
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    if (file.fieldname === "checkInPhoto") {
+      cb(
+        null,
+        path.join(__dirname, "../../frontend/public/employee-checkin-photos")
+      );
+    } else if (file.fieldname === "checkOutPhoto") {
+      cb(
+        null,
+        path.join(__dirname, "../../frontend/public/employee-checkout-photos")
+      );
+    } else {
+      cb(new Error("Invalid field name"), null);
+    }
+  },
+  filename: (req, file, cb) => {
+    const { employeeID, attendanceDate } = req.body;
+    const formattedDate =
+      DateTime.fromISO(attendanceDate).toFormat("MM-dd-yyyy");
+    let filename = "";
+
+    if (file.fieldname === "checkInPhoto") {
+      filename = `checkin_${employeeID}_${formattedDate}.png`;
+    } else if (file.fieldname === "checkOutPhoto") {
+      filename = `checkout_${employeeID}_${formattedDate}.png`;
+    }
+
+    cb(null, filename);
+  },
+});
+
+const upload = multer({ storage });
+
+router.post(
+  "/post",
+  upload.fields([
+    { name: "checkInPhoto", maxCount: 1 },
+    { name: "checkOutPhoto", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const { employeeID, attendanceDate, checkInTime, checkOutTime } =
+        req.body;
+
+      if (
+        !employeeID ||
+        !attendanceDate ||
+        !checkInTime ||
+        !checkOutTime ||
+        !req.files
+      ) {
+        return res
+          .status(400)
+          .json({ success: false, message: "All fields are required." });
+      }
+
+      const formattedCheckInTime =
+        DateTime.fromISO(checkInTime).toFormat("HH:mm:ss");
+      const formattedCheckOutTime =
+        DateTime.fromISO(checkOutTime).toFormat("HH:mm:ss");
+
+      const checkInPhoto = req.files["checkInPhoto"]
+        ? req.files["checkInPhoto"][0].filename
+        : "";
+      const checkOutPhoto = req.files["checkOutPhoto"]
+        ? req.files["checkOutPhoto"][0].filename
+        : "";
+
+      const newAttendance = new Attendance({
+        employeeID,
+        checkInTime: formattedCheckInTime,
+        checkOutTime: formattedCheckOutTime,
+        attendanceDate,
+        checkInPhoto,
+        checkOutPhoto,
+      });
+
+      await newAttendance.save();
+
+      res.status(201).json({
+        success: true,
+        message: "Attendance recorded successfully!",
+        attendance: newAttendance,
+      });
+    } catch (error) {
+      console.error("Error saving attendance:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Server error. Try again later." });
+    }
+  }
+);
 
 const recordAttendance = async (employeeID) => {
   try {
