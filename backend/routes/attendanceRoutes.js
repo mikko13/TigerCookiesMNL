@@ -60,40 +60,51 @@ const recordAttendance = async (employeeID) => {
 
 router.post("/record", async (req, res) => {
   const { employeeID } = req.body;
-  console.log(`🔍 Recording attendance for EmployeeID: ${employeeID}`);
 
   const result = await recordAttendance(employeeID);
-  console.log(`🎯 Attendance API Result:`, result);
 
   res.status(result.success ? 201 : 400).json(result);
 });
 
 router.get("/", async (req, res) => {
   try {
-    const attendanceRecords = await Attendance.find()
-      .populate("employeeID", "firstName lastName")
-      .lean();
+    const { employeeID, isAdmin } = req.query;
+
+    let attendanceRecords;
+
+    if (isAdmin === "true") {
+      attendanceRecords = await Attendance.find()
+        .populate("employeeID", "firstName lastName _id")
+        .lean();
+    } else if (employeeID) {
+      const employeeObjectId = new mongoose.Types.ObjectId(employeeID);
+
+      attendanceRecords = await Attendance.find({
+        employeeID: employeeObjectId,
+      })
+        .populate("employeeID", "firstName lastName _id")
+        .lean();
+    } else {
+      return res
+        .status(400)
+        .json({ error: "Employee ID or Admin status required" });
+    }
 
     const formattedRecords = attendanceRecords.map((record) => ({
       _id: record._id,
-      employeeName:
-        record.employeeID && record.employeeID.firstName
-          ? `${record.employeeID.firstName} ${record.employeeID.lastName}`
-          : "Unknown Employee",
+      employeeID: record.employeeID._id.toString(),
+      employeeName: record.employeeID
+        ? `${record.employeeID.firstName} ${record.employeeID.lastName}`
+        : "Unknown Employee",
       attendanceDate: record.attendanceDate,
       checkinTime: record.checkInTime,
-      checkinPhoto: record.checkInPhoto.startsWith("/")
-        ? record.checkInPhoto
-        : `${record.checkInPhoto}`,
+      checkinPhoto: record.checkInPhoto,
       checkoutTime: record.checkOutTime,
-      checkoutPhoto: record.checkOutPhoto.startsWith("/")
-        ? record.checkOutPhoto
-        : `${record.checkOutPhoto}`,
+      checkoutPhoto: record.checkOutPhoto,
     }));
 
     res.json(formattedRecords);
   } catch (error) {
-    console.error("Error fetching attendance:", error);
     res.status(500).json({ error: "Failed to fetch attendance records" });
   }
 });
@@ -114,48 +125,10 @@ router.delete("/:id", async (req, res) => {
       message: "Attendance record deleted successfully.",
     });
   } catch (error) {
-    console.error("Error deleting attendance record:", error);
     res
       .status(500)
       .json({ success: false, message: "Server error. Try again later." });
   }
 });
-
-router.get("/", async (req, res) => {
-  try {
-    const { employeeID } = req.query; // Use query param to filter by employeeID
-
-    let query = {};
-    if (employeeID) {
-      query.employeeID = employeeID;
-    }
-
-    const attendanceRecords = await Attendance.find(query)
-      .populate("employeeID", "firstName lastName")
-      .lean();
-
-    const formattedRecords = attendanceRecords.map((record) => ({
-      _id: record._id,
-      employeeName: record.employeeID
-        ? `${record.employeeID.firstName} ${record.employeeID.lastName}`
-        : "Unknown Employee",
-      attendanceDate: record.attendanceDate,
-      checkinTime: record.checkInTime,
-      checkinPhoto: record.checkInPhoto.startsWith("/")
-        ? record.checkInPhoto
-        : `${record.checkInPhoto}`,
-      checkoutTime: record.checkOutTime,
-      checkoutPhoto: record.checkOutPhoto.startsWith("/")
-        ? record.checkOutPhoto
-        : `${record.checkOutPhoto}`,
-    }));
-
-    res.json(formattedRecords);
-  } catch (error) {
-    console.error("Error fetching attendance:", error);
-    res.status(500).json({ error: "Failed to fetch attendance records" });
-  }
-});
-
 
 module.exports = router;

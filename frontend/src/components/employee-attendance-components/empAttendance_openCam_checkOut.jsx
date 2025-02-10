@@ -31,22 +31,36 @@ export default function EmpAttendanceOpenCamCheckOut() {
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setEmployeeID(user.id);
-      checkIfCheckedOut(user.id);
+      checkAttendanceStatus(user.id);
     } else {
       navigate("/CheckOut");
     }
   }, []);
 
-  const checkIfCheckedOut = async (id) => {
+  const checkAttendanceStatus = async (id) => {
     try {
-      const response = await axios.get(
+      // Check if user has checked in
+      const checkInResponse = await axios.get(
+        `http://localhost:5000/api/checkin/status/${id}`
+      );
+
+      if (!checkInResponse.data.checkedIn) {
+        navigate("/CheckOut");
+        return;
+      }
+
+      // Check if user has already checked out
+      const checkOutResponse = await axios.get(
         `http://localhost:5000/api/checkout/status/${id}`
       );
-      if (response.data.checkedOut) {
+
+      if (checkOutResponse.data.checkedOut) {
         navigate("/CheckOut");
+        return;
       }
     } catch (error) {
-      console.error("Error checking check-out status:", error);
+      console.error("Error fetching attendance status:", error);
+      navigate("/CheckOut");
     }
     setLoading(false);
   };
@@ -180,6 +194,10 @@ export default function EmpAttendanceOpenCamCheckOut() {
     }
   };
 
+  if (loading) {
+    return <p className="text-center text-lg font-semibold">Checking status...</p>;
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <h1 className="text-2xl font-semibold mb-4">
@@ -209,21 +227,19 @@ export default function EmpAttendanceOpenCamCheckOut() {
       </div>
       <div className="w-full max-w-2xl">
         {!image ? (
-          <>
-            <button
-              onClick={capture}
-              disabled={!faceDetected}
-              className={`px-6 py-3 w-full text-sm ${
-                faceDetected
-                  ? "bg-yellow-400 hover:bg-yellow-500"
-                  : "bg-gray-400 cursor-not-allowed"
-              } text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all`}
-            >
-              {faceDetected ? "Capture Picture" : "Position Your Face"}
-            </button>
-          </>
+          <button
+            onClick={capture}
+            disabled={!faceDetected}
+            className={`px-6 py-3 w-full text-sm ${
+              faceDetected
+                ? "bg-yellow-400 hover:bg-yellow-500"
+                : "bg-gray-400 cursor-not-allowed"
+            } text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all`}
+          >
+            {faceDetected ? "Capture Picture" : "Position Your Face"}
+          </button>
         ) : (
-          <>
+<>
             <button
               onClick={uploadAttendance}
               className="px-6 py-3 w-full text-sm bg-green-500 hover:bg-green-600 text-white rounded-md active:bg-green-700 focus:ring-2 focus:ring-green-600 transition-all"

@@ -52,7 +52,6 @@ router.post("/", upload.single("checkInPhoto"), async (req, res) => {
     await newCheckin.save();
     res.status(201).json({ success: true, message: "Check-in recorded successfully!" });
   } catch (error) {
-    console.error("Check-in error:", error);
     res.status(500).json({ success: false, message: "Server error. Please try again." });
   }
 });
@@ -66,7 +65,6 @@ router.get("/status/:employeeID", async (req, res) => {
 
     res.json({ checkedIn: !!checkinRecord });
   } catch (error) {
-    console.error("Error checking check-in status:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

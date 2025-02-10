@@ -7,14 +7,20 @@ import { Link } from "react-router-dom";
 export default function AdminManageAccountMain() {
   const fetchedAttendance = useAttendance();
   const [attendance, setAttendance] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     setAttendance(fetchedAttendance);
   }, [fetchedAttendance]);
 
+  // Filtered data based on search input
+  const filteredAttendance = attendance.filter((record) =>
+    record.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="relative flex flex-col w-full h-full text-gray-700 shadow-md bg-clip-border">
-      <Header />
+      <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <div className="overflow-x-auto max-h-[500px]">
         <table className="w-full text-left table-auto min-w-max">
           <thead>
@@ -57,7 +63,7 @@ export default function AdminManageAccountMain() {
             </tr>
           </thead>
           <tbody className="overflow-y-auto">
-            {attendance.map((record) => (
+            {filteredAttendance.map((record) => (
               <tr key={record._id}>
                 <td className="p-4 border-b border-blue-gray-50">
                   <p className="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900">

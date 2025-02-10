@@ -5,19 +5,20 @@ const useAttendance = () => {
   const [attendance, setAttendance] = useState([]);
 
   useEffect(() => {
-    const fetchAttendance = async () => {
+    const fetchAdminAttendance = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:5000/api/attendance"
-        );
-        console.log("Fetched Attendance Data:", response.data);
+        console.log("📡 Fetching ALL attendance records for Admin...");
+
+        const response = await axios.get("http://localhost:5000/api/attendance?isAdmin=true");
+
+        console.log("✅ Admin Attendance Fetched:", response.data.length);
         setAttendance(response.data);
       } catch (error) {
-        console.error("Error fetching attendance data:", error);
+        console.error("❌ Error fetching admin attendance:", error.response?.data || error.message);
       }
     };
 
-    fetchAttendance();
+    fetchAdminAttendance();
   }, []);
 
   return attendance;

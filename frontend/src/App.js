@@ -15,9 +15,9 @@ import UpdateAccount from "./components/admin-update-account-components/adminUpd
 import EmployeePayroll from "./components/employee-payroll-components/empPayroll";
 import AdminPayrollHistory from "./components/admin-payroll-history-components/adminPayroll";
 import AdminPayroll from "./components/admin-payroll-components/adminPayrollMain";
-import AdminManageAttendance from "./components/admin-manage-attendance-components/adminManageAttendance"
-import EmployeeManageAttendance from "./components/employee-manage-attendance-components/employeeManageAttendance"
-
+import AdminManageAttendance from "./components/admin-manage-attendance-components/adminManageAttendance";
+import EmployeeManageAttendance from "./components/employee-manage-attendance-components/employeeManageAttendance";
+import NotFound from "./components/NotFound";
 
 export default function App() {
   return (
@@ -43,15 +43,26 @@ export default function App() {
         <Route path="/Payroll" element={<EmployeePayroll />} />
 
         {/* Admin Side */}
-        <Route path="/ManageEmployeeAccounts" element={<AdminManageAccount />} />
+        <Route
+          path="/ManageEmployeeAccounts"
+          element={<AdminManageAccount />}
+        />
         <Route path="/CreateAccount" element={<CreateAccount />} />
         <Route path="/AdminPayroll" element={<AdminPayroll />} />
         <Route path="/AdminPayrollHistory" element={<AdminPayrollHistory />} />
         <Route path="/ModifyAccount/:employeeId" element={<UpdateAccount />} />
 
-        <Route path="/ManageEmployeeAttendance" element={<AdminManageAttendance />} />
-        <Route path="/ManageAttendance" element={<EmployeeManageAttendance />} />
-=
+        <Route
+          path="/ManageEmployeeAttendance"
+          element={<AdminManageAttendance />}
+        />
+        <Route
+          path="/ManageAttendance"
+          element={<EmployeeManageAttendance />}
+        />
+
+        {/* Catch-all Route for Unknown URLs */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

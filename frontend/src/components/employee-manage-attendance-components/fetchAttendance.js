@@ -1,37 +1,37 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const useAttendance = () => {
+const useEmployeeAttendance = () => {
   const [attendance, setAttendance] = useState([]);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-    }
-  }, []);
+    const fetchEmployeeAttendance = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const employeeID = user ? user.id : null;
 
-  useEffect(() => {
-    if (user) {
-      const fetchAttendance = async () => {
-        try {
-          const response = await axios.get(
-            `http://localhost:5000/api/attendance?employeeID=${user.id}`
-          );
-          console.log("Fetched Attendance Data:", response.data);
-          setAttendance(response.data);
-        } catch (error) {
-          console.error("Error fetching attendance data:", error);
+        if (!employeeID) {
+          console.error("⚠ No employee ID found in local storage.");
+          return;
         }
-      };
 
-      fetchAttendance();
-    }
-  }, [user]);
+        console.log(`📡 Fetching attendance for Employee ID: ${employeeID}`);
+
+        const response = await axios.get(
+          `http://localhost:5000/api/attendance?employeeID=${employeeID}`
+        );
+
+        console.log("✅ Employee Attendance Fetched:", response.data.length);
+        setAttendance(response.data);
+      } catch (error) {
+        console.error("❌ Error fetching employee attendance:", error.response?.data || error.message);
+      }
+    };
+
+    fetchEmployeeAttendance();
+  }, []);
 
   return attendance;
 };
 
-export default useAttendance;
+export default useEmployeeAttendance;

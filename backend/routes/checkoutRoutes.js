@@ -69,7 +69,6 @@ router.post("/", upload.single("checkOutPhoto"), async (req, res) => {
         { employeeID }
       );
     } catch (attendanceError) {
-      console.error("Attendance recording error:", attendanceError);
     }
 
     res.status(201).json({
@@ -78,7 +77,6 @@ router.post("/", upload.single("checkOutPhoto"), async (req, res) => {
       attendance: attendanceResponse ? attendanceResponse.data : "Attendance update failed.",
     });
   } catch (error) {
-    console.error("Check-out error:", error);
     res.status(500).json({ success: false, message: "Server error. Please try again." });
   }
 });
@@ -92,7 +90,6 @@ router.get("/status/:employeeID", async (req, res) => {
 
     res.json({ checkedOut: !!checkoutRecord });
   } catch (error) {
-    console.error("Error checking check-out status:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
