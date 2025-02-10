@@ -121,4 +121,41 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+    const { employeeID } = req.query; // Use query param to filter by employeeID
+
+    let query = {};
+    if (employeeID) {
+      query.employeeID = employeeID;
+    }
+
+    const attendanceRecords = await Attendance.find(query)
+      .populate("employeeID", "firstName lastName")
+      .lean();
+
+    const formattedRecords = attendanceRecords.map((record) => ({
+      _id: record._id,
+      employeeName: record.employeeID
+        ? `${record.employeeID.firstName} ${record.employeeID.lastName}`
+        : "Unknown Employee",
+      attendanceDate: record.attendanceDate,
+      checkinTime: record.checkInTime,
+      checkinPhoto: record.checkInPhoto.startsWith("/")
+        ? record.checkInPhoto
+        : `${record.checkInPhoto}`,
+      checkoutTime: record.checkOutTime,
+      checkoutPhoto: record.checkOutPhoto.startsWith("/")
+        ? record.checkOutPhoto
+        : `${record.checkOutPhoto}`,
+    }));
+
+    res.json(formattedRecords);
+  } catch (error) {
+    console.error("Error fetching attendance:", error);
+    res.status(500).json({ error: "Failed to fetch attendance records" });
+  }
+});
+
+
 module.exports = router;

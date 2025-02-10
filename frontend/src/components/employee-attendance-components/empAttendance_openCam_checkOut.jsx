@@ -159,7 +159,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
           confirmButtonText: "Proceed",
         });
 
-        navigate("/AttendanceRecorded"); // Navigate only AFTER alert
+        navigate("/CheckIn"); // Navigate only AFTER alert
       } else {
         await Swal.fire({
           title: "Check-Out Failed",

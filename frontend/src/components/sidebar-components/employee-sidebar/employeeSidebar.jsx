@@ -82,7 +82,7 @@ export default function EmpAttendanceSideBar() {
         </li>
         <li>
           <a
-            href="#"
+            href="/ManageAttendance"
             className="text-gray-800 text-sm flex items-center hover:bg-yellow-300 rounded px-4 py-3 transition-all"
           >
             <svg
