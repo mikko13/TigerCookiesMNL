@@ -60,7 +60,6 @@ export default function AdminPayrollMain() {
         <table className="w-full text-left table-auto min-w-max">
           <thead>
             <tr>
-              <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Profile Picture</th>
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">First Name</th>
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Last Name</th>
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Position</th>
@@ -72,13 +71,6 @@ export default function AdminPayrollMain() {
           <tbody>
             {filteredEmployees.map((employee) => (
               <tr key={employee._id}>
-                <td className="p-4 border-b border-blue-gray-50">
-                  <img
-                    src={`/employee-profile-pics/${employee.profilePicture}`}
-                    alt="Employee Profile"
-                    className="h-12 w-12 rounded-full border border-blue-gray-50 bg-blue-gray-50/50 object-cover"
-                  />
-                </td>
                 <td className="p-4 border-b border-blue-gray-50">{employee.firstName}</td>
                 <td className="p-4 border-b border-blue-gray-50">{employee.lastName}</td>
                 <td className="p-4 border-b border-blue-gray-50">{employee.position}</td>

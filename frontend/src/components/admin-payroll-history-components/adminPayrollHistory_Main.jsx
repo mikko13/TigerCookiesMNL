@@ -50,7 +50,12 @@ export default function AdminPayrollHistoryMain() {
             <tr>
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
                 <p className="block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70">
-                  Profile Picture
+                  First Name
+                </p>
+              </th>
+              <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
+                <p className="block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70">
+                  Last Name
                 </p>
               </th>
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
@@ -77,14 +82,15 @@ export default function AdminPayrollHistoryMain() {
           </thead>
           <tbody className="overflow-y-auto">
             <tr>
+            <td className="p-4 border-b border-blue-gray-50">
+                <p className="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900">
+                John
+                </p>
+              </td>
               <td className="p-4 border-b border-blue-gray-50">
-                <div className="flex items-center gap-3">
-                  <img
-                    src="#"
-                    alt="Picture ng employee"
-                    className="relative inline-block h-12 w-12 !rounded-full border border-blue-gray-50 bg-blue-gray-50/50 object-contain object-center p-1"
-                  />
-                </div>
+                <p className="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900">
+                Doe
+                </p>
               </td>
               <td className="p-4 border-b border-blue-gray-50">
                 <p className="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900">
