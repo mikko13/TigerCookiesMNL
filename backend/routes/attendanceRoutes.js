@@ -8,6 +8,7 @@ const Account = require("../models/Employees");
 const multer = require("multer");
 const router = express.Router();
 const path = require("path");
+const fs = require("fs");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -228,3 +229,101 @@ router.delete("/:id", async (req, res) => {
 });
 
 module.exports = router;
+
+router.put(
+  "/update/:id",
+  upload.fields([
+    { name: "checkInPhoto", maxCount: 1 },
+    { name: "checkOutPhoto", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const { employeeID, attendanceDate, checkInTime, checkOutTime } =
+        req.body;
+      const attendanceRecord = await Attendance.findById(req.params.id);
+
+      if (!attendanceRecord) {
+        return res
+          .status(404)
+          .json({ message: "Attendance record not found." });
+      }
+
+      const formattedDate =
+        DateTime.fromISO(attendanceDate).toFormat("MM-dd-yyyy");
+
+      // Paths for old photos
+      const oldCheckInPhotoPath = path.join(
+        __dirname,
+        "../../frontend/public/employee-checkin-photos",
+        attendanceRecord.checkInPhoto
+      );
+      const oldCheckOutPhotoPath = path.join(
+        __dirname,
+        "../../frontend/public/employee-checkout-photos",
+        attendanceRecord.checkOutPhoto
+      );
+
+      let newCheckInPhoto = attendanceRecord.checkInPhoto;
+      let newCheckOutPhoto = attendanceRecord.checkOutPhoto;
+
+      // Handle Check-In Photo upload
+      if (req.files["checkInPhoto"]) {
+        // Check if the old photo exists and delete it
+        if (fs.existsSync(oldCheckInPhotoPath)) {
+          fs.unlinkSync(oldCheckInPhotoPath); // Delete the old photo
+        }
+
+        // Add a timestamp to the filename to make it unique
+        const checkInTimestamp = Date.now();
+        newCheckInPhoto = `checkin_${employeeID}_${formattedDate}.png`;
+        const checkInPhotoPath = path.join(
+          __dirname,
+          "../../frontend/public/employee-checkin-photos",
+          newCheckInPhoto
+        );
+
+        // Move the uploaded file to the target folder
+        fs.renameSync(req.files["checkInPhoto"][0].path, checkInPhotoPath);
+      }
+
+      // Handle Check-Out Photo upload
+      if (req.files["checkOutPhoto"]) {
+        // Check if the old photo exists and delete it
+        if (fs.existsSync(oldCheckOutPhotoPath)) {
+          fs.unlinkSync(oldCheckOutPhotoPath); // Delete the old photo
+        }
+
+        // Add a timestamp to the filename to make it unique
+        const checkOutTimestamp = Date.now();
+        newCheckOutPhoto = `checkout_${employeeID}_${formattedDate}.png`;
+        const checkOutPhotoPath = path.join(
+          __dirname,
+          "../../frontend/public/employee-checkout-photos",
+          newCheckOutPhoto
+        );
+
+        // Move the uploaded file to the target folder
+        fs.renameSync(req.files["checkOutPhoto"][0].path, checkOutPhotoPath);
+      }
+
+      // Update the attendance record with the new data
+      attendanceRecord.attendanceDate = attendanceDate;
+      attendanceRecord.checkInTime = checkInTime;
+      attendanceRecord.checkOutTime = checkOutTime;
+      attendanceRecord.checkInPhoto = newCheckInPhoto;
+      attendanceRecord.checkOutPhoto = newCheckOutPhoto;
+
+      // Save the updated attendance record
+      await attendanceRecord.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Attendance updated successfully!",
+        attendance: attendanceRecord,
+      });
+    } catch (error) {
+      console.error("Error updating attendance:", error);
+      res.status(500).json({ message: "Server error. Please try again." });
+    }
+  }
+);

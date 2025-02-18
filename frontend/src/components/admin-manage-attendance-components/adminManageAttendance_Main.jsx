@@ -111,7 +111,10 @@ export default function AdminManageAccountMain() {
                 <td className="p-4 border-b border-blue-gray-50">
                   <div className="flex gap-2">
                     <button className="mr-4" title="Edit">
-                      <Link to={`/ModifyAccount/${record._id}`}>
+                      <Link
+                        to={`/UpdateEmployeeAttendance/${record._id}`}
+                        state={{ record }}
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="w-5 fill-blue-500 hover:fill-blue-700"

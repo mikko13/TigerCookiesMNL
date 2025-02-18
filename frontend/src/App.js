@@ -18,6 +18,7 @@ import AdminPayroll from "./components/admin-payroll-components/adminPayrollMain
 import AdminManageAttendance from "./components/admin-manage-attendance-components/adminManageAttendance";
 import AdminCreateAttendance from "./components/admin-create-attendance-components/adminCreateAttendance"
 import EmployeeManageAttendance from "./components/employee-manage-attendance-components/employeeManageAttendance";
+import AdminUpdateAttendance from "./components/admin-update-attendance-components/adminUpdateAttendance";
 import NotFound from "./components/NotFound";
 
 export default function App() {
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/ModifyAccount/:employeeId" element={<UpdateAccount />} />
         <Route path="/ManageEmployeeAttendance" element={<AdminManageAttendance />} />
         <Route path="/CreateEmployeeAttendance" element={<AdminCreateAttendance />} />
+        <Route path="/UpdateEmployeeAttendance/:employeeId" element={<AdminUpdateAttendance />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
