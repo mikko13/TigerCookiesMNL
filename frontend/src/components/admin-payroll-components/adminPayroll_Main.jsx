@@ -1,17 +1,44 @@
-import { useState } from "react";
-import useEmployees from "../admin-manage-account-components/fetchEmployees";
-import { Link } from "react-router-dom";
-import Swal from "sweetalert2";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 export default function AdminPayrollMain() {
-  const employees = useEmployees();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [pendingPayrolls, setPendingPayrolls] = useState([]);
+  const [editingPayroll, setEditingPayroll] = useState(null);
+  const [forceRender, setForceRender] = useState(false); // ✅ Forces re-render if needed
 
-  const handlePublishPayroll = async (employee) => {
+  const [formData, setFormData] = useState({
+    salary: 0,
+    holidayPay: 0,
+    totalDeduction: 0,
+    overtimePay: 0,
+    incentives: 0,
+  });
+
+  // Fetch Payrolls
+  useEffect(() => {
+    fetchPendingPayrolls();
+  }, []);
+
+  useEffect(() => {
+    console.log("Updated State:", pendingPayrolls); // ✅ Logs whenever state updates
+    setForceRender((prev) => !prev); // ✅ Force re-render
+  }, [pendingPayrolls]);
+
+  const fetchPendingPayrolls = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/payroll/pending"); // ✅ Ensure correct URL
+      console.log("Fetched Payrolls:", res.data); // ✅ Debugging step
+      setPendingPayrolls(res.data);
+    } catch (error) {
+      console.error("Error fetching pending payrolls:", error);
+    }
+  };
+
+  const handlePublishPayroll = async (id) => {
     const { isConfirmed } = await Swal.fire({
       title: "Confirm Payroll Publishing",
-      text: `Do you want to publish payroll for ${employee.firstName} ${employee.lastName}?`,
+      text: "Are you sure you want to publish this payroll?",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, publish it!",
@@ -20,117 +47,139 @@ export default function AdminPayrollMain() {
     if (!isConfirmed) return;
 
     try {
-      const currentDate = new Date();
-      const payPeriod = currentDate.getDate() <= 15 ? "1-15" : "16-30";
-      const monthYear = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}`;
-      const finalPayPeriod = `${monthYear} ${payPeriod}`;
-
-      // Fetch employee attendance records
-      const attendanceRes = await axios.get(`/api/empAttendance/${employee._id}`);
-      const attendanceRecords = attendanceRes.data;
-      
-      if (!attendanceRecords.length) {
-        Swal.fire("Error!", "No attendance records found for this employee.", "error");
-        return;
-      }
-
-      let totalHours = 0;
-      let startTime = null, endTime = null;
-
-      attendanceRecords.forEach(({ checkInTime, checkOutTime }) => {
-        if (!checkInTime || !checkOutTime) return;
-        const checkIn = new Date(`1970-01-01T${checkInTime}`);
-        const checkOut = new Date(`1970-01-01T${checkOutTime}`);
-        totalHours += (checkOut - checkIn) / 3600000; // Convert ms to hours
-
-        // Store first and last recorded times
-        if (!startTime || checkIn < new Date(`1970-01-01T${startTime}`)) startTime = checkInTime;
-        if (!endTime || checkOut > new Date(`1970-01-01T${endTime}`)) endTime = checkOutTime;
-      });
-
-      const salary = totalHours * employee.ratePerHour;
-
-      const payrollData = {
-        employeeId: employee._id, // Backend requires employeeId
-        employeeName: `${employee.firstName} ${employee.lastName}`,
-        payPeriod: finalPayPeriod,
-        startTime: startTime || "00:00",
-        endTime: endTime || "00:00",
-        salary,
-        holidayPay: 0,
-        incentives: 0,
-        totalDeduction: 0,
-      };
-
-      // Send payroll data to backend
-      const response = await axios.post("/api/empPayrolls", payrollData);
-      console.log("Payroll Response:", response.data);
-      
+      await axios.put(`http://localhost:5000/api/payroll/publish/${id}`);
+      fetchPendingPayrolls();
       Swal.fire("Success!", "Payroll has been published.", "success");
     } catch (error) {
-      console.error("Payroll Error:", error.response?.data || error.message);
+      console.error("Error publishing payroll:", error);
       Swal.fire("Error!", "Failed to publish payroll.", "error");
     }
   };
 
-  const filteredEmployees = employees.filter((employee) => {
-    const lowerQuery = searchQuery.toLowerCase();
-    return (
-      employee.firstName.toLowerCase().includes(lowerQuery) ||
-      employee.lastName.toLowerCase().includes(lowerQuery) ||
-      employee.position.toLowerCase().includes(lowerQuery)
-    );
-  });
+  const handleEditPayroll = (payroll) => {
+    setEditingPayroll(payroll);
+    setFormData({
+      salary: payroll.salary || 0,
+      holidayPay: payroll.holidayPay || 0,
+      totalDeduction: payroll.totalDeduction || 0,
+      overtimePay: payroll.overtimePay || 0,
+      incentives: payroll.incentives || 0,
+    });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: parseFloat(value) || 0,
+    }));
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      await axios.put(
+        `http://localhost:5000/api/payroll/edit/${editingPayroll._id}`,
+        formData
+      );
+      setEditingPayroll(null);
+      fetchPendingPayrolls();
+      Swal.fire("Success!", "Payroll has been updated.", "success");
+    } catch (error) {
+      console.error("Error updating payroll:", error);
+      Swal.fire("Error!", "Failed to update payroll.", "error");
+    }
+  };
 
   return (
     <div className="relative flex flex-col w-full h-full text-gray-700 shadow-md bg-clip-border">
-      <div className="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
-        <div className="flex flex-col justify-between gap-8 mb-4 md:flex-row md:items-center">
-          <h5 className="block font-sans text-md md:text-xl font-semibold text-blue-gray-900">
-            Admin Payroll
-          </h5>
-          <input
-            className="peer h-10 w-72 rounded border px-3 text-sm"
-            placeholder="Search Employee"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
+      <h5 className="block font-sans text-md md:text-xl font-semibold text-blue-gray-900">
+        Pending Payrolls
+      </h5>
       <div className="overflow-x-auto max-h-[500px]">
-        <table className="w-full text-left table-auto">
+        <table className="w-full text-left table-auto border border-gray-200">
           <thead>
-            <tr>
-              <th className="p-4 border-y bg-gray-100">First Name</th>
-              <th className="p-4 border-y bg-gray-100">Last Name</th>
-              <th className="p-4 border-y bg-gray-100">Position</th>
-              <th className="p-4 border-y bg-gray-100">Rate per Hour</th>
-              <th className="p-4 border-y bg-gray-100">Actions</th>
+            <tr className="bg-gray-100">
+              <th className="p-4 border">Employee</th>
+              <th className="p-4 border">Pay Period</th>
+              <th className="p-4 border">Salary</th>
+              <th className="p-4 border">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredEmployees.map((employee) => (
-              <tr key={employee._id}>
-                <td className="p-4 border-b">{employee.firstName}</td>
-                <td className="p-4 border-b">{employee.lastName}</td>
-                <td className="p-4 border-b">{employee.position}</td>
-                <td className="p-4 border-b">{employee.ratePerHour}</td>
-                <td className="p-4 border-b">
-                  <div className="flex gap-2">
-                    <Link to={`/PayrollDetails/${employee._id}`} className="px-3 py-1 text-sm font-semibold text-white bg-blue-500 rounded hover:bg-blue-700">
-                      View Payroll
-                    </Link>
-                    <button onClick={() => handlePublishPayroll(employee)} className="px-3 py-1 text-sm font-semibold text-white bg-green-500 rounded hover:bg-green-700">
-                      Publish Payroll
+            {console.log("Rendering Payrolls:", pendingPayrolls)} {/* ✅ Debugging */}
+            {pendingPayrolls.length > 0 ? (
+              pendingPayrolls.map((payroll) => (
+                <tr key={payroll._id} className="border-b hover:bg-gray-50">
+                  <td className="p-4 border">{payroll.employeeName || "No Name"}</td>
+                  <td className="p-4 border">{payroll.payPeriod || "No Pay Period"}</td>
+                  <td className="p-4 border">{payroll.salary || 0}</td>
+                  <td className="p-4 border flex gap-2">
+                    <button
+                      onClick={() => handleEditPayroll(payroll)}
+                      className="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                    >
+                      Edit
                     </button>
-                  </div>
+                    <button
+                      onClick={() => handlePublishPayroll(payroll._id)}
+                      className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                    >
+                      Publish
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="text-center text-red-500 py-4">
+                  No pending payrolls.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
+
+      {/* Edit Modal */}
+      {editingPayroll && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg w-[90%] md:w-[600px]">
+            <h2 className="text-xl font-semibold mb-4">
+              Edit Payroll for {editingPayroll.employeeName}
+            </h2>
+            <div className="space-y-4">
+              {Object.keys(formData).map((field) => (
+                <div key={field}>
+                  <label className="block text-sm font-semibold">
+                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                  </label>
+                  <input
+                    type="number"
+                    name={field}
+                    value={formData[field]}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end space-x-2 mt-4">
+              <button
+                onClick={() => setEditingPayroll(null)}
+                className="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

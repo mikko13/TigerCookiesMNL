@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const payrollSchema = new mongoose.Schema(
   {
-    employeeName: { type: String, required: true },
+    employeeID: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", required: true }, // ✅ Add employeeID
+    employeeName: { type: String, required: true }, // Keeping for reference
     payPeriod: { type: String, required: true },
     salary: { type: Number, required: true },
     holidayPay: { type: Number, default: 0 },
@@ -10,6 +11,7 @@ const payrollSchema = new mongoose.Schema(
     overtimePay: { type: Number, default: 0 },
     incentives: { type: Number, default: 0 },
     totalEarnings: { type: Number, required: true },
+    isPublished: { type: Boolean, default: false }
   },
   { timestamps: true, collection: "empPayrolls" }
 );

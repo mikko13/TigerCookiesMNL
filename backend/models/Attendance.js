@@ -20,7 +20,7 @@ const AttendanceSchema = new mongoose.Schema(
       required: true,
     },
     checkInPhoto: {
-      type: String, 
+      type: String,
       required: true,
     },
     checkOutPhoto: {
@@ -31,4 +31,5 @@ const AttendanceSchema = new mongoose.Schema(
   { timestamps: true, collection: "empAttendance" }
 );
 
-module.exports = mongoose.model("Attendance", AttendanceSchema);
+// Singleton Pattern: Check if model already exists
+module.exports = mongoose.models.Attendance || mongoose.model("Attendance", AttendanceSchema);
