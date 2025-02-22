@@ -85,12 +85,12 @@ export default function FpOtpBody() {
     }
 
     try {
-      const response = await axios.post(
-        `${backendURL}/api/auth/verify-otp`,
-        { email, otp }
-      );
+      const response = await axios.post(`${backendURL}/api/auth/verify-otp`, {
+        email,
+        otp,
+      });
 
-      console.log("API Response:", response.data); // Debugging log
+      console.log("API Response:", response.data);
 
       if (response.data.success) {
         sessionStorage.setItem("verifiedEmail", email);

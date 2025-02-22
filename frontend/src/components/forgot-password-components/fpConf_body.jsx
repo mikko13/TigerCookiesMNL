@@ -40,26 +40,36 @@ export default function FpConfBody() {
     }
 
     try {
-      const response = await axios.post(`${backendURL}/api/auth/reset-password`, {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        `${backendURL}/api/auth/reset-password`,
+        {
+          email,
+          password,
+        }
+      );
 
       if (response.data.success) {
-        sessionStorage.removeItem("verifiedEmail"); 
-        alert("Password changed successfully. You can now log in.");
-        navigate("/login");
+        console.log("Password reset successful. Navigating to /...");
+        sessionStorage.removeItem("verifiedEmail");
+        navigate("/");
       } else {
+        console.log("Password reset failed:", response.data);
         setError(response.data.message || "Failed to reset password.");
       }
     } catch (error) {
-      console.error("Error resetting password:", error);
-      setError("An error occurred. Please try again.");
+      console.error(
+        "Error resetting password:",
+        error.response?.data || error.message
+      );
+      setError(error.response?.data?.message || "An error occurred.");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2 font-sans text-gray-800 max-w-md mx-auto px-4 sm:px-6 md:px-8 mt-12">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-2 font-sans text-gray-800 max-w-md mx-auto px-4 sm:px-6 md:px-8 mt-12"
+    >
       <div className="relative flex items-center mb-4">
         <input
           type={showPassword ? "text" : "password"}
@@ -91,7 +101,10 @@ export default function FpConfBody() {
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      <button type="submit" className="px-6 py-3 mt-6 w-full text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded-md transition-all">
+      <button
+        type="submit"
+        className="px-6 py-3 mt-6 w-full text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded-md transition-all"
+      >
         Submit
       </button>
 
