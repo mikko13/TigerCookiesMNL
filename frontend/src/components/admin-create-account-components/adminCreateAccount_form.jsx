@@ -178,24 +178,6 @@ export default function AdminCreateAccountForm() {
               </select>
             </div>
             <div>
-              <label className="text-sm text-gray-700">Status</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
-              >
-                <option value="" disabled>
-                  Select Status
-                </option>
-                <option value="N/A">N/A</option>
-                <option value="Present">Present</option>
-                <option value="Late">Late</option>
-                <option value="Absent">Absent</option>
-                <option value="On-Leave">On-Leave</option>
-              </select>
-            </div>
-            <div>
               <label className="text-sm text-gray-700">Rate Per Hour</label>
               <input
                 type="number"
