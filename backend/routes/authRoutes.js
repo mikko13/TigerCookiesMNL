@@ -8,13 +8,15 @@ const User = require("../models/Employees");
 const router = express.Router();
 const OAuth2 = google.auth.OAuth2;
 
-const oauth2Client = new OAuth2(
+const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
   process.env.CLIENT_SECRET,
   "https://developers.google.com/oauthplayground"
 );
 
-oauth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
+oauth2Client.setCredentials({
+  refresh_token: process.env.REFRESH_TOKEN,
+});
 
 const sendMail = async (email, firstName, otp) => {
   try {
@@ -28,7 +30,7 @@ const sendMail = async (email, firstName, otp) => {
         clientId: process.env.CLIENT_ID,
         clientSecret: process.env.CLIENT_SECRET,
         refreshToken: process.env.REFRESH_TOKEN,
-        accessToken, 
+        accessToken,
       },
       tls: {
         rejectUnauthorized: false,
@@ -96,7 +98,8 @@ router.post("/send-otp", async (req, res) => {
 router.post("/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
 
-  if (!email || !otp) return res.status(400).json({ message: "Email and OTP are required." });
+  if (!email || !otp)
+    return res.status(400).json({ message: "Email and OTP are required." });
 
   try {
     const user = await User.findOne({ email });
@@ -123,7 +126,10 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/reset-password", async (req, res) => {
   const { email, password } = req.body;
 
-  if (!email || !password) return res.status(400).json({ message: "Email and password are required." });
+  if (!email || !password)
+    return res
+      .status(400)
+      .json({ message: "Email and password are required." });
 
   try {
     const user = await User.findOne({ email });
