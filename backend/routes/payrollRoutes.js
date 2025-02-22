@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const router = express.Router();
 const Payroll = require("../models/payroll");
 const Employee = require("../models/Employees");
-const Attendance = require("../models/attendance");
+const Attendance = require("../models/Attendance");
 const authMiddleware = require("../middleware/authMiddleware"); // JWT Authentication Middleware
 
 // Helper function to calculate work hours

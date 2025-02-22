@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Logo from "./logo.png";
+import { backendURL } from "../../../urls/URL";
 
 export default function EmpAttendanceSideBar() {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ export default function EmpAttendanceSideBar() {
   const handleLogout = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/api/employees/logout",
+        `${backendURL}/api/employees/logout`,
         {},
         { withCredentials: true }
       );

@@ -1,5 +1,6 @@
 import axios from "axios";
 import Swal from "sweetalert2";
+import { backendURL } from "../../urls/URL";
 
 const handleDelete = async (attendanceID, setAttendance) => {
   try {
@@ -13,7 +14,9 @@ const handleDelete = async (attendanceID, setAttendance) => {
     });
 
     if (confirmDelete.isConfirmed) {
-      const response = await axios.delete(`http://localhost:5000/api/attendance/${attendanceID}`);
+      const response = await axios.delete(
+        `${backendURL}/api/attendance/${attendanceID}`
+      );
 
       if (response.data.success) {
         Swal.fire({
@@ -22,7 +25,9 @@ const handleDelete = async (attendanceID, setAttendance) => {
           icon: "success",
         });
 
-        setAttendance((prev) => prev.filter((record) => record._id !== attendanceID));
+        setAttendance((prev) =>
+          prev.filter((record) => record._id !== attendanceID)
+        );
       } else {
         Swal.fire({
           title: "Error",

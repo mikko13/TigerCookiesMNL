@@ -1,5 +1,6 @@
 import axios from "axios";
 import Swal from "sweetalert2";
+import { backendURL } from "../../urls/URL";
 
 const handleDelete = async (id) => {
   const result = await Swal.fire({
@@ -14,7 +15,7 @@ const handleDelete = async (id) => {
 
   if (result.isConfirmed) {
     try {
-      await axios.delete(`http://localhost:5000/api/employees/${id}`);
+      await axios.delete(`${backendURL}/api/employees/${id}`);
       Swal.fire("Deleted!", "Employee deleted successfully.", "success");
       window.location.reload();
     } catch (error) {

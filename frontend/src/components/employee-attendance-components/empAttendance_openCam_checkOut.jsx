@@ -4,6 +4,7 @@ import Webcam from "react-webcam";
 import axios from "axios";
 import Swal from "sweetalert2";
 import * as faceapi from "face-api.js/dist/face-api.min.js";
+import { backendURL } from "../../urls/URL";
 
 export default function EmpAttendanceOpenCamCheckOut() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
     try {
       // Check if user has checked in
       const checkInResponse = await axios.get(
-        `http://localhost:5000/api/checkin/status/${id}`
+        `${backendURL}/api/checkin/status/${id}`
       );
 
       if (!checkInResponse.data.checkedIn) {
@@ -51,7 +52,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
 
       // Check if user has already checked out
       const checkOutResponse = await axios.get(
-        `http://localhost:5000/api/checkout/status/${id}`
+        `${backendURL}/api/checkout/status/${id}`
       );
 
       if (checkOutResponse.data.checkedOut) {
@@ -158,7 +159,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/checkout",
+        `${backendURL}/api/checkout`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -195,7 +196,9 @@ export default function EmpAttendanceOpenCamCheckOut() {
   };
 
   if (loading) {
-    return <p className="text-center text-lg font-semibold">Checking status...</p>;
+    return (
+      <p className="text-center text-lg font-semibold">Checking status...</p>
+    );
   }
 
   return (
@@ -239,7 +242,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
             {faceDetected ? "Capture Picture" : "Position Your Face"}
           </button>
         ) : (
-<>
+          <>
             <button
               onClick={uploadAttendance}
               className="px-6 py-3 w-full text-sm bg-green-500 hover:bg-green-600 text-white rounded-md active:bg-green-700 focus:ring-2 focus:ring-green-600 transition-all"

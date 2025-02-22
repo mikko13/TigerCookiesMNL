@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { backendURL } from "../../urls/URL";
 
 export default function EmpAttendanceCheckIn() {
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
   const [loading, setLoading] = useState(true);
-  const employeeID = JSON.parse(localStorage.getItem("user"))?.id; // Get employee ID from localStorage
+  const employeeID = JSON.parse(localStorage.getItem("user"))?.id;
 
   useEffect(() => {
     const checkIfCheckedIn = async () => {
@@ -15,7 +16,7 @@ export default function EmpAttendanceCheckIn() {
 
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/checkin/status/${employeeID}`
+          `${backendURL}/api/checkin/status/${employeeID}`
         );
         setAlreadyCheckedIn(response.data.checkedIn);
       } catch (error) {

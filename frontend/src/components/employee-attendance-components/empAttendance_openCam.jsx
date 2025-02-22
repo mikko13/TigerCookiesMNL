@@ -4,6 +4,7 @@ import Webcam from "react-webcam";
 import axios from "axios";
 import Swal from "sweetalert2";
 import * as faceapi from "face-api.js/dist/face-api.min.js";
+import { backendURL } from "../../urls/URL";
 
 export default function EmpAttendanceOpenCam() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export default function EmpAttendanceOpenCam() {
   const checkIfCheckedIn = async (id) => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/checkin/status/${id}`
+        `${backendURL}/api/checkin/status/${id}`
       );
       if (response.data.checkedIn) {
         navigate("/CheckIn");
@@ -164,7 +165,7 @@ export default function EmpAttendanceOpenCam() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/checkin",
+        `${backendURL}/api/checkin`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );

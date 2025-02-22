@@ -44,6 +44,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+const getAttendanceStatus = (checkInTime) => {
+  if (!checkInTime) return "Absent";
+
+  const checkInTimeObj = DateTime.fromFormat(checkInTime, "HH:mm:ss");
+  const lateThreshold = DateTime.fromFormat("08:00:00", "HH:mm:ss");
+
+  return checkInTimeObj > lateThreshold ? "Late" : "Present";
+};
+
 router.post(
   "/post",
   upload.fields([
@@ -55,22 +64,18 @@ router.post(
       const { employeeID, attendanceDate, checkInTime, checkOutTime } =
         req.body;
 
-      if (
-        !employeeID ||
-        !attendanceDate ||
-        !checkInTime ||
-        !checkOutTime ||
-        !req.files
-      ) {
+      if (!employeeID || !attendanceDate || !req.files) {
         return res
           .status(400)
           .json({ success: false, message: "All fields are required." });
       }
 
-      const formattedCheckInTime =
-        DateTime.fromISO(checkInTime).toFormat("HH:mm:ss");
-      const formattedCheckOutTime =
-        DateTime.fromISO(checkOutTime).toFormat("HH:mm:ss");
+      const formattedCheckInTime = checkInTime
+        ? DateTime.fromISO(checkInTime).toFormat("HH:mm:ss")
+        : null;
+      const formattedCheckOutTime = checkOutTime
+        ? DateTime.fromISO(checkOutTime).toFormat("HH:mm:ss")
+        : null;
 
       const checkInPhoto = req.files["checkInPhoto"]
         ? req.files["checkInPhoto"][0].filename
@@ -79,6 +84,8 @@ router.post(
         ? req.files["checkOutPhoto"][0].filename
         : "";
 
+      const attendanceStatus = getAttendanceStatus(formattedCheckInTime);
+
       const newAttendance = new Attendance({
         employeeID,
         checkInTime: formattedCheckInTime,
@@ -86,6 +93,7 @@ router.post(
         attendanceDate,
         checkInPhoto,
         checkOutPhoto,
+        attendanceStatus,
       });
 
       await newAttendance.save();
@@ -124,23 +132,23 @@ const recordAttendance = async (employeeID) => {
       checkOutDate: attendanceDate,
     });
 
-    if (!checkinRecord || !checkoutRecord) {
-      return {
-        success: false,
-        message:
-          "Check-in and Check-out records are required to log attendance.",
-      };
-    }
+    let checkInTime = checkinRecord ? checkinRecord.checkInTime : null;
+    let checkOutTime = checkoutRecord ? checkoutRecord.checkOutTime : null;
+    let checkInPhoto = checkinRecord ? checkinRecord.checkInPhoto : null;
+    let checkOutPhoto = checkoutRecord ? checkoutRecord.checkOutPhoto : null;
+
+    const attendanceStatus = getAttendanceStatus(checkInTime);
 
     const attendance = await Attendance.findOneAndUpdate(
       { employeeID: employeeObjectId, attendanceDate },
       {
         employeeID: employeeObjectId,
-        checkInTime: checkinRecord.checkInTime,
-        checkOutTime: checkoutRecord.checkOutTime,
-        checkInPhoto: checkinRecord.checkInPhoto,
-        checkOutPhoto: checkoutRecord.checkOutPhoto,
+        checkInTime,
+        checkOutTime,
+        checkInPhoto,
+        checkOutPhoto,
         attendanceDate,
+        attendanceStatus,
       },
       { upsert: true, new: true }
     );
@@ -198,6 +206,7 @@ router.get("/", async (req, res) => {
       checkinPhoto: record.checkInPhoto,
       checkoutTime: record.checkOutTime,
       checkoutPhoto: record.checkOutPhoto,
+      attendanceStatus: record.attendanceStatus,
     }));
 
     res.json(formattedRecords);
@@ -228,8 +237,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
-
 router.put(
   "/update/:id",
   upload.fields([
@@ -248,10 +255,16 @@ router.put(
           .json({ message: "Attendance record not found." });
       }
 
+      const formattedCheckInTime = checkInTime
+        ? DateTime.fromISO(checkInTime).toFormat("HH:mm:ss")
+        : null;
+      const formattedCheckOutTime = checkOutTime
+        ? DateTime.fromISO(checkOutTime).toFormat("HH:mm:ss")
+        : null;
+
       const formattedDate =
         DateTime.fromISO(attendanceDate).toFormat("MM-dd-yyyy");
 
-      // Paths for old photos
       const oldCheckInPhotoPath = path.join(
         __dirname,
         "../../frontend/public/employee-checkin-photos",
@@ -266,15 +279,11 @@ router.put(
       let newCheckInPhoto = attendanceRecord.checkInPhoto;
       let newCheckOutPhoto = attendanceRecord.checkOutPhoto;
 
-      // Handle Check-In Photo upload
       if (req.files["checkInPhoto"]) {
-        // Check if the old photo exists and delete it
         if (fs.existsSync(oldCheckInPhotoPath)) {
-          fs.unlinkSync(oldCheckInPhotoPath); // Delete the old photo
+          fs.unlinkSync(oldCheckInPhotoPath);
         }
 
-        // Add a timestamp to the filename to make it unique
-        const checkInTimestamp = Date.now();
         newCheckInPhoto = `checkin_${employeeID}_${formattedDate}.png`;
         const checkInPhotoPath = path.join(
           __dirname,
@@ -282,19 +291,14 @@ router.put(
           newCheckInPhoto
         );
 
-        // Move the uploaded file to the target folder
         fs.renameSync(req.files["checkInPhoto"][0].path, checkInPhotoPath);
       }
 
-      // Handle Check-Out Photo upload
       if (req.files["checkOutPhoto"]) {
-        // Check if the old photo exists and delete it
         if (fs.existsSync(oldCheckOutPhotoPath)) {
-          fs.unlinkSync(oldCheckOutPhotoPath); // Delete the old photo
+          fs.unlinkSync(oldCheckOutPhotoPath);
         }
 
-        // Add a timestamp to the filename to make it unique
-        const checkOutTimestamp = Date.now();
         newCheckOutPhoto = `checkout_${employeeID}_${formattedDate}.png`;
         const checkOutPhotoPath = path.join(
           __dirname,
@@ -302,18 +306,19 @@ router.put(
           newCheckOutPhoto
         );
 
-        // Move the uploaded file to the target folder
         fs.renameSync(req.files["checkOutPhoto"][0].path, checkOutPhotoPath);
       }
 
-      // Update the attendance record with the new data
+      // Automatically determine attendanceStatus
+      const attendanceStatus = getAttendanceStatus(formattedCheckInTime);
+
       attendanceRecord.attendanceDate = attendanceDate;
-      attendanceRecord.checkInTime = checkInTime;
-      attendanceRecord.checkOutTime = checkOutTime;
+      attendanceRecord.checkInTime = formattedCheckInTime;
+      attendanceRecord.checkOutTime = formattedCheckOutTime;
       attendanceRecord.checkInPhoto = newCheckInPhoto;
       attendanceRecord.checkOutPhoto = newCheckOutPhoto;
+      attendanceRecord.attendanceStatus = attendanceStatus;
 
-      // Save the updated attendance record
       await attendanceRecord.save();
 
       res.status(200).json({
@@ -327,3 +332,5 @@ router.put(
     }
   }
 );
+
+module.exports = router;

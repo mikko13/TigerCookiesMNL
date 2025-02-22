@@ -3,6 +3,7 @@ import axios from "axios";
 import { useLocation } from "react-router-dom";
 import "./ToastStyles.css";
 import { errorToast, successToast } from "./toastMessages";
+import { backendURL } from "../../urls/URL";
 
 export default function AdminCreateAttendanceForm() {
   const location = useLocation();
@@ -24,7 +25,7 @@ export default function AdminCreateAttendanceForm() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/employees");
+        const response = await axios.get(`${backendURL}/api/employees`);
         setEmployees(response.data);
       } catch (error) {
         console.error("Error fetching employees:", error);
@@ -63,32 +64,35 @@ export default function AdminCreateAttendanceForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const formDataToSend = new FormData();
     formDataToSend.append("employeeID", formData.employeeID);
     formDataToSend.append("attendanceDate", formData.attendanceDate);
     formDataToSend.append("checkInTime", formData.checkInTime);
     formDataToSend.append("checkOutTime", formData.checkOutTime);
-  
+
     if (checkInPhoto) {
       formDataToSend.append("checkInPhoto", checkInPhoto);
     }
     if (checkOutPhoto) {
       formDataToSend.append("checkOutPhoto", checkOutPhoto);
     }
-  
+
     try {
       await axios.put(
-        `http://localhost:5000/api/attendance/update/${location.state.record._id}`,
+        `${backendURL}/api/attendance/update/${location.state.record._id}`,
         formDataToSend,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-      setToast({ type: "success", message: "Attendance updated successfully!" });
+      setToast({
+        type: "success",
+        message: "Attendance updated successfully!",
+      });
     } catch (error) {
       setToast({ type: "error", message: "Failed to update attendance." });
     }
   };
-  
+
   return (
     <div>
       <form

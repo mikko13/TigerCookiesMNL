@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Background from "../images/background.png";
+import { backendURL } from "../../urls/URL";
 
 export default function FpOtpBody() {
   const inputsRef = useRef([]);
@@ -85,7 +86,7 @@ export default function FpOtpBody() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/verify-otp",
+        `${backendURL}/api/auth/verify-otp`,
         { email, otp }
       );
 

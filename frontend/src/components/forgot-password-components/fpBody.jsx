@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./ToastStyles.css";
 import { errorToast, successToast } from "./toastMessages";
+import { backendURL } from "../../urls/URL";
 
 export default function FpBody() {
   const [email, setEmail] = useState("");
@@ -28,23 +29,20 @@ export default function FpBody() {
     }
 
     try {
-      // Step 1: Check if email exists
       const response = await axios.post(
-        "http://localhost:5000/api/employees/check-email",
+        `${backendURL}/api/employees/check-email`,
         { email }
       );
 
       if (response.data.exists) {
-        // Step 2: Send OTP
         const otpResponse = await axios.post(
-          "http://localhost:5000/api/auth/send-otp",
+          `${backendURL}/api/auth/send-otp`,
           { email }
         );
 
         if (otpResponse.data.success) {
           showToast("success");
 
-          // Step 3: Store OTP temporarily
           sessionStorage.setItem("emailForOTP", email);
 
           setTimeout(() => {

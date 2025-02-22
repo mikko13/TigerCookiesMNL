@@ -17,7 +17,6 @@ const accountSchema = new mongoose.Schema(
     dateOfBirth: { type: String },
     hiredDate: { type: String },
     position: { type: String },
-    status: { type: String },
     ratePerHour: { type: Number },
     shift: { type: String },
     otp: { type: String },

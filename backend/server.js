@@ -11,14 +11,15 @@ const MongoStore = require("connect-mongo");
 const cron = require("node-cron");
 const Payroll = require("./models/payroll");
 const Employee = require("./models/Employees");
-const Attendance = require("./models/attendance");
-
+const Attendance = require("./models/Attendance");
 const employeeRoutes = require("./routes/employeeRoutes");
 const payrollRoutes = require("./routes/payrollRoutes");
 const checkinRoutes = require("./routes/checkinRoutes");
 const checkoutRoutes = require("./routes/checkoutRoutes");
 const authRoutes = require("./routes/authRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
+const { frontendURL } = require("./urls/URL");
+
 
 dotenv.config();
 connectDB();
@@ -27,7 +28,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: `${frontendURL}`,
     credentials: true,
   })
 );

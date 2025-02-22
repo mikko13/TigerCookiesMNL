@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { backendURL } from "../../urls/URL";
 
 const useAttendance = () => {
   const [attendance, setAttendance] = useState([]);
@@ -9,7 +10,7 @@ const useAttendance = () => {
       try {
         console.log("📡 Fetching ALL attendance records for Admin...");
 
-        const response = await axios.get("http://localhost:5000/api/attendance?isAdmin=true");
+        const response = await axios.get(`${backendURL}/api/attendance?isAdmin=true`);
 
         console.log("✅ Admin Attendance Fetched:", response.data.length);
         setAttendance(response.data);

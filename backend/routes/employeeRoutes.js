@@ -46,7 +46,6 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       dateOfBirth,
       position,
       hiredDate,
-      status,
       ratePerHour,
       shift,
     } = req.body;
@@ -63,7 +62,6 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       dateOfBirth,
       hiredDate,
       position,
-      status,
       ratePerHour,
       shift,
     });
@@ -184,7 +182,6 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     dateOfBirth,
     position,
     hiredDate,
-    status,
     ratePerHour,
     shift,
   } = req.body;
@@ -208,7 +205,6 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     employee.dateOfBirth = dateOfBirth || employee.dateOfBirth;
     employee.position = position || employee.position;
     employee.hiredDate = hiredDate || employee.hiredDate;
-    employee.status = status || employee.status;
     employee.ratePerHour = ratePerHour || employee.ratePerHour;
     employee.shift = shift || employee.shift;
 

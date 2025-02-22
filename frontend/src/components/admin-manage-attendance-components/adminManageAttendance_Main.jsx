@@ -3,24 +3,32 @@ import Header from "./adminManageAttendance_Header";
 import useAttendance from "./fetchAttendance";
 import handleDelete from "./handleDelete";
 import { Link } from "react-router-dom";
+import { getStatusClass } from "./getStatusClass";
 
 export default function AdminManageAccountMain() {
   const fetchedAttendance = useAttendance();
   const [attendance, setAttendance] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterDate, setFilterDate] = useState("");
 
   useEffect(() => {
     setAttendance(fetchedAttendance);
   }, [fetchedAttendance]);
 
-  // Filtered data based on search input
-  const filteredAttendance = attendance.filter((record) =>
-    record.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredAttendance = attendance.filter(
+    (record) =>
+      record.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (filterDate ? record.attendanceDate === filterDate : true)
   );
 
   return (
     <div className="relative flex flex-col w-full h-full text-gray-700 shadow-md bg-clip-border">
-      <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <Header
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        filterDate={filterDate}
+        setFilterDate={setFilterDate}
+      />
       <div className="overflow-x-auto max-h-[500px]">
         <table className="w-full text-left table-auto min-w-max">
           <thead>
@@ -53,6 +61,11 @@ export default function AdminManageAccountMain() {
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
                 <p className="block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70">
                   Check Out Photo
+                </p>
+              </th>
+              <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
+                <p className="block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70">
+                  Attendance Status
                 </p>
               </th>
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
@@ -107,6 +120,15 @@ export default function AdminManageAccountMain() {
                     </Link>
                   </p>
                 </td>
+                <td className="p-4 border-b border-blue-gray-200">
+                  <span
+                    className={`inline-flex items-center justify-center px-3 py-1 text-sm font-medium rounded-md ${getStatusClass(
+                      record.attendanceStatus
+                    )}`}
+                  >
+                    {record.attendanceStatus}
+                  </span>
+                </td>
 
                 <td className="p-4 border-b border-blue-gray-50">
                   <div className="flex gap-2">
@@ -132,13 +154,13 @@ export default function AdminManageAccountMain() {
                       </Link>
                     </button>
                     <button
-                      class="mr-4"
+                      className="mr-4"
                       title="Delete"
                       onClick={() => handleDelete(record._id, setAttendance)}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        class="w-5 fill-red-500 hover:fill-red-700"
+                        className="w-5 fill-red-500 hover:fill-red-700"
                         viewBox="0 0 24 24"
                       >
                         <path

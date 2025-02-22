@@ -5,7 +5,7 @@ export default function AdminManageAccountHeader({ setSearchQuery }) {
 
   const handleSearchChange = (e) => {
     setQuery(e.target.value);
-    setSearchQuery(e.target.value); // Pass search query to parent component
+    setSearchQuery(e.target.value);
   };
 
   return (

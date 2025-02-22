@@ -5,8 +5,8 @@ const fs = require("fs-extra");
 const { DateTime } = require("luxon");
 const Checkout = require("../models/Checkout");
 const axios = require("axios");
-
 const router = express.Router();
+const { backendURL } = require("../urls/URL");
 
 const storageDir = path.join(
   __dirname,
@@ -25,7 +25,9 @@ const storage = multer.diskStorage({
     const philippineTime = DateTime.now().setZone("Asia/Manila");
     const formattedDate = philippineTime.toFormat("MM-dd-yyyy");
 
-    const uniqueFilename = `checkout_${employeeID}_${formattedDate}${path.extname(file.originalname)}`;
+    const uniqueFilename = `checkout_${employeeID}_${formattedDate}${path.extname(
+      file.originalname
+    )}`;
     cb(null, uniqueFilename);
   },
 });
@@ -47,7 +49,7 @@ router.post("/", upload.single("checkOutPhoto"), async (req, res) => {
     const checkOutTime = philippineTime.toFormat("HH:mm:ss");
 
     const filenameParts = req.file.filename.split("_");
-    const checkOutDateWithExt = filenameParts[2]; 
+    const checkOutDateWithExt = filenameParts[2];
     const checkOutDate = checkOutDateWithExt.replace(
       path.extname(checkOutDateWithExt),
       ""
@@ -65,19 +67,22 @@ router.post("/", upload.single("checkOutPhoto"), async (req, res) => {
     let attendanceResponse;
     try {
       attendanceResponse = await axios.post(
-        "http://localhost:5000/api/attendance/record",
+        `${backendURL}/api/attendance/record`,
         { employeeID }
       );
-    } catch (attendanceError) {
-    }
+    } catch (attendanceError) {}
 
     res.status(201).json({
       success: true,
       message: "Check-out recorded successfully.",
-      attendance: attendanceResponse ? attendanceResponse.data : "Attendance update failed.",
+      attendance: attendanceResponse
+        ? attendanceResponse.data
+        : "Attendance update failed.",
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error. Please try again." });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error. Please try again." });
   }
 });
 
@@ -86,7 +91,10 @@ router.get("/status/:employeeID", async (req, res) => {
     const { employeeID } = req.params;
     const today = DateTime.now().setZone("Asia/Manila").toFormat("MM-dd-yyyy");
 
-    const checkoutRecord = await Checkout.findOne({ employeeID, checkOutDate: today });
+    const checkoutRecord = await Checkout.findOne({
+      employeeID,
+      checkOutDate: today,
+    });
 
     res.json({ checkedOut: !!checkoutRecord });
   } catch (error) {

@@ -27,9 +27,12 @@ const AttendanceSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    attendanceStatus: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true, collection: "empAttendance" }
 );
 
-// Singleton Pattern: Check if model already exists
 module.exports = mongoose.models.Attendance || mongoose.model("Attendance", AttendanceSchema);

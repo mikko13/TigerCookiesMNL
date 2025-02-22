@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { backendURL } from "../../urls/URL";
 
 export default function AdminUpdateAccountForm() {
   const { employeeId } = useParams();
@@ -30,7 +31,7 @@ export default function AdminUpdateAccountForm() {
     const fetchEmployeeData = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/employees/${employeeId}`
+          `${backendURL}/api/employees/${employeeId}`
         );
         setEmployee(response.data);
         setProfilePicture(response.data.profilePicture);
@@ -106,7 +107,7 @@ export default function AdminUpdateAccountForm() {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/employees/${employeeId}`,
+        `${backendURL}/api/employees/${employeeId}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -237,8 +238,7 @@ export default function AdminUpdateAccountForm() {
                   <label
                     htmlFor="changePassword"
                     className="text-sm text-gray-700 cursor-pointer"
-                  >
-                  </label>
+                  ></label>
                 </div>
               </div>
             </div>

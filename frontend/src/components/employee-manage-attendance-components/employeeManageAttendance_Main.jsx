@@ -3,17 +3,14 @@ import Header from "./employeeManageAttendance_Header";
 import useAttendance from "./fetchAttendance";
 import { Link } from "react-router-dom";
 
-
 export default function AdminManageAccountMain() {
   const fetchedAttendance = useAttendance();
   const [attendance, setAttendance] = useState([]);
 
   useEffect(() => {
-    // Retrieve the logged-in user from local storage
     const user = JSON.parse(localStorage.getItem("user"));
     const loggedInEmployeeID = user ? user.id : null;
 
-    // Filter attendance records to only show the logged-in user's records
     const filteredAttendance = fetchedAttendance.filter(
       (record) => record.employeeID === loggedInEmployeeID
     );

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./ToastStyles.css";
 import { errorToast, successToast } from "./toastMessages";
+import { backendURL } from "../../urls/URL";
 
 export default function AdminCreateAttendanceForm() {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ export default function AdminCreateAttendanceForm() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/employees");
+        const response = await axios.get(`${backendURL}/api/employees`);
         setEmployees(response.data);
       } catch (error) {
         console.error("Error fetching employees:", error);
@@ -56,7 +57,7 @@ export default function AdminCreateAttendanceForm() {
     }
   
     try {
-      await axios.post("http://localhost:5000/api/attendance/post", formDataToSend, {
+      await axios.post(`${backendURL}/api/attendance/post`, formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       setToast({ type: "success", message: "Attendance recorded successfully!" });

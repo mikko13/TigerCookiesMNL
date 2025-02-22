@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { backendURL } from "../../urls/URL";
 
 export default function EmpAttendanceCheckOut() {
   const [alreadyCheckedOut, setAlreadyCheckedOut] = useState(false);
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const [loading, setLoading] = useState(true);
-  const employeeID = JSON.parse(localStorage.getItem("user"))?.id; // Get employee ID from localStorage
+  const employeeID = JSON.parse(localStorage.getItem("user"))?.id;
 
   useEffect(() => {
     const fetchAttendanceStatus = async () => {
@@ -17,14 +18,14 @@ export default function EmpAttendanceCheckOut() {
       try {
         // Fetch check-in status
         const checkInResponse = await axios.get(
-          `http://localhost:5000/api/checkin/status/${employeeID}`
+          `${backendURL}/api/checkin/status/${employeeID}`
         );
         setHasCheckedIn(checkInResponse.data.checkedIn); // Update check-in state
 
         // Fetch check-out status only if checked in
         if (checkInResponse.data.checkedIn) {
           const checkOutResponse = await axios.get(
-            `http://localhost:5000/api/checkout/status/${employeeID}`
+            `${backendURL}/api/checkout/status/${employeeID}`
           );
           setAlreadyCheckedOut(checkOutResponse.data.checkedOut);
         }

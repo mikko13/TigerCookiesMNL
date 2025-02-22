@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Header from "./adminManageAccount_Header";
-import { getStatusClass } from "./getStatusClass";
 import useEmployees from "./fetchEmployees";
 import handleDelete from "./handleDelete";
 import { Link } from "react-router-dom";
@@ -21,7 +20,6 @@ export default function AdminManageAccountMain() {
       employee.dateOfBirth.toLowerCase().includes(lowerQuery) ||
       employee.position.toLowerCase().includes(lowerQuery) ||
       employee.hiredDate.toLowerCase().includes(lowerQuery) ||
-      employee.status.toLowerCase().includes(lowerQuery) ||
       employee.ratePerHour.toString().includes(lowerQuery) ||
       employee.shift.toLowerCase().includes(lowerQuery)
     );
@@ -77,11 +75,6 @@ export default function AdminManageAccountMain() {
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
                 <p className="block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70">
                   Hired Date
-                </p>
-              </th>
-              <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
-                <p className="block font-sans text-sm antialiased font-normal leading-none text-blue-gray-900 opacity-70">
-                  Status
                 </p>
               </th>
               <th className="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">
@@ -152,15 +145,6 @@ export default function AdminManageAccountMain() {
                   <p className="block font-sans text-sm antialiased font-normal leading-normal text-blue-gray-900">
                     {employee.hiredDate}
                   </p>
-                </td>
-                <td className="p-4 border-b border-blue-gray-50">
-                  <div
-                    className={`relative grid text-center items-center py-1 px-2 font-sans text-xs font-bold uppercase rounded-md select-none whitespace-nowrap ${getStatusClass(
-                      employee.status
-                    )}`}
-                  >
-                    <span>{employee.status}</span>
-                  </div>
                 </td>
 
                 <td className="p-4 border-b border-blue-gray-50">

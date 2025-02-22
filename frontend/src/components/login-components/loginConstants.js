@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { backendURL } from "../../urls/URL";
 
 export function useLoginState() {
   const [email, setEmail] = useState("");
@@ -14,7 +15,10 @@ export function useLoginState() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/employees/session", { withCredentials: true });
+        const res = await axios.get(
+          `${backendURL}/api/employees/session`,
+          { withCredentials: true }
+        );
         setUser(res.data.user);
         navigate("/checkin");
       } catch (error) {
@@ -36,14 +40,14 @@ export function useLoginState() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/employees/login",
+        `${backendURL}/api/employees/login`,
         { email, password },
         { withCredentials: true }
       );
 
       setSuccess(response.data.message);
       setUser(response.data.user);
-      localStorage.setItem("user", JSON.stringify(response.data.user)); 
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
       setTimeout(() => navigate("/CheckIn"), 2000);
     } catch (err) {

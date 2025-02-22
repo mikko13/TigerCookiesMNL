@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { backendURL } from "../../urls/URL";
 
 export default function FpConfBody() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +17,7 @@ export default function FpConfBody() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const email = sessionStorage.getItem("verifiedEmail"); // Get email from sessionStorage
+    const email = sessionStorage.getItem("verifiedEmail");
 
     if (!email) {
       setError("Session expired. Please request a new OTP.");
@@ -39,15 +40,15 @@ export default function FpConfBody() {
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/reset-password", {
+      const response = await axios.post(`${backendURL}/api/auth/reset-password`, {
         email,
         password,
       });
 
       if (response.data.success) {
-        sessionStorage.removeItem("verifiedEmail"); // Clear session
+        sessionStorage.removeItem("verifiedEmail"); 
         alert("Password changed successfully. You can now log in.");
-        navigate("/login"); // Redirect to login page
+        navigate("/login");
       } else {
         setError(response.data.message || "Failed to reset password.");
       }
