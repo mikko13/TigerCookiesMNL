@@ -116,7 +116,7 @@ router.post("/verify-otp", async (req, res) => {
     user.otpExpires = null;
     await user.save();
 
-    res.json({ message: "OTP verified successfully." });
+    res.json({ success: true, message: "OTP verified successfully." });
   } catch (error) {
     console.error("❌ Error verifying OTP:", error.message);
     res.status(500).json({ message: "Internal server error." });
@@ -138,7 +138,7 @@ router.post("/reset-password", async (req, res) => {
     user.password = await bcrypt.hash(password, 10);
     await user.save();
 
-    res.json({ message: "Password updated successfully." });
+    res.json({ success: true, message: "Password updated successfully." });
   } catch (error) {
     console.error("❌ Error resetting password:", error.message);
     res.status(500).json({ message: "Internal server error." });
