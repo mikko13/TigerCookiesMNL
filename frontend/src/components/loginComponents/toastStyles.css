@@ -1,0 +1,23 @@
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  animation: slide-up 0.3s ease-out, fade-out 0.5s 4s forwards;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}

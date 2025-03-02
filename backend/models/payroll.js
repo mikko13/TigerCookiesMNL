@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 const payrollSchema = new mongoose.Schema(
   {
-    employeeID: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", required: true }, // ✅ Add employeeID
-    employeeName: { type: String, required: true }, // Keeping for reference
+    employeeID: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", required: true }, // 
+    employeeName: { type: String, required: true },
     payPeriod: { type: String, required: true },
     salary: { type: Number, required: true },
     holidayPay: { type: Number, default: 0 },
