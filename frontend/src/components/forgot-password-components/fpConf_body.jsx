@@ -47,8 +47,7 @@ export default function FpConfBody() {
 
       if (response.data.success) {
         sessionStorage.removeItem("verifiedEmail"); 
-        alert("Password changed successfully. You can now log in.");
-        navigate("/login");
+        navigate("/");
       } else {
         setError(response.data.message || "Failed to reset password.");
       }
