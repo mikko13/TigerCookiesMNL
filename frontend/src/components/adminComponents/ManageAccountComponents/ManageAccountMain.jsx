@@ -3,6 +3,7 @@ import useEmployees from "./fetchEmployees";
 import handleDelete from "./handleDelete";
 import { Link } from "react-router-dom";
 import { Edit, Trash2, Image, AlertTriangle, ChevronRight } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function ManageAccountMain({ searchTerm }) {
   const fetchedEmployees = useEmployees();
@@ -45,13 +46,6 @@ export default function ManageAccountMain({ searchTerm }) {
       employee.shift.toLowerCase().includes(lowerQuery)
     );
   });
-
-  const confirmDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this employee account?")) {
-      handleDelete(id);
-      setEmployees(employees.filter(employee => employee._id !== id));
-    }
-  };
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
@@ -170,7 +164,7 @@ export default function ManageAccountMain({ searchTerm }) {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            confirmDelete(employee._id);
+                            handleDelete(employee._id);
                           }}
                           className="flex items-center text-red-600 hover:text-red-800"
                         >
@@ -274,7 +268,7 @@ export default function ManageAccountMain({ searchTerm }) {
                             <Edit size={18} />
                           </Link>
                           <button
-                            onClick={() => confirmDelete(employee._id)}
+                            onClick={() =>handleDelete(employee._id)}
                             className="text-red-600 hover:text-red-800 transition-colors"
                             title="Delete"
                           >
