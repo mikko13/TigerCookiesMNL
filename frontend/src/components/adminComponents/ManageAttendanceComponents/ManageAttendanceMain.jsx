@@ -43,11 +43,7 @@ export default function ManageAttendanceMain({
   );
 
   const confirmDelete = (id) => {
-    if (
-      window.confirm("Are you sure you want to delete this attendance record?")
-    ) {
       handleDelete(id, setAttendance);
-    }
   };
 
   const toggleRow = (id) => {
@@ -93,7 +89,6 @@ export default function ManageAttendanceMain({
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Mobile View */}
           {isMobile ? (
             <div className="divide-y divide-gray-200">
               {filteredAttendance.map((record) => (

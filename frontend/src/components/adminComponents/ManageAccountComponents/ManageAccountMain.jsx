@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import useEmployees from "./fetchEmployees";
 import handleDelete from "./handleDelete";
 import { Link } from "react-router-dom";
-import { Edit, Trash2, Image, AlertTriangle, ChevronRight } from "lucide-react";
-import Swal from "sweetalert2";
+import { Edit, Trash2, AlertTriangle, ChevronRight } from "lucide-react";
 
 export default function ManageAccountMain({ searchTerm }) {
   const fetchedEmployees = useEmployees();

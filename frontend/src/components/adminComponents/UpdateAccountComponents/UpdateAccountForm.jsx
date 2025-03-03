@@ -1,42 +1,74 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  UserCircle,
+  Camera,
+  X,
+  Calendar,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  Loader2,
+  Upload,
+  DollarSign,
+  Briefcase,
+  Mail,
+  Lock,
+  Home,
+  User,
+} from "lucide-react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
 import { backendURL } from "../../../urls/URL";
 
 export default function UpdateAccountForm() {
   const { employeeId } = useParams();
-  const history = useNavigate();
-  const [profilePicture, setProfilePicture] = useState(null);
-  const [profilePictureToDelete, setProfilePictureToDelete] = useState(false);
-  const [changePassword, setChangePassword] = useState(false); // New state for password toggle
-
-  const [employee, setEmployee] = useState({
+  const navigate = useNavigate();
+  
+  const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    address: "",
     password: "",
+    address: "",
     gender: "",
     dateOfBirth: "",
-    position: "",
     hiredDate: "",
+    position: "",
     status: "",
     ratePerHour: "",
     shift: "",
-    profilePicture: "",
   });
+
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePreview, setProfilePreview] = useState(null);
+  const [profilePictureToDelete, setProfilePictureToDelete] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     const fetchEmployeeData = async () => {
       try {
+        setLoading(true);
         const response = await axios.get(
           `${backendURL}/api/employees/${employeeId}`
         );
-        setEmployee(response.data);
-        setProfilePicture(response.data.profilePicture);
+        
+        const employeeData = response.data;
+        setFormData(employeeData);
+        
+        // Handle profile picture
+        if (employeeData.profilePicture) {
+          setProfilePicture(employeeData.profilePicture);
+          setProfilePreview(`/employee-profile-pics/${employeeData.profilePicture}`);
+        }
+        
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching employee data:", error);
+        showToast("error", "Failed to load employee data");
+        setLoading(false);
       }
     };
 
@@ -45,257 +77,422 @@ export default function UpdateAccountForm() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEmployee((prevEmployee) => ({
-      ...prevEmployee,
-      [name]: value,
-    }));
+    setFormData({ ...formData, [name]: value });
+
+    // Clear error when field is updated
+    if (formErrors[name]) {
+      setFormErrors({ ...formErrors, [name]: null });
+    }
   };
 
-  const handleFileChange = (e) => {
+  const handlePictureChange = (e) => {
     const file = e.target.files[0];
-    setProfilePicture(file);
-    setProfilePictureToDelete(false);
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        showToast("error", "Image size should be less than 5MB");
+        return;
+      }
+
+      setProfilePicture(file);
+      setProfilePictureToDelete(false);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleDeletePicture = () => {
     setProfilePictureToDelete(true);
     setProfilePicture(null);
+    setProfilePreview(null);
+  };
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 5000);
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.firstName) errors.firstName = "First name is required";
+    if (!formData.lastName) errors.lastName = "Last name is required";
+    if (!formData.email) errors.email = "Email is required";
+    if (changePassword && !formData.password) errors.password = "Password is required";
+    if (!formData.position) errors.position = "Position is required";
+    if (!formData.hiredDate) errors.hiredDate = "Hired date is required";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!employee.firstName || !employee.lastName || !employee.email) {
-      Swal.fire("Error", "Please fill in all required fields.", "error");
+    if (!validateForm()) {
+      showToast("error", "Please fill all required fields.");
       return;
     }
 
-    const confirmResult = await Swal.fire({
-      title: "Are you sure?",
-      text: "Do you want to update this employee's details?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3b82f6",
-      cancelButtonColor: "#ef4444",
-      confirmButtonText: "Update",
+    setLoading(true);
+
+    // Create FormData object
+    const formDataToSend = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (key !== 'password' || (key === 'password' && changePassword)) {
+        formDataToSend.append(key, formData[key]);
+      }
     });
 
-    if (!confirmResult.isConfirmed) return;
-
-    const formData = new FormData();
-    formData.append("firstName", employee.firstName);
-    formData.append("lastName", employee.lastName);
-    formData.append("email", employee.email);
-    formData.append("address", employee.address);
-    formData.append("gender", employee.gender);
-    formData.append("dateOfBirth", employee.dateOfBirth);
-    formData.append("position", employee.position);
-    formData.append("hiredDate", employee.hiredDate);
-    formData.append("status", employee.status);
-    formData.append("ratePerHour", employee.ratePerHour);
-    formData.append("shift", employee.shift);
-
-    if (profilePicture) {
-      formData.append("profilePicture", profilePicture);
+    if (profilePicture instanceof File) {
+      formDataToSend.append("profilePicture", profilePicture);
     } else if (profilePictureToDelete) {
-      formData.append("profilePicture", "");
-    }
-
-    if (changePassword) {
-      formData.append("password", employee.password);
+      formDataToSend.append("profilePicture", "");
     }
 
     try {
-      const response = await axios.put(
+      await axios.put(
         `${backendURL}/api/employees/${employeeId}`,
-        formData,
+        formDataToSend,
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
-      console.log("Response:", response);
-      setEmployee(response.data);
-      setProfilePicture(response.data.profilePicture);
-
-      history("/ManageEmployeeAccounts");
+      showToast("success", "Employee account updated successfully!");
+      
+      // Delay navigation to show success toast
+      setTimeout(() => {
+        navigate("/ManageEmployeeAccounts");
+      }, 2000);
+      
     } catch (error) {
       console.error("Error updating employee:", error);
-      Swal.fire("Error", "There was an error updating the employee.", "error");
+      showToast("error", "Failed to update employee account.");
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <form
-        onSubmit={handleSubmit}
-        className="mt-0 md:mt-16 font-[sans-serif] max-w-4xl mx-auto p-4 sm:p-1"
-      >
-        <div className="flex flex-col sm:flex-row">
-          <div className="flex flex-col mr-7 items-center">
-            <div className="relative w-32 h-32 rounded-full overflow-hidden border border-gray-300 bg-gray-200">
-              {profilePicture ? (
-                <img
-                  src={
-                    profilePicture instanceof File
-                      ? URL.createObjectURL(profilePicture)
-                      : profilePicture
-                      ? `/employee-profile-pics/${profilePicture}`
-                      : ""
-                  }
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex items-center justify-center w-full h-full text-gray-500">
-                  No Picture
+    <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
+        <h2 className="text-2xl font-bold text-white flex items-center">
+          <UserCircle className="mr-2" size={24} />
+          Update Employee Account
+        </h2>
+        <p className="text-yellow-50 mt-1 opacity-90">
+          Edit employee information
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Profile Picture Upload */}
+          <div className="col-span-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Profile Picture
+            </label>
+            <div
+              className={`border-2 border-dashed rounded-lg ${
+                profilePreview
+                  ? "border-yellow-400 bg-yellow-50"
+                  : "border-gray-300 bg-gray-50"
+              } p-4 flex flex-col items-center justify-center h-64 relative overflow-hidden transition-all hover:border-yellow-500`}
+            >
+              {profilePreview ? (
+                <div className="relative w-full h-full">
+                  <img
+                    src={profilePreview}
+                    alt="Profile"
+                    className="w-full h-full object-contain"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleDeletePicture}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 transition-all hover:bg-red-600"
+                    aria-label="Remove photo"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
+              ) : (
+                <>
+                  <Camera className="w-12 h-12 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 text-center">
+                    <span className="font-medium">Click to upload</span> or drag
+                    and drop
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    PNG, JPG up to 5MB
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePictureChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </>
               )}
             </div>
-            <div className="mt-4 flex gap-2">
-              <label
-                htmlFor="profilePicture"
-                className="px-4 py-2 bg-yellow-300 text-white text-sm rounded cursor-pointer hover:bg-yellow-400 transition-all"
-              >
-                {profilePicture
-                  ? "Change Profile Picture"
-                  : "Add Profile Picture"}
-              </label>
-              <input
-                type="file"
-                id="profilePicture"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-            </div>
-            {profilePicture && (
-              <button
-                type="button"
-                onClick={handleDeletePicture}
-                className="mt-2 px-4 py-2 bg-red-500 text-white text-sm rounded cursor-pointer hover:bg-red-600 transition-all"
-              >
-                Delete Profile Picture
-              </button>
-            )}
           </div>
 
-          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Personal Information */}
+          <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="text-sm text-gray-700">First Name</label>
-              <input
-                type="text"
-                name="firstName"
-                placeholder="First Name"
-                value={employee.firstName}
-                onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-700">Last Name</label>
-              <input
-                type="text"
-                name="lastName"
-                placeholder="Last Name"
-                value={employee.lastName}
-                onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-700">Email</label>
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={employee.email}
-                onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-700">Password</label>
-              <div className="relative flex items-center">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                First Name <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
                 <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleInputChange}
-                  disabled={!changePassword} // Disable input when checkbox is unchecked
-                  className={`px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded ${
-                    !changePassword ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  placeholder="Enter first name"
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                    formErrors.firstName
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-gray-50"
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
                 />
-                <div className="absolute right-3 flex items-center space-x-2">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <User className="w-4 h-4 text-gray-500" />
+                </div>
+                {formErrors.firstName && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.firstName}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Last Name <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  placeholder="Enter last name"
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                    formErrors.lastName
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-gray-50"
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <User className="w-4 h-4 text-gray-500" />
+                </div>
+                {formErrors.lastName && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.lastName}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="employee@company.com"
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                    formErrors.email
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-gray-50"
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                </div>
+                {formErrors.email && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.email}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                Password 
+                {changePassword && <span className="text-red-500 ml-1">*</span>}
+                <div className="ml-auto">
                   <input
                     type="checkbox"
                     id="changePassword"
                     checked={changePassword}
                     onChange={() => setChangePassword(!changePassword)}
-                    className="w-4 h-4 cursor-pointer"
+                    className="mr-2"
                   />
-                  <label
-                    htmlFor="changePassword"
-                    className="text-sm text-gray-700 cursor-pointer"
-                  ></label>
+                  <label htmlFor="changePassword" className="text-xs text-gray-500">
+                    Change password
+                  </label>
+                </div>
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  disabled={!changePassword}
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                    formErrors.password
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-gray-50"
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all ${
+                    !changePassword ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Lock className="w-4 h-4 text-gray-500" />
+                </div>
+                {formErrors.password && changePassword && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.password}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Address
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  placeholder="Enter address"
+                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Home className="w-4 h-4 text-gray-500" />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="text-sm text-gray-700">Address</label>
-              <input
-                type="text"
-                name="address"
-                placeholder="Address"
-                value={employee.address}
-                onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Gender
+              </label>
+              <div className="relative">
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
+                >
+                  <option value="" disabled>
+                    Select Gender
+                  </option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <User className="w-4 h-4 text-gray-500" />
+                </div>
+                <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                  <svg
+                    className="w-4 h-4 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
+
             <div>
-              <label className="text-sm text-gray-700">Gender</label>
-              <select
-                name="gender"
-                value={employee.gender}
-                onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
-              >
-                <option value="" disabled>
-                  Select Gender
-                </option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Date of Birth
+              </label>
+              <div className="relative">
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                </div>
+              </div>
             </div>
+
             <div>
-              <label className="text-sm text-gray-700">Date of Birth</label>
-              <input
-                type="date"
-                name="dateOfBirth"
-                value={employee.dateOfBirth}
-                onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Hired Date <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="date"
+                  name="hiredDate"
+                  value={formData.hiredDate}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                    formErrors.hiredDate
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-gray-50"
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                </div>
+                {formErrors.hiredDate && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.hiredDate}
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <label className="text-sm text-gray-700">Hired Date</label>
-              <input
-                type="date"
-                name="hiredDate"
-                value={employee.hiredDate}
-                onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-700">Position</label>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Position <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
               <select
                 name="position"
-                value={employee.position}
+                value={formData.position}
                 onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
+                className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                  formErrors.position
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 bg-gray-50"
+                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
               >
                 <option value="" disabled>
                   Select Position
@@ -308,14 +505,43 @@ export default function UpdateAccountForm() {
                 <option value="Branch Manager">Branch Manager</option>
                 <option value="Sales Assistant">Sales Assistant</option>
               </select>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Briefcase className="w-4 h-4 text-gray-500" />
+              </div>
+              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+              {formErrors.position && (
+                <p className="mt-1 text-xs text-red-500 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                  {formErrors.position}
+                </p>
+              )}
             </div>
-            <div>
-              <label className="text-sm text-gray-700">Status</label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <div className="relative">
               <select
                 name="status"
-                value={employee.status}
+                value={formData.status}
                 onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
+                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
               >
                 <option value="" disabled>
                   Select Status
@@ -326,25 +552,56 @@ export default function UpdateAccountForm() {
                 <option value="Absent">Absent</option>
                 <option value="On-Leave">On-Leave</option>
               </select>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <User className="w-4 h-4 text-gray-500" />
+              </div>
+              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
             </div>
-            <div>
-              <label className="text-sm text-gray-700">Rate Per Hour</label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Rate Per Hour
+            </label>
+            <div className="relative">
               <input
                 type="number"
                 name="ratePerHour"
-                placeholder="Rate Per Hour"
-                value={employee.ratePerHour}
+                value={formData.ratePerHour}
                 onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
+                placeholder="0.00"
+                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
               />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <DollarSign className="w-4 h-4 text-gray-500" />
+              </div>
             </div>
-            <div>
-              <label className="text-sm text-gray-700">Shift</label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Shift
+            </label>
+            <div className="relative">
               <select
                 name="shift"
-                value={employee.shift}
+                value={formData.shift}
                 onChange={handleInputChange}
-                className="px-4 py-3 bg-gray-100 text-black w-full text-sm border rounded"
+                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
               >
                 <option value="" disabled>
                   Select Shift
@@ -353,19 +610,82 @@ export default function UpdateAccountForm() {
                 <option value="Afternoon">Afternoon</option>
                 <option value="Night">Night</option>
               </select>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Clock className="w-4 h-4 text-gray-500" />
+              </div>
+              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 flex justify-end">
+        <div className="mt-8 flex justify-end gap-4">
+          <button
+            type="button"
+            onClick={() => navigate("/ManageEmployeeAccounts")}
+            className="px-6 py-2.5 text-sm font-medium bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all flex items-center"
+          >
+            <X className="w-4 h-4 mr-2" />
+            Cancel
+          </button>
           <button
             type="submit"
-            className="px-6 py-2.5 text-sm bg-yellow-300 hover:bg-yellow-400 text-white rounded transition-all"
+            disabled={loading}
+            className={`px-6 py-2.5 text-sm font-medium bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-all flex items-center ${
+              loading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
           >
-            Submit
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Update
+              </>
+            )}
           </button>
         </div>
       </form>
+
+      {toast && (
+        <div
+          className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-xl ${
+            toast.type === "success" ? "bg-green-500" : "bg-red-500"
+          } text-white flex items-center justify-between max-w-md animate-fadeIn`}
+        >
+          <div className="flex items-center">
+            {toast.type === "success" ? (
+              <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+            ) : (
+              <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0" />
+            )}
+            <p className="text-sm">{toast.message}</p>
+          </div>
+          <button
+            onClick={() => setToast(null)}
+            className="ml-4 text-white hover:text-gray-100 focus:outline-none"
+            aria-label="Close notification"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

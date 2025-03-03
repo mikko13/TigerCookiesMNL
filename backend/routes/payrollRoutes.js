@@ -1,78 +1,69 @@
 const express = require("express");
-const Payroll = require("../models/payroll");
-const Attendance = require("../models/Attendance");
-const Account = require("../models/Employees"); // Ensure correct reference
 const router = express.Router();
+const Payroll = require("../models/Payroll");
 
-// Function to calculate salary based on attendance
-const calculateSalary = async (employeeID) => {
-  const employee = await Account.findById(employeeID);
-  if (!employee) return null;
-
-  const attendanceRecords = await Attendance.find({ employeeID });
-
-  const totalHours = attendanceRecords.reduce((sum, record) => {
-    const checkIn = new Date(`1970-01-01T${record.checkInTime}`);
-    const checkOut = new Date(`1970-01-01T${record.checkOutTime}`);
-    return sum + (checkOut - checkIn) / (1000 * 60 * 60); // Convert milliseconds to hours
-  }, 0);
-
-  const salary = totalHours * employee.ratePerHour;
-  return salary;
-};
-
-// 🟢 Ensure payroll is created for employees
-const createPayrollRecord = async (employee) => {
-  const existingPayroll = await Payroll.findOne({ employeeID: employee._id });
-
-  if (!existingPayroll) {
-    const salary = await calculateSalary(employee._id);
-    const newPayroll = new Payroll({
-      employeeID: employee._id,
-      employeeName: `${employee.firstName} ${employee.lastName}`,
-      payPeriod: "Current Month",
-      salary: salary || 0,
-      totalEarnings: salary || 0,
-    });
-
-    await newPayroll.save();
-  }
-};
-
-// 🟢 GET pending payrolls (Fixes empty table issue)
-router.get("/pending", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const payrolls = await Payroll.find({ isPublished: false });
+    const payrolls = await Payroll.find().populate(
+      "employeeID",
+      "firstName lastName"
+    );
     res.status(200).json(payrolls);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching payrolls", error });
+    res.status(500).json({ message: error.message });
   }
 });
 
-// 🟢 Sync payroll with attendance records
-router.put("/update-payroll/:employeeID", async (req, res) => {
-  const { employeeID } = req.params;
+router.get("/:id", async (req, res) => {
   try {
-    const salary = await calculateSalary(employeeID);
-    await Payroll.findOneAndUpdate(
-      { employeeID },
-      { salary, totalEarnings: salary },
+    const payroll = await Payroll.findById(req.params.id).populate(
+      "employeeID",
+      "firstName lastName"
+    );
+    if (!payroll) return res.status(404).json({ message: "Payroll not found" });
+    res.status(200).json(payroll);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Create new payroll
+router.post("/", async (req, res) => {
+  const payroll = new Payroll(req.body);
+  try {
+    const newPayroll = await payroll.save();
+    res.status(201).json(newPayroll);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Update payroll
+router.patch("/:id", async (req, res) => {
+  try {
+    const updatedPayroll = await Payroll.findByIdAndUpdate(
+      req.params.id,
+      req.body,
       { new: true }
     );
-    res.status(200).json({ message: "Payroll updated successfully" });
+    if (!updatedPayroll)
+      return res.status(404).json({ message: "Payroll not found" });
+    res.status(200).json(updatedPayroll);
   } catch (error) {
-    res.status(500).json({ message: "Error updating payroll", error });
+    res.status(400).json({ message: error.message });
   }
 });
 
-// Ensure payroll records exist for all employees on startup
-const initializePayrolls = async () => {
-  const employees = await Account.find();
-  for (let employee of employees) {
-    await createPayrollRecord(employee);
+// Delete payroll
+router.delete("/:id", async (req, res) => {
+  try {
+    const deletedPayroll = await Payroll.findByIdAndDelete(req.params.id);
+    if (!deletedPayroll)
+      return res.status(404).json({ message: "Payroll not found" });
+    res.status(200).json({ message: "Payroll deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-};
-
-initializePayrolls(); // Run this on server start
+});
 
 module.exports = router;

@@ -20,6 +20,7 @@ import AdminCreateAttendance from "./components/adminComponents/CreateAttendance
 import AdminUpdateAttendance from "./components/adminComponents/UpdateAttendanceComponents/UpdateAttendance";
 import AdminManagePayroll from "./components/adminComponents/ManagePayrollComponents/ManagePayroll";
 import AdminCreatePayroll from "./components/adminComponents/CreatePayrollComponents/CreatePayroll"
+import AdminUpdatePayroll from "./components/adminComponents/UpdatePayrollComponents/UpdatePayroll"
 
 import NotFound from "./components/NotFound";
 
@@ -53,6 +54,7 @@ export default function App() {
 
 				<Route path="/ManageEmployeePayroll" element={<AdminManagePayroll />} />
 				<Route path="/CreateEmployeePayroll" element={<AdminCreatePayroll />} />
+				<Route path="/UpdateEmployeePayroll/:employeeId" element={<AdminUpdatePayroll />} />
 
 				<Route path="*" element={<NotFound />} />
 			</Routes>

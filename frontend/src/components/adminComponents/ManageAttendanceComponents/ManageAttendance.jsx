@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ManageAttendanceMain from "./ManageAttendanceMain";
 import AdminSidebar from "../../sidebarComponents/admin-sidebar/adminSidebar";
 import Background from "../../images/background.png";
-import { Search, Calendar, Plus, Menu, X } from "lucide-react";
+import { Search, Calendar, Plus, Menu } from "lucide-react";
 
 export default function ManageAttendance({
   searchTerm,
@@ -39,12 +39,6 @@ export default function ManageAttendance({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const toggleSidebarExpand = () => {
-    setSidebarState((prev) => ({
-      ...prev,
-      isExpanded: !prev.isExpanded,
-    }));
-  };
 
   const toggleSidebarVisibility = () => {
     setSidebarState((prev) => ({
@@ -63,7 +57,6 @@ export default function ManageAttendance({
         backgroundAttachment: "fixed",
       }}
     >
-      {/* Mobile sidebar toggle button that peeks from the left */}
       {isMobile && !sidebarState.isVisible && (
         <button
           onClick={toggleSidebarVisibility}
@@ -74,7 +67,6 @@ export default function ManageAttendance({
         </button>
       )}
 
-      {/* Overlay for mobile when sidebar is open */}
       {isMobile && sidebarState.isVisible && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
@@ -82,7 +74,6 @@ export default function ManageAttendance({
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
@@ -111,7 +102,6 @@ export default function ManageAttendance({
               </p>
             </div>
 
-            {/* Search and filter controls - responsive layout */}
             <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

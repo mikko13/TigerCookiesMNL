@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { User, Clock, DollarSign, LogOut, X } from "lucide-react";
+import { User, Clock, PhilippinePeso, LogOut, X } from "lucide-react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
 
@@ -60,7 +60,7 @@ export default function EmpAttendanceSideBar({
     {
       path: "/Payroll",
       name: "Payroll",
-      icon: <DollarSign size={20} />,
+      icon: <PhilippinePeso size={20} />,
     },
   ];
 

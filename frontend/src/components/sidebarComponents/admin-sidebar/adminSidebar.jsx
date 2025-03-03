@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { User, Clock, DollarSign, LogOut, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { User, Clock, PhilippinePeso, LogOut, X } from "lucide-react";
 
 export default function AdminSidebar({
   isExpanded,
@@ -33,7 +33,7 @@ export default function AdminSidebar({
     {
       path: "/ManageEmployeePayroll",
       name: "Manage Payrolls",
-      icon: <DollarSign size={20} />,
+      icon: <PhilippinePeso size={20} />,
     },
   ];
 

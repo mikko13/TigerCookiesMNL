@@ -9,7 +9,7 @@ const connectDB = require("./config/db");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const cron = require("node-cron");
-const Payroll = require("./models/payroll");
+const Payroll = require("./models/Payroll");
 const Employee = require("./models/Employees");
 const Attendance = require("./models/Attendance");
 const employeeRoutes = require("./routes/employeeRoutes");
@@ -52,11 +52,11 @@ app.use(
 );
 
 app.use("/api/employees", employeeRoutes);
-app.use("/api/payroll", payrollRoutes);
 app.use("/api/checkin", checkinRoutes);
 app.use("/api/checkout", checkoutRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/payroll", payrollRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

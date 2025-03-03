@@ -8,8 +8,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Loader2,
-  Upload,
-  DollarSign,
+  PhilippinePeso,
   Briefcase,
   Mail,
   Lock,
@@ -141,7 +140,6 @@ export default function CreateAccountForm() {
 
       <form onSubmit={handleSubmit} className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Profile Picture Upload */}
           <div className="col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Profile Picture
@@ -193,7 +191,6 @@ export default function CreateAccountForm() {
             </div>
           </div>
 
-          {/* Personal Information */}
           <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -484,7 +481,7 @@ export default function CreateAccountForm() {
                 className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
               />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <DollarSign className="w-4 h-4 text-gray-500" />
+                <PhilippinePeso className="w-4 h-4 text-gray-500" />
               </div>
             </div>
           </div>

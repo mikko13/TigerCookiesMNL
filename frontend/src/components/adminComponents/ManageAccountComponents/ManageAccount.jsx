@@ -35,13 +35,6 @@ export default function ManageAccount() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const toggleSidebarExpand = () => {
-    setSidebarState((prev) => ({
-      ...prev,
-      isExpanded: !prev.isExpanded,
-    }));
-  };
-
   const toggleSidebarVisibility = () => {
     setSidebarState((prev) => ({
       ...prev,
@@ -59,7 +52,6 @@ export default function ManageAccount() {
         backgroundAttachment: "fixed",
       }}
     >
-      {/* Mobile sidebar toggle button that peeks from the left */}
       {isMobile && !sidebarState.isVisible && (
         <button
           onClick={toggleSidebarVisibility}
@@ -70,7 +62,6 @@ export default function ManageAccount() {
         </button>
       )}
 
-      {/* Overlay for mobile when sidebar is open */}
       {isMobile && sidebarState.isVisible && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
@@ -78,7 +69,6 @@ export default function ManageAccount() {
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
@@ -88,7 +78,7 @@ export default function ManageAccount() {
       >
         {sidebarState.isVisible && (
           <AdminSidebar
-            isExpanded={true} // Always keep it expanded when visible
+            isExpanded={true}
             isMobile={isMobile}
             toggleVisibility={toggleSidebarVisibility}
           />
@@ -107,7 +97,6 @@ export default function ManageAccount() {
               </p>
             </div>
 
-            {/* Search and filter controls - responsive layout */}
             <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
