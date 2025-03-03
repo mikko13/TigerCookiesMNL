@@ -1,17 +1,12 @@
 /* eslint-disable no-unused-expressions */
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-  Edit,
-  Trash2,
-  Download,
-  AlertTriangle,
-  ChevronRight,
-  Send,
-} from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { backendURL } from "../../../urls/URL";
+import PayrollTable from "./PayrollTable";
+import MobilePayrollList from "./MobilePayrollList";
 
 export default function ManagePayrollMain({
   searchTerm,
@@ -20,7 +15,6 @@ export default function ManagePayrollMain({
 }) {
   const [payrolls, setPayrolls] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -95,23 +89,6 @@ export default function ManagePayrollMain({
     }
   };
 
-  const toggleRow = (id) => {
-    setExpandedRow(expandedRow === id ? null : id);
-  };
-
-  const getStatusClass = (isPublished) => {
-    return isPublished
-      ? "bg-green-100 text-green-800"
-      : "bg-yellow-100 text-yellow-800";
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-    }).format(amount);
-  };
-
   const handlePublish = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -147,14 +124,35 @@ export default function ManagePayrollMain({
     }
   };
 
-  return (
-    <div className="flex flex-col space-y-6">
-      {loading ? (
+  const getStatusClass = (isPublished) => {
+    return isPublished
+      ? "bg-green-100 text-green-800"
+      : "bg-yellow-100 text-yellow-800";
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP",
+    }).format(amount);
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex flex-col space-y-6">
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading payroll records...</p>
         </div>
-      ) : filteredPayrolls.length === 0 ? (
+      </div>
+    );
+  }
+
+  // No records found state
+  if (filteredPayrolls.length === 0) {
+    return (
+      <div className="flex flex-col space-y-6">
         <div className="bg-white rounded-lg shadow-md p-8 text-center flex flex-col items-center">
           <AlertTriangle size={48} className="text-yellow-500 mb-4" />
           <h3 className="text-lg font-semibold text-gray-800">
@@ -185,279 +183,31 @@ export default function ManagePayrollMain({
             </Link>
           )}
         </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {isMobile ? (
-            <div className="divide-y divide-gray-200">
-              {filteredPayrolls.map((record) => (
-                <div key={record._id} className="p-4">
-                  <div
-                    className="flex justify-between items-center cursor-pointer"
-                    onClick={() => toggleRow(record._id)}
-                  >
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        {`${record.employeeID.firstName} ${record.employeeID.lastName}`}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {record.payPeriod}
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getStatusClass(
-                          record.isPublished
-                        )}`}
-                      >
-                        {record.isPublished ? "Published" : "Draft"}
-                      </span>
-                      <ChevronRight
-                        size={20}
-                        className={`text-gray-400 transition-transform ${
-                          expandedRow === record._id ? "rotate-90" : ""
-                        }`}
-                      />
-                    </div>
-                  </div>
+      </div>
+    );
+  }
 
-                  {expandedRow === record._id && (
-                    <div className="mt-3 pl-2 border-l-2 border-gray-200">
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <p className="text-gray-500">Regular Hours</p>
-                          <p className="font-medium">{record.regularHours}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Hourly Rate</p>
-                          <p className="font-medium">
-                            {formatCurrency(record.hourlyRate)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Base Salary</p>
-                          <p className="font-medium">
-                            {formatCurrency(record.baseSalary)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Total Earnings</p>
-                          <p className="font-medium">
-                            {formatCurrency(record.totalEarnings)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Total Deductions</p>
-                          <p className="font-medium">
-                            {formatCurrency(record.totalDeductions)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Net Pay</p>
-                          <p className="font-medium font-bold text-green-600">
-                            {formatCurrency(record.netPay)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Holiday Pay</p>
-                          <p className="font-medium">
-                            {formatCurrency(record.holidayPay)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Overtime Pay</p>
-                          <p className="font-medium">
-                            {formatCurrency(record.overtimePay)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Night Differential</p>
-                          <p className="font-medium">
-                            {formatCurrency(record.nightDiffPay)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Incentives</p>
-                          <p className="font-medium">
-                            {formatCurrency(record.incentives)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap gap-3">
-                        <Link
-                          to={`/UpdateEmployeePayroll/${record._id}`}
-                          state={{ record }}
-                          className="flex items-center text-blue-600 hover:text-blue-800"
-                        >
-                          <Edit size={16} className="mr-1" />
-                          <span>Edit</span>
-                        </Link>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(record._id);
-                          }}
-                          className="flex items-center text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 size={16} className="mr-1" />
-                          <span>Delete</span>
-                        </button>
-                        {!record.isPublished && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePublish(record._id);
-                            }}
-                            className="flex items-center text-green-600 hover:text-green-800"
-                          >
-                            <Send size={16} className="mr-1" />
-                            <span>Publish</span>
-                          </button>
-                        )}
-                        <Link
-                          to={`/DownloadPayslip/${record._id}`}
-                          className="flex items-center text-purple-600 hover:text-purple-800"
-                        >
-                          <Download size={16} className="mr-1" />
-                          <span>Download</span>
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Employee
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Pay Period
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Regular Hours
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Hourly Rate
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Base Salary
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Overtime
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Earnings
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Deductions
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Net Pay
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredPayrolls.map((record) => (
-                    <tr
-                      key={record._id}
-                      className="hover:bg-gray-50 transition-colors duration-150"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">
-                          {`${record.employeeID.firstName} ${record.employeeID.lastName}`}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {record.payPeriod}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {record.regularHours}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {formatCurrency(record.hourlyRate)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {formatCurrency(record.baseSalary)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {formatCurrency(record.overtimePay)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {formatCurrency(record.totalEarnings)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {formatCurrency(record.totalDeductions)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                        {formatCurrency(record.netPay)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(
-                            record.isPublished
-                          )}`}
-                        >
-                          {record.isPublished ? "Published" : "Unpublished"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        <div className="flex gap-3">
-                          <Link
-                            to={`/UpdateEmployeePayroll/${record._id}`}
-                            state={{ record }}
-                            className="text-blue-600 hover:text-blue-800 transition-colors"
-                            title="Edit"
-                          >
-                            <Edit size={18} />
-                          </Link>
-                          <button
-                            onClick={() => handleDelete(record._id)}
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                          {!record.isPublished && (
-                            <button
-                              onClick={() => handlePublish(record._id)}
-                              className="text-green-600 hover:text-green-800 transition-colors"
-                              title="Publish"
-                            >
-                              <Send size={18} />
-                            </button>
-                          )}
-                          <Link
-                            to={`/DownloadPayslip/${record._id}`}
-                            className="text-purple-600 hover:text-purple-800 transition-colors"
-                            title="Download Payslip"
-                          >
-                            <Download size={18} />
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-sm text-gray-600">
-            Showing {filteredPayrolls.length} of {payrolls.length} records
-          </div>
-        </div>
-      )}
+  return (
+    <div className="flex flex-col space-y-6">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        {isMobile ? (
+          <MobilePayrollList
+            filteredPayrolls={filteredPayrolls}
+            formatCurrency={formatCurrency}
+            getStatusClass={getStatusClass}
+            handleDelete={handleDelete}
+            handlePublish={handlePublish}
+          />
+        ) : (
+          <PayrollTable
+            filteredPayrolls={filteredPayrolls}
+            formatCurrency={formatCurrency}
+            getStatusClass={getStatusClass}
+            handleDelete={handleDelete}
+            handlePublish={handlePublish}
+          />
+        )}
+      </div>
     </div>
   );
 }

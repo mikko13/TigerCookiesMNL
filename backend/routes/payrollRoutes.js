@@ -38,7 +38,22 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Update payroll
+// Update payroll - support both PUT and PATCH
+router.put("/:id", async (req, res) => {
+  try {
+    const updatedPayroll = await Payroll.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updatedPayroll)
+      return res.status(404).json({ message: "Payroll not found" });
+    res.status(200).json(updatedPayroll);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 router.patch("/:id", async (req, res) => {
   try {
     const updatedPayroll = await Payroll.findByIdAndUpdate(
@@ -63,6 +78,22 @@ router.delete("/:id", async (req, res) => {
     res.status(200).json({ message: "Payroll deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// Publish payroll
+router.patch("/:id/publish", async (req, res) => {
+  try {
+    const updatedPayroll = await Payroll.findByIdAndUpdate(
+      req.params.id,
+      { isPublished: true },
+      { new: true }
+    );
+    if (!updatedPayroll)
+      return res.status(404).json({ message: "Payroll not found" });
+    res.status(200).json(updatedPayroll);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
 

@@ -15,6 +15,7 @@ import {
   Home,
   User,
 } from "lucide-react";
+import { backendURL } from "../../../urls/URL";
 
 export default function CreateAccountForm() {
   const [formData, setFormData] = useState({
@@ -94,14 +95,37 @@ export default function CreateAccountForm() {
     setLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Create FormData object to handle file upload
+      const formDataToSend = new FormData();
 
+      // Add all form fields to the FormData
+      Object.keys(formData).forEach((key) => {
+        formDataToSend.append(key, formData[key]);
+      });
+
+      // Add profile picture if it exists
+      if (profilePicture) {
+        formDataToSend.append("profilePicture", profilePicture);
+      }
+
+      const response = await fetch(`${backendURL}/api/employees`, {
+        method: "POST",
+        body: formDataToSend,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Failed to create employee account"
+        );
+      }
+
+      const data = await response.json();
       showToast("success", "Employee account created successfully!");
       resetForm();
     } catch (error) {
       console.error("Error creating employee account:", error);
-      showToast("error", "Failed to create employee account.");
+      showToast("error", error.message || "Failed to create employee account.");
     } finally {
       setLoading(false);
     }

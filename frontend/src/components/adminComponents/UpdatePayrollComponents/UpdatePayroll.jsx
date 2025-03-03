@@ -1,646 +1,148 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Save, AlertCircle } from "lucide-react";
-import axios from "axios";
-import Swal from "sweetalert2";
-import { backendURL } from "../../../urls/URL";
+import React, { useState, useEffect } from "react";
+import UpdatePayrollForm from "./UpdatePayrollForm";
+import AdminSidebar from "../../sidebarComponents/admin-sidebar/adminSidebar";
+import Background from "../../images/background.png";
+import { Menu, DollarSign } from "lucide-react";
 
-export default function UpdateEmployeePayroll() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const recordFromState = location.state?.record;
-
-  const [formData, setFormData] = useState({
-    employeeID: "",
-    payPeriod: "",
-    regularHours: 0,
-    hourlyRate: 0,
-    baseSalary: 0,
-    overtimeHours: 0,
-    overtimeRate: 0,
-    overtimePay: 0,
-    holidayHours: 0,
-    holidayRate: 0,
-    holidayPay: 0,
-    nightDiffHours: 0,
-    nightDiffRate: 0,
-    nightDiffPay: 0,
-    incentives: 0,
-    sssDeduction: 0,
-    phicDeduction: 0,
-    hdmfDeduction: 0,
-    taxDeduction: 0,
-    otherDeductions: 0,
-    totalEarnings: 0,
-    totalDeductions: 0,
-    netPay: 0,
-    isPublished: false,
+export default function UpdatePayroll() {
+  const [sidebarState, setSidebarState] = useState({
+    isVisible: true,
+    isExpanded: true,
   });
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [employees, setEmployees] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const response = await axios.get(`${backendURL}/api/employees`);
-        setEmployees(response.data);
-      } catch (error) {
-        console.error("Error fetching employees:", error);
-        setError("Failed to load employees");
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+
+      if (mobile) {
+        setSidebarState({
+          isVisible: false,
+          isExpanded: false,
+        });
+      } else {
+        setSidebarState({
+          isVisible: true,
+          isExpanded: true,
+        });
       }
     };
 
-    const fetchPayrollData = async () => {
-      if (recordFromState) {
-        setFormData({
-          ...recordFromState,
-          employeeID: recordFromState.employeeID?._id || "",
-        });
-        setLoading(false);
-        return;
-      }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-      try {
-        const response = await axios.get(`${backendURL}/api/payroll/${id}`);
-        setFormData({
-          ...response.data,
-          employeeID: response.data.employeeID?._id || "",
-        });
-      } catch (error) {
-        console.error("Error fetching payroll data:", error);
-        setError("Failed to load payroll data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEmployees();
-    fetchPayrollData();
-  }, [id, recordFromState]);
-
-  const handleChange = (e) => {
-    const { name, value, type } = e.target;
-    const newValue = type === "number" ? parseFloat(value) || 0 : value;
-
-    setFormData((prev) => ({ ...prev, [name]: newValue }));
-  };
-
-  useEffect(() => {
-    const overtimePay = formData.overtimeHours * formData.overtimeRate;
-    const holidayPay = formData.holidayHours * formData.holidayRate;
-    const nightDiffPay = formData.nightDiffHours * formData.nightDiffRate;
-    const totalEarnings =
-      formData.baseSalary +
-      overtimePay +
-      holidayPay +
-      nightDiffPay +
-      formData.incentives;
-    const totalDeductions =
-      formData.sssDeduction +
-      formData.phicDeduction +
-      formData.hdmfDeduction +
-      formData.taxDeduction +
-      formData.otherDeductions;
-    const netPay = totalEarnings - totalDeductions;
-
-    setFormData((prev) => ({
+  const toggleSidebarVisibility = () => {
+    setSidebarState((prev) => ({
       ...prev,
-      overtimePay,
-      holidayPay,
-      nightDiffPay,
-      totalEarnings,
-      totalDeductions,
-      netPay,
-    }));
-  }, [
-    formData.baseSalary,
-    formData.overtimeHours,
-    formData.overtimeRate,
-    formData.holidayHours,
-    formData.holidayRate,
-    formData.nightDiffHours,
-    formData.nightDiffRate,
-    formData.incentives,
-    formData.sssDeduction,
-    formData.phicDeduction,
-    formData.hdmfDeduction,
-    formData.taxDeduction,
-    formData.otherDeductions,
-  ]);
-
-  const handleRegularHoursChange = (e) => {
-    const regularHours = parseFloat(e.target.value) || 0;
-    const baseSalary = regularHours * formData.hourlyRate;
-
-    setFormData((prev) => ({
-      ...prev,
-      regularHours,
-      baseSalary,
+      isVisible: !prev.isVisible,
     }));
   };
 
-  const handleHourlyRateChange = (e) => {
-    const hourlyRate = parseFloat(e.target.value) || 0;
-    const baseSalary = formData.regularHours * hourlyRate;
-
-    setFormData((prev) => ({
+  const toggleSidebarExpand = () => {
+    setSidebarState((prev) => ({
       ...prev,
-      hourlyRate,
-      baseSalary,
+      isExpanded: !prev.isExpanded,
     }));
   };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      setLoading(true);
-      await axios.put(`${backendURL}/api/payroll/${id}`, formData);
-      Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: "Payroll record has been updated.",
-      }).then(() => {
-        navigate("/ManageEmployeePayroll");
-      });
-    } catch (error) {
-      console.error("Error updating payroll:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: "Failed to update payroll record.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-    }).format(amount);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-        <p className="ml-4 text-gray-600">Loading payroll data...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-50 p-6 rounded-lg shadow-md">
-        <div className="flex items-center">
-          <AlertCircle className="text-red-500 mr-3" size={24} />
-          <h2 className="text-lg font-semibold text-red-700">Error</h2>
-        </div>
-        <p className="mt-2 text-red-600">{error}</p>
-        <button
-          onClick={() => navigate("/ManageEmployeePayroll")}
-          className="mt-4 flex items-center text-blue-600 hover:text-blue-800"
-        >
-          <ArrowLeft size={16} className="mr-1" />
-          Back to Payroll Management
-        </button>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center">
+    <div
+      className="flex min-h-screen bg-gray-50 overflow-hidden"
+      style={{
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${Background})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      <div
+        className={`h-screen overflow-hidden transition-all duration-300 ease-in-out ${
+          !sidebarState.isVisible
+            ? "w-9 min-w-0"
+            : sidebarState.isExpanded
+            ? "w-[250px] min-w-[250px]"
+            : "w-[70px] min-w-[70px]"
+        } ${isMobile ? "fixed h-full z-40" : "fixed"}`}
+      >
+        {sidebarState.isVisible && (
+          <AdminSidebar
+            isExpanded={sidebarState.isExpanded}
+            toggleExpand={toggleSidebarExpand}
+          />
+        )}
+      </div>
+
+      <main
+        className={`flex-1 transition-all duration-300 ease-in-out overflow-y-auto ${
+          isMobile ? "pt-20 w-full" : "pt-6"
+        } px-4 sm:px-6 lg:px-8 pb-10 ${
+          sidebarState.isVisible && !isMobile
+            ? sidebarState.isExpanded
+              ? "ml-[250px]"
+              : "ml-[70px]"
+            : ""
+        }`}
+      >
+        {isMobile && (
           <button
-            onClick={() => navigate("/ManageEmployeePayroll")}
-            className="flex items-center text-gray-600 hover:text-gray-800 mr-4"
+            onClick={toggleSidebarVisibility}
+            className="mb-4 p-2 bg-yellow-500 rounded-md text-white"
+            aria-label="Toggle Sidebar"
           >
-            <ArrowLeft size={20} className="mr-1" />
-            <span>Back</span>
+            <Menu size={24} />
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">Update Payroll Record</h1>
+        )}
+
+        <div className="max-w-7xl mx-auto">
+          {!isMobile && (
+            <>
+              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+                <DollarSign className="mr-2" size={28} />
+                Payroll Management
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Update employee payroll information
+              </p>
+            </>
+          )}
+
+          <div className="flex items-center justify-between my-4">
+            <nav className="flex" aria-label="Breadcrumb">
+              <ol className="inline-flex items-center space-x-1 md:space-x-3">
+                <li>
+                  <div className="flex items-center">
+                    <a
+                      href="/ManagePayroll"
+                      className="text-gray-700 hover:text-yellow-600 text-sm font-medium"
+                    >
+                      Payroll
+                    </a>
+                  </div>
+                </li>
+                <li aria-current="page">
+                  <div className="flex items-center">
+                    <svg
+                      className="w-3 h-3 text-gray-400 mx-1"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" />
+                    </svg>
+                    <span className="text-gray-500 text-sm font-medium">
+                      Update Payroll
+                    </span>
+                  </div>
+                </li>
+              </ol>
+            </nav>
+          </div>
+
+          <UpdatePayrollForm />
         </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Employee
-              </label>
-              <select
-                name="employeeID"
-                value={formData.employeeID}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select Employee</option>
-                {employees.map((employee) => (
-                  <option key={employee._id} value={employee._id}>
-                    {`${employee.firstName} ${employee.lastName}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Pay Period
-              </label>
-              <input
-                type="text"
-                name="payPeriod"
-                value={formData.payPeriod}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                placeholder="e.g., January 1-15, 2025"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-800 mb-4">
-              Regular Hours & Base Salary
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Regular Hours
-                </label>
-                <input
-                  type="number"
-                  name="regularHours"
-                  value={formData.regularHours}
-                  onChange={handleRegularHoursChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hourly Rate (PHP)
-                </label>
-                <input
-                  type="number"
-                  name="hourlyRate"
-                  value={formData.hourlyRate}
-                  onChange={handleHourlyRateChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Base Salary
-                </label>
-                <input
-                  type="text"
-                  value={formatCurrency(formData.baseSalary)}
-                  className="w-full border border-gray-300 bg-gray-100 rounded-md py-2 px-3 focus:outline-none focus:ring-0 text-gray-700"
-                  readOnly
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-800 mb-4">
-              Additional Earnings
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Overtime Hours
-                </label>
-                <input
-                  type="number"
-                  name="overtimeHours"
-                  value={formData.overtimeHours}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Overtime Rate (PHP)
-                </label>
-                <input
-                  type="number"
-                  name="overtimeRate"
-                  value={formData.overtimeRate}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Overtime Pay
-                </label>
-                <input
-                  type="text"
-                  value={formatCurrency(formData.overtimePay)}
-                  className="w-full border border-gray-300 bg-gray-100 rounded-md py-2 px-3 focus:outline-none focus:ring-0 text-gray-700"
-                  readOnly
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Holiday Hours
-                </label>
-                <input
-                  type="number"
-                  name="holidayHours"
-                  value={formData.holidayHours}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Holiday Rate (PHP)
-                </label>
-                <input
-                  type="number"
-                  name="holidayRate"
-                  value={formData.holidayRate}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Holiday Pay
-                </label>
-                <input
-                  type="text"
-                  value={formatCurrency(formData.holidayPay)}
-                  className="w-full border border-gray-300 bg-gray-100 rounded-md py-2 px-3 focus:outline-none focus:ring-0 text-gray-700"
-                  readOnly
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Night Diff Hours
-                </label>
-                <input
-                  type="number"
-                  name="nightDiffHours"
-                  value={formData.nightDiffHours}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Night Diff Rate (PHP)
-                </label>
-                <input
-                  type="number"
-                  name="nightDiffRate"
-                  value={formData.nightDiffRate}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Night Diff Pay
-                </label>
-                <input
-                  type="text"
-                  value={formatCurrency(formData.nightDiffPay)}
-                  className="w-full border border-gray-300 bg-gray-100 rounded-md py-2 px-3 focus:outline-none focus:ring-0 text-gray-700"
-                  readOnly
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Incentives (PHP)
-                </label>
-                <input
-                  type="number"
-                  name="incentives"
-                  value={formData.incentives}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-800 mb-4">Deductions</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  SSS Contribution (PHP)
-                </label>
-                <input
-                  type="number"
-                  name="sssDeduction"
-                  value={formData.sssDeduction}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  PhilHealth (PHP)
-                </label>
-                <input
-                  type="number"
-                  name="phicDeduction"
-                  value={formData.phicDeduction}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Pag-IBIG/HDMF (PHP)
-                </label>
-                <input
-                  type="number"
-                  name="hdmfDeduction"
-                  value={formData.hdmfDeduction}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tax Withholding (PHP)
-                </label>
-                <input
-                  type="number"
-                  name="taxDeduction"
-                  value={formData.taxDeduction}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Other Deductions (PHP)
-                </label>
-                <input
-                  type="number"
-                  name="otherDeductions"
-                  value={formData.otherDeductions}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
-            <h3 className="text-lg font-medium text-gray-800 mb-4">Summary</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Total Earnings
-                </label>
-                <input
-                  type="text"
-                  value={formatCurrency(formData.totalEarnings)}
-                  className="w-full border border-gray-300 bg-gray-100 rounded-md py-2 px-3 focus:outline-none focus:ring-0 text-gray-700 font-medium"
-                  readOnly
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Total Deductions
-                </label>
-                <input
-                  type="text"
-                  value={formatCurrency(formData.totalDeductions)}
-                  className="w-full border border-gray-300 bg-gray-100 rounded-md py-2 px-3 focus:outline-none focus:ring-0 text-gray-700 font-medium"
-                  readOnly
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Net Pay
-                </label>
-                <input
-                  type="text"
-                  value={formatCurrency(formData.netPay)}
-                  className="w-full border border-green-200 bg-green-50 rounded-md py-2 px-3 focus:outline-none focus:ring-0 text-green-700 font-bold"
-                  readOnly
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="isPublished"
-                name="isPublished"
-                checked={formData.isPublished}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    isPublished: e.target.checked,
-                  }))
-                }
-                className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
-              />
-              <label htmlFor="isPublished" className="ml-2 text-sm text-gray-700">
-                Mark as Published (visible to employee)
-              </label>
-            </div>
-
-            <div className="flex space-x-4">
-              <button
-                type="button"
-                onClick={() => navigate("/ManageEmployeePayroll")}
-                className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 flex items-center"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <Save size={16} className="mr-2" />
-                    Update Payroll
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
+      </main>
     </div>
   );
 }

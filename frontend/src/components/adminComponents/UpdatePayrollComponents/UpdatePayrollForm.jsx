@@ -12,10 +12,11 @@ import {
   Calculator,
   Clock,
   PieChart,
+  Save,
 } from "lucide-react";
 import { backendURL } from "../../../urls/URL";
 
-export default function CreatePayrollForm() {
+export default function UpdatePayrollForm({ payrollId, onUpdateSuccess }) {
   const [formData, setFormData] = useState({
     employeeID: "",
     payPeriod: "",
@@ -43,10 +44,56 @@ export default function CreatePayrollForm() {
   const [employees, setEmployees] = useState([]);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [formErrors, setFormErrors] = useState({});
   const [payPeriods, setPayPeriods] = useState([]);
+  const [originalPayroll, setOriginalPayroll] = useState(null);
 
   useEffect(() => {
+    const fetchPayrollData = async () => {
+      try {
+        const response = await axios.get(
+          `${backendURL}/api/payroll/${payrollId}`
+        );
+        const payrollData = response.data;
+        setOriginalPayroll(payrollData);
+
+        // Set form data from the retrieved payroll
+        setFormData({
+          employeeID: payrollData.employeeID._id || payrollData.employeeID, // Handle both populated and unpopulated
+          payPeriod: payrollData.payPeriod,
+          regularHours: payrollData.regularHours.toString(),
+          hourlyRate: payrollData.hourlyRate.toString(),
+          baseSalary: payrollData.baseSalary.toString(),
+          holidayPay: (payrollData.holidayPay || 0).toString(),
+          overtimePay: (payrollData.overtimePay || 0).toString(),
+          nightDiffPay: (payrollData.nightDiffPay || 0).toString(),
+          incentives: (payrollData.incentives || 0).toString(),
+          thirteenthMonthPay: (payrollData.thirteenthMonthPay || 0).toString(),
+          sssDeduction: (payrollData.sssDeduction || 0).toString(),
+          philhealthDeduction: (
+            payrollData.philhealthDeduction || 0
+          ).toString(),
+          pagibigDeduction: (payrollData.pagibigDeduction || 0).toString(),
+          withholdingTax: (payrollData.withholdingTax || 0).toString(),
+          otherDeductions: (payrollData.otherDeductions || 0).toString(),
+        });
+
+        // Initialize calculations
+        setCalculations({
+          totalEarnings: payrollData.totalEarnings,
+          totalDeductions: payrollData.totalDeductions,
+          netPay: payrollData.netPay,
+        });
+
+        setInitialLoading(false);
+      } catch (error) {
+        console.error("Error fetching payroll record:", error);
+        showToast("error", "Failed to load payroll data.");
+        setInitialLoading(false);
+      }
+    };
+
     const fetchEmployees = async () => {
       try {
         const response = await axios.get(`${backendURL}/api/employees`);
@@ -90,9 +137,16 @@ export default function CreatePayrollForm() {
       return periods;
     };
 
+    if (payrollId) {
+      fetchPayrollData();
+    } else {
+      setInitialLoading(false);
+      showToast("error", "No payroll ID provided.");
+    }
+
     fetchEmployees();
     setPayPeriods(generatePayPeriods());
-  }, []);
+  }, [payrollId]);
 
   useEffect(() => {
     if (formData.regularHours && formData.hourlyRate) {
@@ -187,43 +241,25 @@ export default function CreatePayrollForm() {
       totalEarnings: calculations.totalEarnings,
       totalDeductions: calculations.totalDeductions,
       netPay: calculations.netPay,
-      isPublished: false,
+      isPublished: originalPayroll?.isPublished || false,
     };
 
     try {
-      await axios.post(`${backendURL}/api/payroll`, payrollData);
-      showToast("success", "Payroll record created successfully!");
-      resetForm();
+      // Using PUT since that's what the component is set up to use
+      await axios.put(`${backendURL}/api/payroll/${payrollId}`, payrollData);
+      showToast("success", "Payroll record updated successfully!");
+      if (onUpdateSuccess) {
+        onUpdateSuccess();
+      }
     } catch (error) {
-      console.error("Error creating payroll record:", error);
+      console.error("Error updating payroll record:", error);
       showToast(
         "error",
-        error.response?.data?.message || "Failed to create payroll record."
+        error.response?.data?.message || "Failed to update payroll record."
       );
     } finally {
       setLoading(false);
     }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      employeeID: "",
-      payPeriod: "",
-      regularHours: "",
-      hourlyRate: "",
-      baseSalary: "",
-      holidayPay: "",
-      overtimePay: "",
-      nightDiffPay: "",
-      incentives: "",
-      thirteenthMonthPay: "",
-      sssDeduction: "",
-      philhealthDeduction: "",
-      pagibigDeduction: "",
-      withholdingTax: "",
-      otherDeductions: "",
-    });
-    setFormErrors({});
   };
 
   const formatCurrency = (amount) => {
@@ -233,15 +269,24 @@ export default function CreatePayrollForm() {
     }).format(amount);
   };
 
+  if (initialLoading) {
+    return (
+      <div className="w-full bg-white rounded-xl shadow-lg p-8 flex justify-center items-center">
+        <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
+        <span className="ml-3 text-gray-600">Loading payroll data...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
+      <div className="bg-gradient-to-r from-yellow-500 to-yellow-700 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <PhilippinePeso className="mr-2" size={24} />
-          Create Employee Payroll
+          Update Employee Payroll
         </h2>
-        <p className="text-yellow-50 mt-1 opacity-90">
-          Generate a new payroll record for an employee
+        <p className="text-indigo-100 mt-1 opacity-90">
+          Edit the existing payroll record
         </p>
       </div>
 
@@ -260,7 +305,7 @@ export default function CreatePayrollForm() {
                   formErrors.employeeID
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300 bg-gray-50"
-                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
+                } focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all appearance-none`}
               >
                 <option value="" disabled>
                   Select Employee
@@ -296,7 +341,7 @@ export default function CreatePayrollForm() {
                   formErrors.payPeriod
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300 bg-gray-50"
-                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
+                } focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all appearance-none`}
               >
                 <option value="" disabled>
                   Select Pay Period
@@ -343,7 +388,7 @@ export default function CreatePayrollForm() {
                     formErrors.regularHours
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                  } focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all`}
                 />
                 {formErrors.regularHours && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -374,7 +419,7 @@ export default function CreatePayrollForm() {
                     formErrors.hourlyRate
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                  } focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all`}
                 />
                 {formErrors.hourlyRate && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -413,7 +458,7 @@ export default function CreatePayrollForm() {
                     formErrors.baseSalary
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all bg-gray-100`}
+                  } focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all bg-gray-100`}
                   readOnly
                 />
                 {formErrors.baseSalary && (
@@ -444,7 +489,7 @@ export default function CreatePayrollForm() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                 />
               </div>
             </div>
@@ -465,7 +510,7 @@ export default function CreatePayrollForm() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                 />
               </div>
             </div>
@@ -486,7 +531,7 @@ export default function CreatePayrollForm() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                 />
               </div>
             </div>
@@ -507,7 +552,7 @@ export default function CreatePayrollForm() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                 />
               </div>
             </div>
@@ -528,7 +573,7 @@ export default function CreatePayrollForm() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                 />
               </div>
             </div>
@@ -557,7 +602,7 @@ export default function CreatePayrollForm() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                 />
               </div>
             </div>
@@ -578,7 +623,7 @@ export default function CreatePayrollForm() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                 />
               </div>
             </div>
@@ -599,7 +644,7 @@ export default function CreatePayrollForm() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                 />
               </div>
             </div>
@@ -620,7 +665,7 @@ export default function CreatePayrollForm() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                 />
               </div>
             </div>
@@ -641,7 +686,7 @@ export default function CreatePayrollForm() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                 />
               </div>
             </div>
@@ -677,58 +722,59 @@ export default function CreatePayrollForm() {
 
         <div className="mt-8 flex justify-end gap-4">
           <button
-            type="button"
-            onClick={resetForm}
-            className="px-6 py-2.5 text-sm font-medium bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all flex items-center"
-          >
-            <X className="w-4 h-4 mr-2" />
-            Reset
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`px-6 py-2.5 text-sm font-medium bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-all flex items-center ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Create Payroll
-              </>
-            )}
-          </button>
-        </div>
-      </form>
+  type="button"
+  onClick={() => {
+    if (onUpdateSuccess) {
+      onUpdateSuccess();
+    }
+  }}
+  className="px-6 py-2.5 text-sm font-medium text-gray-600 bg-white rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+>
+  <X className="w-4 h-4 mr-2 inline" />
+  Cancel
+</button>
+<button
+  type="submit"
+  disabled={loading}
+  className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-yellow-500 to-yellow-700 rounded-lg hover:bg-gradient-to-r hover:from-yellow-600 hover:to-yellow-800 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all flex items-center"
+>
+  {loading ? (
+    <>
+      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+      Updating...
+    </>
+  ) : (
+    <>
+      <Save className="w-4 h-4 mr-2" />
+      Update Payroll
+    </>
+  )}
+</button>
+</div>
 
-      {toast && (
-        <div
-          className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-xl ${
-            toast.type === "success" ? "bg-green-500" : "bg-red-500"
-          } text-white flex items-center justify-between max-w-md animate-fadeIn`}
-        >
-          <div className="flex items-center">
-            {toast.type === "success" ? (
-              <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-            ) : (
-              <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0" />
-            )}
-            <p className="text-sm">{toast.message}</p>
-          </div>
-          <button
-            onClick={() => setToast(null)}
-            className="ml-4 text-white hover:text-gray-100 focus:outline-none"
-            aria-label="Close notification"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-    </div>
-  );
+{toast && (
+  <div
+    className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg flex items-center ${
+      toast.type === "success" 
+        ? "bg-green-100 text-green-800 border-l-4 border-green-500" 
+        : "bg-red-100 text-red-800 border-l-4 border-red-500"
+    }`}
+  >
+    {toast.type === "success" ? (
+      <CheckCircle className="w-5 h-5 mr-2" />
+    ) : (
+      <AlertTriangle className="w-5 h-5 mr-2" />
+    )}
+    <span>{toast.message}</span>
+    <button
+      onClick={() => setToast(null)}
+      className="ml-4 text-gray-500 hover:text-gray-700"
+    >
+      <X className="w-4 h-4" />
+    </button>
+  </div>
+)}
+</form>
+</div>
+);
 }

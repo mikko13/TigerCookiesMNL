@@ -2,5 +2,11 @@
   "dependencies": {
     "node-cron": "^3.0.3",
     "react-router-dom": "^7.1.1"
+  },
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "react-scripts eject"
   }
 }

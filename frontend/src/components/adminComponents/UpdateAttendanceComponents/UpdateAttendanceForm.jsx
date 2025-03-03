@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  UserCircle,
   Camera,
   X,
   Calendar,
@@ -10,7 +9,6 @@ import {
   AlertTriangle,
   CheckCircle,
   Loader2,
-  User,
 } from "lucide-react";
 import { backendURL } from "../../../urls/URL";
 
@@ -27,9 +25,12 @@ export default function UpdateAttendanceForm() {
   
   const [checkInPhoto, setCheckInPhoto] = useState(null);
   const [checkOutPhoto, setCheckOutPhoto] = useState(null);
+  const [checkInPreview, setCheckInPreview] = useState(null);
+  const [checkOutPreview, setCheckOutPreview] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const [existingPhotos, setExistingPhotos] = useState({
     checkInPhoto: "",
     checkOutPhoto: "",
@@ -38,13 +39,11 @@ export default function UpdateAttendanceForm() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        setLoading(true);
         const response = await axios.get(`${backendURL}/api/employees`);
         setEmployees(response.data);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching employees:", error);
-        setLoading(false);
+        showToast("error", "Failed to load employees data.");
       }
     };
     fetchEmployees();
@@ -63,52 +62,75 @@ export default function UpdateAttendanceForm() {
         checkInPhoto: record.checkInPhoto || "",
         checkOutPhoto: record.checkOutPhoto || "",
       });
+      
+      // Set preview images for existing photos
+      if (record.checkInPhoto) {
+        setCheckInPreview(`/employee-checkin-photos/${record.checkInPhoto}`);
+      }
+      if (record.checkOutPhoto) {
+        setCheckOutPreview(`/employee-checkout-photos/${record.checkOutPhoto}`);
+      }
     }
   }, [location.state]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handlePictureChange = (e, setPicture) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        showToast("error", "Image size should be less than 5MB");
-        return;
-      }
-      setPicture(file);
-    }
-  };
 
   const showToast = (type, message) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 5000);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    if (formErrors[name]) {
+      setFormErrors({ ...formErrors, [name]: null });
+    }
+  };
+
+  const handlePictureChange = (e, setPicture, setPreview) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        showToast("error", "Image size should be less than 5MB");
+        return;
+      }
+
+      setPicture(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.employeeID) errors.employeeID = "Employee is required";
+    if (!formData.attendanceDate) errors.attendanceDate = "Date is required";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.employeeID || !formData.attendanceDate) {
-      showToast("error", "Employee and attendance date are required");
+
+    if (!validateForm()) {
+      showToast("error", "Please fill all required fields.");
       return;
     }
 
     setLoading(true);
-
     const formDataToSend = new FormData();
-    formDataToSend.append("employeeID", formData.employeeID);
-    formDataToSend.append("attendanceDate", formData.attendanceDate);
-    formDataToSend.append("checkInTime", formData.checkInTime);
-    formDataToSend.append("checkOutTime", formData.checkOutTime);
 
-    if (checkInPhoto) {
-      formDataToSend.append("checkInPhoto", checkInPhoto);
-    }
-    if (checkOutPhoto) {
-      formDataToSend.append("checkOutPhoto", checkOutPhoto);
-    }
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) formDataToSend.append(key, value);
+    });
+
+    if (checkInPhoto) formDataToSend.append("checkInPhoto", checkInPhoto);
+    if (checkOutPhoto) formDataToSend.append("checkOutPhoto", checkOutPhoto);
 
     try {
       await axios.put(
@@ -125,7 +147,11 @@ export default function UpdateAttendanceForm() {
       
     } catch (error) {
       console.error("Error updating attendance:", error);
-      showToast("error", "Failed to update attendance");
+      showToast(
+        "error",
+        error.response?.data?.message || "Failed to update attendance."
+      );
+    } finally {
       setLoading(false);
     }
   };
@@ -134,11 +160,11 @@ export default function UpdateAttendanceForm() {
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
       <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
-          <UserCircle className="mr-2" size={24} />
-          Update Attendance Record
+          <Clock className="mr-2" size={24} />
+          Update Employee Attendance
         </h2>
         <p className="text-yellow-50 mt-1 opacity-90">
-          Edit employee attendance information
+          Edit attendance record for employees
         </p>
       </div>
 
@@ -153,7 +179,11 @@ export default function UpdateAttendanceForm() {
                 name="employeeID"
                 value={formData.employeeID}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  formErrors.employeeID
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 bg-gray-50"
+                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
               >
                 <option value="" disabled>
                   Select Employee
@@ -164,9 +194,6 @@ export default function UpdateAttendanceForm() {
                   </option>
                 ))}
               </select>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <User className="w-4 h-4 text-gray-500" />
-              </div>
               <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                 <svg
                   className="w-4 h-4 text-gray-500"
@@ -182,6 +209,12 @@ export default function UpdateAttendanceForm() {
                   />
                 </svg>
               </div>
+              {formErrors.employeeID && (
+                <p className="mt-1 text-xs text-red-500 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                  {formErrors.employeeID}
+                </p>
+              )}
             </div>
           </div>
 
@@ -195,11 +228,21 @@ export default function UpdateAttendanceForm() {
                 name="attendanceDate"
                 value={formData.attendanceDate}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  formErrors.attendanceDate
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 bg-gray-50"
+                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
               />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                 <Calendar className="w-4 h-4 text-gray-500" />
               </div>
+              {formErrors.attendanceDate && (
+                <p className="mt-1 text-xs text-red-500 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                  {formErrors.attendanceDate}
+                </p>
+              )}
             </div>
           </div>
 
@@ -213,9 +256,9 @@ export default function UpdateAttendanceForm() {
                 name="checkInTime"
                 value={formData.checkInTime}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
               />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                 <Clock className="w-4 h-4 text-gray-500" />
               </div>
             </div>
@@ -231,39 +274,66 @@ export default function UpdateAttendanceForm() {
                 name="checkOutTime"
                 value={formData.checkOutTime}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
               />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                 <Clock className="w-4 h-4 text-gray-500" />
               </div>
             </div>
           </div>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Check-In Photo
             </label>
-            {existingPhotos.checkInPhoto && (
-              <div className="mb-2">
-                <div className="relative w-32 h-32 border border-gray-200 rounded-lg overflow-hidden">
+            <div
+              className={`border-2 border-dashed rounded-lg ${
+                checkInPreview
+                  ? "border-yellow-400 bg-yellow-50"
+                  : "border-gray-300 bg-gray-50"
+              } p-4 flex flex-col items-center justify-center h-48 relative overflow-hidden transition-all hover:border-yellow-500`}
+            >
+              {checkInPreview ? (
+                <div className="relative w-full h-full">
                   <img
-                    src={`/employee-checkin-photos/${existingPhotos.checkInPhoto}`}
-                    alt="Check-In"
-                    className="w-full h-full object-cover"
+                    src={checkInPreview}
+                    alt="Check-in"
+                    className="w-full h-full object-contain"
                   />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCheckInPhoto(null);
+                      setCheckInPreview(null);
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 transition-all hover:bg-red-600"
+                    aria-label="Remove photo"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-              </div>
-            )}
-            <div className="relative">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handlePictureChange(e, setCheckInPhoto)}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
-              />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Camera className="w-4 h-4 text-gray-500" />
-              </div>
+              ) : (
+                <>
+                  <Camera className="w-12 h-12 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 text-center">
+                    <span className="font-medium">Click to upload</span> or drag
+                    and drop
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    PNG, JPG up to 5MB
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      handlePictureChange(e, setCheckInPhoto, setCheckInPreview)
+                    }
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </>
+              )}
             </div>
           </div>
 
@@ -271,27 +341,56 @@ export default function UpdateAttendanceForm() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Check-Out Photo
             </label>
-            {existingPhotos.checkOutPhoto && (
-              <div className="mb-2">
-                <div className="relative w-32 h-32 border border-gray-200 rounded-lg overflow-hidden">
+            <div
+              className={`border-2 border-dashed rounded-lg ${
+                checkOutPreview
+                  ? "border-yellow-400 bg-yellow-50"
+                  : "border-gray-300 bg-gray-50"
+              } p-4 flex flex-col items-center justify-center h-48 relative overflow-hidden transition-all hover:border-yellow-500`}
+            >
+              {checkOutPreview ? (
+                <div className="relative w-full h-full">
                   <img
-                    src={`/employee-checkout-photos/${existingPhotos.checkOutPhoto}`}
-                    alt="Check-Out"
-                    className="w-full h-full object-cover"
+                    src={checkOutPreview}
+                    alt="Check-out"
+                    className="w-full h-full object-contain"
                   />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCheckOutPhoto(null);
+                      setCheckOutPreview(null);
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 transition-all hover:bg-red-600"
+                    aria-label="Remove photo"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-              </div>
-            )}
-            <div className="relative">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handlePictureChange(e, setCheckOutPhoto)}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
-              />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Camera className="w-4 h-4 text-gray-500" />
-              </div>
+              ) : (
+                <>
+                  <Camera className="w-12 h-12 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 text-center">
+                    <span className="font-medium">Click to upload</span> or drag
+                    and drop
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    PNG, JPG up to 5MB
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      handlePictureChange(
+                        e,
+                        setCheckOutPhoto,
+                        setCheckOutPreview
+                      )
+                    }
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -299,7 +398,7 @@ export default function UpdateAttendanceForm() {
         <div className="mt-8 flex justify-end gap-4">
           <button
             type="button"
-            onClick={() => navigate("/ManageAttendance")}
+            onClick={() => navigate("/ManageEmployeeAttendance")}
             className="px-6 py-2.5 text-sm font-medium bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all flex items-center"
           >
             <X className="w-4 h-4 mr-2" />
@@ -350,7 +449,6 @@ export default function UpdateAttendanceForm() {
           </button>
         </div>
       )}
-  
     </div>
   );
 }
