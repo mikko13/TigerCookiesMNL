@@ -11,53 +11,80 @@ import EmployeeAttendanceChkIn from "./components/employeeComponents/employee-at
 import EmployeeAttendanceChkOut from "./components/employeeComponents/employee-attendance-components/empAttendanceChkOut";
 import EmployeeAttendanceReqOT from "./components/employeeComponents/employee-attendance-components/empAttendanceReqOT";
 import EmployeeManageAttendance from "./components/employeeComponents/employee-manage-attendance-components/employeeManageAttendance";
+import EmployeePayroll from "./components/employeeComponents/employee-payroll-components/EmployeePayroll";
 
 import AdminManageAccount from "./components/adminComponents/ManageAccountComponents/ManageAccount";
 import AdminCreateAccount from "./components/adminComponents/CreateAccountComponents/CreateAccount";
 import AdminUpdateAccount from "./components/adminComponents/UpdateAccountComponents/UpdateAccount";
 import AdminManageAttendance from "./components/adminComponents/ManageAttendanceComponents/ManageAttendance";
-import AdminCreateAttendance from "./components/adminComponents/CreateAttendanceComponents/CreateAttendance"
+import AdminCreateAttendance from "./components/adminComponents/CreateAttendanceComponents/CreateAttendance";
 import AdminUpdateAttendance from "./components/adminComponents/UpdateAttendanceComponents/UpdateAttendance";
 import AdminManagePayroll from "./components/adminComponents/ManagePayrollComponents/ManagePayroll";
-import AdminCreatePayroll from "./components/adminComponents/CreatePayrollComponents/CreatePayroll"
-import AdminUpdatePayroll from "./components/adminComponents/UpdatePayrollComponents/UpdatePayroll"
+import AdminCreatePayroll from "./components/adminComponents/CreatePayrollComponents/CreatePayroll";
+import AdminUpdatePayroll from "./components/adminComponents/UpdatePayrollComponents/UpdatePayroll";
 
 import NotFound from "./components/NotFound";
 
-
 export default function App() {
-	return (
-		<Router>
-			<Routes>
-				<Route path="/" element={<Login />} />
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
 
-				{/* Employee Side */}
-				<Route path="/ForgotPassword" element={<ForgotPassword />} />
-				<Route path="/ForgotPasswordOtp" element={<ForgotPasswordOtp />} />
-				<Route path="/ForgotPasswordConfirm" element={<ForgotPasswordConfirm />} />
-				<Route path="/Opencam" element={<EmployeeAttendanceOpenCam />} />
-				<Route path="/Opencamcheckout" element={<EmployeeAttendanceOpenCamCheckOut />} />
-				<Route path="/Checkin" element={<EmployeeAttendanceChkIn />} />
-				<Route path="/Checkout" element={<EmployeeAttendanceChkOut />} />
-				<Route path="/Requestovertime" element={<EmployeeAttendanceReqOT />} />
-				<Route path="/ManageAttendance" element={<EmployeeManageAttendance />} />
+        {/* Employee Side */}
+        <Route path="/ForgotPassword" element={<ForgotPassword />} />
+        <Route path="/ForgotPasswordOtp" element={<ForgotPasswordOtp />} />
+        <Route
+          path="/ForgotPasswordConfirm"
+          element={<ForgotPasswordConfirm />}
+        />
+        <Route path="/Opencam" element={<EmployeeAttendanceOpenCam />} />
+        <Route
+          path="/Opencamcheckout"
+          element={<EmployeeAttendanceOpenCamCheckOut />}
+        />
+        <Route path="/Checkin" element={<EmployeeAttendanceChkIn />} />
+        <Route path="/Checkout" element={<EmployeeAttendanceChkOut />} />
+        <Route path="/Requestovertime" element={<EmployeeAttendanceReqOT />} />
+        <Route
+          path="/ManageAttendance"
+          element={<EmployeeManageAttendance />}
+        />
+        <Route path="/Payroll" element={<EmployeePayroll />} />
 
+        {/* Admin Side */}
+        <Route
+          path="/ManageEmployeeAccounts"
+          element={<AdminManageAccount />}
+        />
+        <Route path="/CreateEmployeeAccount" element={<AdminCreateAccount />} />
+        <Route
+          path="/ModifyEmployeeAccount/:employeeId"
+          element={<AdminUpdateAccount />}
+        />
 
-				{/* Admin Side */}
-				<Route path="/ManageEmployeeAccounts" element={<AdminManageAccount />} />
-				<Route path="/CreateEmployeeAccount" element={<AdminCreateAccount />} />
-				<Route path="/ModifyEmployeeAccount/:employeeId" element={<AdminUpdateAccount />} />
+        <Route
+          path="/ManageEmployeeAttendance"
+          element={<AdminManageAttendance />}
+        />
+        <Route
+          path="/CreateEmployeeAttendance"
+          element={<AdminCreateAttendance />}
+        />
+        <Route
+          path="/UpdateEmployeeAttendance/:employeeId"
+          element={<AdminUpdateAttendance />}
+        />
 
-				<Route path="/ManageEmployeeAttendance" element={<AdminManageAttendance />} />
-				<Route path="/CreateEmployeeAttendance" element={<AdminCreateAttendance />} />
-				<Route path="/UpdateEmployeeAttendance/:employeeId" element={<AdminUpdateAttendance />} />
+        <Route path="/ManageEmployeePayroll" element={<AdminManagePayroll />} />
+        <Route path="/CreateEmployeePayroll" element={<AdminCreatePayroll />} />
+        <Route
+          path="/UpdateEmployeePayroll/:employeeId"
+          element={<AdminUpdatePayroll />}
+        />
 
-				<Route path="/ManageEmployeePayroll" element={<AdminManagePayroll />} />
-				<Route path="/CreateEmployeePayroll" element={<AdminCreatePayroll />} />
-				<Route path="/UpdateEmployeePayroll/:employeeId" element={<AdminUpdatePayroll />} />
-
-				<Route path="*" element={<NotFound />} />
-			</Routes>
-		</Router>
-	);
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
+  );
 }

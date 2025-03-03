@@ -18,7 +18,6 @@ export default function EmployeeManageAttendanceMain({
 
   useEffect(() => {
     if (fetchedAttendance.length > 0) {
-      // Filter for the logged-in employee's records
       const user = JSON.parse(localStorage.getItem("user"));
       const loggedInEmployeeID = user ? user.id : null;
 
