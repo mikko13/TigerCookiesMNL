@@ -54,6 +54,7 @@ export default function EmpAttendanceRequestOt() {
       overtimeTime,
       overtimeNote,
       overtimeDate: new Date().toISOString(),
+      status: "Pending", 
     };
 
     try {
@@ -107,34 +108,20 @@ export default function EmpAttendanceRequestOt() {
                 <h3 className="ml-2 font-medium text-gray-700">Summary</h3>
               </div>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Date:</span>{" "}
-                {formatDate(lastOvertime.overtimeDate)}
+                <span className="font-medium">Date:</span> {formatDate(lastOvertime.overtimeDate)}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Hours:</span>{" "}
-                {lastOvertime.overtimeTime}
+                <span className="font-medium">Hours:</span> {lastOvertime.overtimeTime}
               </p>
             </div>
           )}
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-600">
-              {success}
-            </div>
-          )}
+          {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">{error}</div>}
+          {success && <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-600">{success}</div>}
 
           <div className="space-y-6">
             <div>
-              <label
-                htmlFor="overtime-hour"
-                className="block text-gray-700 font-medium mb-2"
-              >
+              <label htmlFor="overtime-hour" className="block text-gray-700 font-medium mb-2">
                 Overtime Hours <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -155,49 +142,27 @@ export default function EmpAttendanceRequestOt() {
             </div>
 
             <div>
-              <label
-                htmlFor="overtime-note"
-                className="block text-gray-700 font-medium mb-2"
-              >
+              <label htmlFor="overtime-note" className="block text-gray-700 font-medium mb-2">
                 Reason for Overtime
               </label>
-              <div className="relative">
-                <div className="absolute top-3 left-3 pointer-events-none">
-                  <FileText size={18} className="text-gray-400" />
-                </div>
-                <textarea
-                  id="overtime-note"
-                  rows="4"
-                  placeholder="Explain why you need overtime hours"
-                  value={overtimeNote}
-                  onChange={(e) => setOvertimeNote(e.target.value)}
-                  className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none"
-                ></textarea>
-              </div>
+              <textarea
+                id="overtime-note"
+                rows="4"
+                placeholder="Explain why you need overtime hours"
+                value={overtimeNote}
+                onChange={(e) => setOvertimeNote(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none"
+              ></textarea>
             </div>
 
-            <div className="flex space-x-4 pt-4">
-              <a href="./checkout" className="flex-1">
-                <button
-                  type="button"
-                  className="w-full px-6 py-3 text-sm font-medium bg-gray-700 hover:bg-gray-800 text-white rounded-lg active:bg-gray-900 focus:ring-2 focus:ring-gray-900 transition-all"
-                >
-                  Back
-                </button>
-              </a>
-              <button
-                type="button"
-                onClick={handleRequestOvertime}
-                disabled={isSubmitting}
-                className={`flex-1 px-6 py-3 text-sm font-medium rounded-lg transition-all ${
-                  isSubmitting
-                    ? "bg-yellow-300 cursor-not-allowed"
-                    : "bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500"
-                } text-white`}
-              >
-                {isSubmitting ? "Submitting..." : "Request Overtime"}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleRequestOvertime}
+              disabled={isSubmitting}
+              className={`w-full px-6 py-3 text-sm font-medium rounded-lg transition-all ${isSubmitting ? "bg-yellow-300 cursor-not-allowed" : "bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500"} text-white`}
+            >
+              {isSubmitting ? "Submitting..." : "Request Overtime"}
+            </button>
           </div>
         </div>
       </div>

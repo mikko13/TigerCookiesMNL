@@ -13,6 +13,7 @@ import EmployeeAttendanceReqOT from "./components/employeeComponents/employee-at
 import EmployeeManageAttendance from "./components/employeeComponents/employee-manage-attendance-components/employeeManageAttendance";
 import EmployeePayroll from "./components/employeeComponents/employee-payroll-components/EmployeePayroll";
 import EmployeeManageAccount from "./components/employeeComponents/employee-manage-account-components/employeeUpdateAccount";
+import EmployeeManageAttendanceOT from "./components/employeeComponents/employee-manage-attendance-components/employeeManageAttendanceOt";
 
 import AdminManageAccount from "./components/adminComponents/ManageAccountComponents/ManageAccount";
 import AdminCreateAccount from "./components/adminComponents/CreateAccountComponents/CreateAccount";
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/Checkin" element={<EmployeeAttendanceChkIn />} />
         <Route path="/Checkout" element={<EmployeeAttendanceChkOut />} />
         <Route path="/Requestovertime" element={<EmployeeAttendanceReqOT />} />
+        <Route path="/Overtimerecords" element={<EmployeeManageAttendanceOT />} />
         <Route
           path="/ManageAttendance"
           element={<EmployeeManageAttendance />}

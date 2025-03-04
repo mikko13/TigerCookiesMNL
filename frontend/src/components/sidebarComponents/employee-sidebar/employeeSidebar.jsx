@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { User, Clock, PhilippinePeso, LogOut, X } from "lucide-react";
+import { User, Clock, ClockAlert, PhilippinePeso, LogOut, X } from "lucide-react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
 
@@ -56,6 +56,11 @@ export default function EmpAttendanceSideBar({
       path: "/ManageAttendance",
       name: "Attendance",
       icon: <Clock size={20} />,
+    },
+    {
+      path: "/Overtimerecords",
+      name: "Overtime Requests",
+      icon: <ClockAlert size={20} />,
     },
     {
       path: "/Payroll",

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import EmployeeManageAttendanceMain from "./employeeManageAttendance_Main";
+import EmployeeManageAttendanceOTMain from "./employeeManageAttendance_Ot_Main";
 import EmployeeSidebar from "../../sidebarComponents/employee-sidebar/employeeSidebar";
 import Background from "../../images/background.png";
 import { Search, Calendar, Menu, X, LogIn, LogOut } from "lucide-react";
 
-export default function EmployeeManageAttendance() {
+export default function EmployeeManageAttendanceOT() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
@@ -105,32 +105,15 @@ export default function EmployeeManageAttendance() {
           <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:justify-between md:items-center">
             <div className="ml-8 lg:ml-0">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-                My Attendance
+                My Overtime Requests
               </h1>
               <p className="text-gray-600 mt-1">
-                View your attendance records and history
+                View your overtime request records and history
               </p>
             </div>
-
-            <div className="flex gap-3 justify-center md:justify-end ml-8 lg:ml-0">
-              <button
-                onClick={handleCheckIn}
-                className="flex items-center bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md shadow-sm transition-colors duration-200"
-              >
-                <LogIn size={18} className="mr-2" />
-                Check In
-              </button>
-              <button
-                onClick={handleCheckOut}
-                className="flex items-center bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md shadow-sm transition-colors duration-200"
-              >
-                <LogOut size={18} className="mr-2" />
-                Check Out
-              </button>
             </div>
-          </div>
 
-          <EmployeeManageAttendanceMain
+          <EmployeeManageAttendanceOTMain
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             filterDate={filterDate}
