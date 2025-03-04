@@ -9,7 +9,7 @@ const OvertimeSchema = new mongoose.Schema(
         },
     
     overtimeTime: {
-      type: String,
+      type: Number,
       required: true,
     },
     overtimeNote: {
