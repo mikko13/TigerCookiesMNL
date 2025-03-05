@@ -24,6 +24,7 @@ import AdminUpdateAttendance from "./components/adminComponents/UpdateAttendance
 import AdminManagePayroll from "./components/adminComponents/ManagePayrollComponents/ManagePayroll";
 import AdminCreatePayroll from "./components/adminComponents/CreatePayrollComponents/CreatePayroll";
 import AdminUpdatePayroll from "./components/adminComponents/UpdatePayrollComponents/UpdatePayroll";
+import AdminManageOvertime from "./components/adminComponents/ManageAttendanceComponents/ManageAttendanceOT";
 
 import NotFound from "./components/NotFound";
 
@@ -71,6 +72,8 @@ export default function App() {
           element={<AdminManageAttendance />}
         />
         <Route path="/ManageAccount" element={<EmployeeManageAccount />} />
+
+        <Route path="/ManageOvertime" element={<AdminManageOvertime />} />
 
         <Route
           path="/CreateEmployeeAttendance"

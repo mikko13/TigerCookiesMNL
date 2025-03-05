@@ -29,4 +29,44 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET: Fetch all overtime records
+router.get("/all", async (req, res) => {
+  try {
+    const overtimeRecords = await Overtime.find(); // Fetch all overtime records
+    res.status(200).json(overtimeRecords);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PUT: Update an overtime record status
+router.put("/update/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    const updatedOvertime = await Overtime.findByIdAndUpdate(id, { status }, { new: true });
+    if (!updatedOvertime) {
+      return res.status(404).json({ message: "Overtime record not found." });
+    }
+    res.status(200).json(updatedOvertime);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// DELETE: Remove an overtime record
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedOvertime = await Overtime.findByIdAndDelete(id);
+    if (!deletedOvertime) {
+      return res.status(404).json({ message: "Overtime record not found." });
+    }
+    res.status(200).json({ message: "Overtime record deleted successfully." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { User, Clock, PhilippinePeso, LogOut, X } from "lucide-react";
+import { User, Clock, ClockAlert, PhilippinePeso, LogOut, X } from "lucide-react";
 
 export default function AdminSidebar({
   isExpanded,
@@ -29,6 +29,11 @@ export default function AdminSidebar({
       path: "/ManageEmployeeAttendance",
       name: "Manage Attendance",
       icon: <Clock size={20} />,
+    },
+    {
+      path: "/ManageOvertime",
+      name: "Manage Overtime Requests",
+      icon: <ClockAlert size={20} />,
     },
     {
       path: "/ManageEmployeePayroll",
