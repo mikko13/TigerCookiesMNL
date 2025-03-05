@@ -4,6 +4,7 @@ import { backendURL } from "../../../urls/URL";
 import useAttendance from "./fetchAttendance";
 import { getStatusClass } from "./getStatusClass";
 import { AlertTriangle, Check, X, Trash2 } from "lucide-react";
+import Swal from "sweetalert2";
 
 const useEmployeeOvertime = () => {
   const [overtime, setOvertime] = useState([]);
@@ -48,22 +49,46 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
   };
 
   const updateOvertimeStatus = async (id, status) => {
-    try {
-      await axios.put(`${backendURL}/api/overtime/update/${id}`, { status });
-      setOvertime(prev => prev.map(record => record._id === id ? { ...record, status } : record));
-      console.log(`✔ Overtime ID ${id} updated to ${status}`);
-    } catch (error) {
-      console.error(`❌ Error updating overtime ID ${id}:`, error.response?.data || error.message);
+    const confirmResult = await Swal.fire({
+      title: `Confirm ${status}?`,
+      text: `Are you sure you want to mark this overtime request as ${status}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: status === "Approved" ? "#28a745" : "#dc3545",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: `Mark as ${status}`,
+    });
+
+    if (confirmResult.isConfirmed) {
+      try {
+        await axios.put(`${backendURL}/api/overtime/update/${id}`, { status });
+        setOvertime(prev => prev.map(record => record._id === id ? { ...record, status } : record));
+        Swal.fire("Updated!", `Overtime request has been marked as ${status}.`, "success");
+      } catch (error) {
+        Swal.fire("Error", error.response?.data || error.message, "error");
+      }
     }
   };
 
   const deleteOvertimeRecord = async (id) => {
-    try {
-      await axios.delete(`${backendURL}/api/overtime/delete/${id}`);
-      setOvertime(prev => prev.filter(record => record._id !== id));
-      console.log(`🗑 Deleted overtime ID: ${id}`);
-    } catch (error) {
-      console.error(`❌ Error deleting overtime ID ${id}:`, error.response?.data || error.message);
+    const confirmResult = await Swal.fire({
+      title: "Confirm Deletion?",
+      text: "Are you sure you want to delete this overtime request record? This action cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Delete",
+    });
+
+    if (confirmResult.isConfirmed) {
+      try {
+        await axios.delete(`${backendURL}/api/overtime/delete/${id}`);
+        setOvertime(prev => prev.filter(record => record._id !== id));
+        Swal.fire("Deleted!", "The overtime record has been deleted.", "success");
+      } catch (error) {
+        Swal.fire("Error", error.response?.data || error.message, "error");
+      }
     }
   };
 
@@ -116,28 +141,17 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
                     <td className="px-6 py-4 text-sm text-gray-700">{record.overtimeTime} hrs</td>
                     <td className="px-6 py-4 text-sm text-gray-700">{record.overtimeNote || "No note provided"}</td>
                     <td className="px-6 py-4 text-sm">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(record.status || "Pending")}`}>
-                        {record.status || "Pending"}
-                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(record.status || "Pending")}`}>{record.status || "Pending"}</span>
                     </td>
                     <td className="px-6 py-4 text-sm flex space-x-2">
-                      <button onClick={() => updateOvertimeStatus(record._id, "Approved")} className="text-green-600 hover:text-green-700">
-                        <Check size={18} />
-                      </button>
-                      <button onClick={() => updateOvertimeStatus(record._id, "Rejected")} className="text-red-600 hover:text-red-700">
-                        <X size={18} />
-                      </button>
-                      <button onClick={() => deleteOvertimeRecord(record._id)} className="text-blue-600 hover:text-blue-700">
-                        <Trash2 size={18} />
-                      </button>
+                      <button onClick={() => updateOvertimeStatus(record._id, "Approved")} className="text-green-600 hover:text-green-700"><Check size={18} /></button>
+                      <button onClick={() => updateOvertimeStatus(record._id, "Rejected")} className="text-red-600 hover:text-red-700"><X size={18} /></button>
+                      <button onClick={() => deleteOvertimeRecord(record._id)} className="text-blue-600 hover:text-blue-700"><Trash2 size={18} /></button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-          <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-sm text-gray-600">
-            Showing {filteredRecords.length} of {overtimeRecords.length} records
           </div>
         </div>
       )}
