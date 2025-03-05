@@ -113,7 +113,7 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredRecords.map((record) => (
                     <tr key={record._id} className="hover:bg-gray-50 transition-colors duration-150">
-                      <td className="px-6 py-4 text-sm text-gray-700 font-medium">{getEmployeeName(record.employeeID)}</td>
+                      <td className="px-6 py-4 text-gray-900 font-medium">{getEmployeeName(record.employeeID)}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{formatDate(record.createdAt)}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{record.overtimeTime} hrs</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{record.overtimeNote || "No note provided"}</td>
