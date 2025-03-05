@@ -152,9 +152,13 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
                 ))}
               </tbody>
             </table>
+            <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-sm text-gray-600">
+            Showing {filteredRecords.length} of {overtimeRecords.length} records
+          </div>
           </div>
         </div>
       )}
+      
     </div>
   );
 }
