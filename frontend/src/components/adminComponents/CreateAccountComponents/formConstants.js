@@ -11,4 +11,5 @@ export const initialFormData = {
     status: "",
     ratePerHour: "",
     shift: "",
+    role: ""
   };

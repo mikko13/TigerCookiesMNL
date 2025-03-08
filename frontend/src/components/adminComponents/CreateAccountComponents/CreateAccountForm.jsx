@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   UserCircle,
   Camera,
@@ -19,6 +19,7 @@ import { backendURL } from "../../../urls/URL";
 
 export default function CreateAccountForm() {
   const [formData, setFormData] = useState({
+    role: "Employee", // default role is Employee
     firstName: "",
     lastName: "",
     email: "",
@@ -55,7 +56,6 @@ export default function CreateAccountForm() {
         showToast("error", "Image size should be less than 5MB");
         return;
       }
-
       setProfilePicture(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -77,55 +77,57 @@ export default function CreateAccountForm() {
     if (!formData.lastName) errors.lastName = "Last name is required";
     if (!formData.email) errors.email = "Email is required";
     if (!formData.password) errors.password = "Password is required";
-    if (!formData.position) errors.position = "Position is required";
-    if (!formData.hiredDate) errors.hiredDate = "Hired date is required";
-
+    // Only require position and hiredDate for employees
+    if (formData.role.toLowerCase() === "employee") {
+      if (!formData.position) errors.position = "Position is required";
+      if (!formData.hiredDate) errors.hiredDate = "Hired date is required";
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) {
       showToast("error", "Please fill all required fields.");
       return;
     }
-
     setLoading(true);
 
     try {
       // Create FormData object to handle file upload
       const formDataToSend = new FormData();
-
-      // Add all form fields to the FormData
       Object.keys(formData).forEach((key) => {
         formDataToSend.append(key, formData[key]);
       });
-
-      // Add profile picture if it exists
       if (profilePicture) {
         formDataToSend.append("profilePicture", profilePicture);
       }
 
-      const response = await fetch(`${backendURL}/api/employees`, {
+      // Determine API endpoint and success message based on role (case-insensitive)
+      const roleLower = formData.role.toLowerCase();
+      const endpoint = roleLower === "admin" ? "admins" : "employees";
+      const successMessage =
+        roleLower === "admin"
+          ? "Admin account created successfully!"
+          : "Employee account created successfully!";
+
+      const response = await fetch(`${backendURL}/api/${endpoint}`, {
         method: "POST",
         body: formDataToSend,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Failed to create employee account"
-        );
+        throw new Error(errorData.message || "Failed to create account");
       }
 
-      const data = await response.json();
-      showToast("success", "Employee account created successfully!");
+      await response.json();
+      showToast("success", successMessage);
       resetForm();
     } catch (error) {
-      console.error("Error creating employee account:", error);
-      showToast("error", error.message || "Failed to create employee account.");
+      console.error("Error creating account:", error);
+      showToast("error", error.message || "Failed to create account.");
     } finally {
       setLoading(false);
     }
@@ -133,6 +135,7 @@ export default function CreateAccountForm() {
 
   const resetForm = () => {
     setFormData({
+      role: "Employee",
       firstName: "",
       lastName: "",
       email: "",
@@ -155,11 +158,31 @@ export default function CreateAccountForm() {
       <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <UserCircle className="mr-2" size={24} />
-          Create Employee Account
+          {formData.role.toLowerCase() === "admin"
+            ? "Create Admin Account"
+            : "Create Employee Account"}
         </h2>
         <p className="text-yellow-50 mt-1 opacity-90">
-          Add a new employee to the system
+          {formData.role.toLowerCase() === "admin"
+            ? "Add a new admin to the system"
+            : "Add a new employee to the system"}
         </p>
+      </div>
+
+      {/* Role Selection Field */}
+      <div className="p-6">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Role <span className="text-red-500">*</span>
+        </label>
+        <select
+          name="role"
+          value={formData.role}
+          onChange={handleInputChange}
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+        >
+          <option value="Employee">Employee</option>
+          <option value="Admin">Admin</option>
+        </select>
       </div>
 
       <form onSubmit={handleSubmit} className="p-6">
@@ -198,8 +221,7 @@ export default function CreateAccountForm() {
                 <>
                   <Camera className="w-12 h-12 text-gray-400 mb-2" />
                   <p className="text-sm text-gray-500 text-center">
-                    <span className="font-medium">Click to upload</span> or drag
-                    and drop
+                    <span className="font-medium">Click to upload</span> or drag and drop
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
                     PNG, JPG up to 5MB
@@ -238,8 +260,7 @@ export default function CreateAccountForm() {
                 </div>
                 {formErrors.firstName && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                    {formErrors.firstName}
+                    <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.firstName}
                   </p>
                 )}
               </div>
@@ -267,8 +288,7 @@ export default function CreateAccountForm() {
                 </div>
                 {formErrors.lastName && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                    {formErrors.lastName}
+                    <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.lastName}
                   </p>
                 )}
               </div>
@@ -284,7 +304,7 @@ export default function CreateAccountForm() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="employee@company.com"
+                  placeholder="example@company.com"
                   className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                     formErrors.email
                       ? "border-red-500 bg-red-50"
@@ -296,8 +316,7 @@ export default function CreateAccountForm() {
                 </div>
                 {formErrors.email && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                    {formErrors.email}
+                    <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.email}
                   </p>
                 )}
               </div>
@@ -325,8 +344,7 @@ export default function CreateAccountForm() {
                 </div>
                 {formErrors.password && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                    {formErrors.password}
+                    <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.password}
                   </p>
                 )}
               </div>
@@ -371,21 +389,6 @@ export default function CreateAccountForm() {
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <User className="w-4 h-4 text-gray-500" />
                 </div>
-                <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                  <svg
-                    className="w-4 h-4 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
               </div>
             </div>
 
@@ -428,8 +431,7 @@ export default function CreateAccountForm() {
                 </div>
                 {formErrors.hiredDate && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                    {formErrors.hiredDate}
+                    <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.hiredDate}
                   </p>
                 )}
               </div>
@@ -440,7 +442,7 @@ export default function CreateAccountForm() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Position <span className="text-red-500">*</span>
+              Position {formData.role.toLowerCase() === "employee" && <span className="text-red-500">*</span>}
             </label>
             <div className="relative">
               <select
@@ -448,9 +450,7 @@ export default function CreateAccountForm() {
                 value={formData.position}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                  formErrors.position
-                    ? "border-red-500 bg-red-50"
-                    : "border-gray-300 bg-gray-50"
+                  formErrors.position ? "border-red-500 bg-red-50" : "border-gray-300 bg-gray-50"
                 } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
               >
                 <option value="" disabled>
@@ -484,8 +484,7 @@ export default function CreateAccountForm() {
               </div>
               {formErrors.position && (
                 <p className="mt-1 text-xs text-red-500 flex items-center">
-                  <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                  {formErrors.position}
+                  <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.position}
                 </p>
               )}
             </div>

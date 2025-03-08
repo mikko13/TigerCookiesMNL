@@ -15,17 +15,17 @@ export function useLoginState() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await axios.get(
-          `${backendURL}/api/employees/session`,
-          { withCredentials: true }
-        );
+        const res = await axios.get(`${backendURL}/api/login/session`, { withCredentials: true });
         setUser(res.data.user);
-        navigate("/checkin");
+        if (res.data.user.role === "admin") {
+          navigate("/ManageEmployeeAccounts");
+        } else {
+          navigate("/checkin");
+        }
       } catch (error) {
         console.log("Not logged in");
       }
     };
-
     checkSession();
   }, [navigate]);
 
@@ -39,17 +39,15 @@ export function useLoginState() {
     setSuccess("");
 
     try {
-      const response = await axios.post(
-        `${backendURL}/api/employees/login`,
-        { email, password },
-        { withCredentials: true }
-      );
-
+      const response = await axios.post(`${backendURL}/api/login`, { email, password }, { withCredentials: true });
       setSuccess(response.data.message);
       setUser(response.data.user);
       localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      setTimeout(() => navigate("/CheckIn"), 2000);
+      if (response.data.user.role === "admin") {
+        setTimeout(() => navigate("/ManageEmployeeAccounts"), 2000);
+      } else {
+        setTimeout(() => navigate("/checkin"), 2000);
+      }
     } catch (err) {
       setError(err.response?.data?.message || "An error occurred");
       setTimeout(() => setError(""), 5000);

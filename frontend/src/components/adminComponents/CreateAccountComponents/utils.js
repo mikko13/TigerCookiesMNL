@@ -9,15 +9,23 @@ export const handleSubmitForm = async (formData, profilePicture, setToast) => {
     form.append("profilePicture", profilePicture);
   }
 
+  // Determine endpoint and success message based on role (default to "employee")
+  const role = formData.role ? formData.role.toLowerCase() : "employee";
+  const endpoint = role === "admin" ? "admins" : "employees";
+  const successMessage =
+    role === "admin"
+      ? "Admin account created successfully!"
+      : "Employee account created successfully!";
+
   try {
-    const response = await fetch(`${backendURL}/api/employees`, {
+    const response = await fetch(`${backendURL}/api/${endpoint}`, {
       method: "POST",
       body: form,
     });
 
     if (response.ok) {
       const data = await response.json();
-      setToast({ type: "success", message: "Account created successfully!" });
+      setToast({ type: "success", message: successMessage });
       return data;
     } else {
       const errorData = await response.json();

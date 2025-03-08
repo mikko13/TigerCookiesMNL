@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const accountSchema = new mongoose.Schema(
+const adminSchema = new mongoose.Schema(
   {
     profilePicture: { type: String },
     firstName: { type: String, required: true },
@@ -21,9 +21,9 @@ const accountSchema = new mongoose.Schema(
     shift: { type: String },
     otp: { type: String },
     otpExpires: { type: Date },
-    role: { type: String, default: "employee" }  // Added role field
+    role: { type: String, default: "admin" }  // Added role field
   },
-  { timestamps: true, collection: "empAccounts" }
+  { timestamps: true, collection: "adminAccounts" }
 );
 
-module.exports = mongoose.model("Account", accountSchema);
+module.exports = mongoose.model("Admin", adminSchema);
