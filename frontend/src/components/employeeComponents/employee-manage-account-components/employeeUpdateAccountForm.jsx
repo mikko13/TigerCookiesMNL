@@ -24,7 +24,9 @@ export default function UpdateAccountForm() {
   const { employeeId } = useParams();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
+  // const [formData, setFormData] = useState({
+
+  const [user, setUser] = useState({
     firstName: "",
     lastName: "",
     email: "",
@@ -56,7 +58,7 @@ export default function UpdateAccountForm() {
         );
 
         const employeeData = response.data;
-        setFormData(employeeData);
+        setUser(employeeData);
 
         // Handle profile picture
         if (employeeData.profilePicture) {
@@ -77,15 +79,16 @@ export default function UpdateAccountForm() {
     fetchEmployeeData();
   }, [employeeId]);
 
-  const [initialFormData, setInitialFormData] = useState(formData);
-
-  const handleCancel = () => {
-    setFormData(initialFormData); // Reset form to original values
-  };
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setUser({ ...user, [name]: value });
 
     // Clear error when field is updated
     if (formErrors[name]) {
@@ -123,47 +126,96 @@ export default function UpdateAccountForm() {
     setTimeout(() => setToast(null), 5000);
   };
 
-  // const validateForm = () => {
-  //   const errors = {};
+  const validateForm = () => {
+    const errors = {};
 
-  //   if (!formData.firstName) errors.firstName = "First name is required";
-  //   if (!formData.lastName) errors.lastName = "Last name is required";
-  //   if (!formData.email) errors.email = "Email is required";
-  //   if (changePassword && !formData.password)
-  //     errors.password = "Password is required";
-  //   if (!formData.position) errors.position = "Position is required";
-  //   if (!formData.hiredDate) errors.hiredDate = "Hired date is required";
+    if (!user.firstName) errors.firstName = "First name is required";
+    if (!user.lastName) errors.lastName = "Last name is required";
+    if (!user.email) errors.email = "Email is required";
+    if (changePassword && !user.password)
+      errors.password = "Password is required";
+    if (!user.position) errors.position = "Position is required";
+    if (!user.hiredDate) errors.hiredDate = "Hired date is required";
 
-  //   setFormErrors(errors);
-  //   return Object.keys(errors).length === 0;
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!validateForm()) {
+  //     showToast("error", "Please fill all required fields.");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+
+  //   // Create FormData object
+  //   const formDataToSend = new FormData();
+  //   Object.keys(User).forEach((key) => {
+  //     if (key !== "password" || (key === "password" && changePassword)) {
+  //       formDataToSend.append(key, user[key]);
+  //     }
+  //   });
+
+  //   if (profilePicture instanceof File) {
+  //     formDataToSend.append("profilePicture", profilePicture);
+  //   } else if (profilePictureToDelete) {
+  //     formDataToSend.append("profilePicture", "");
+  //   }
+
+  //   try {
+  //     await axios.put(
+  //       `${backendURL}/api/employees/${employeeId}`,
+  //       formDataToSend,
+  //       {
+  //         headers: { "Content-Type": "multipart/form-data" },
+  //       }
+  //     );
+
+  //     showToast("success", "Employee account updated successfully!");
+
+  //     // Delay navigation to show success toast
+  //     setTimeout(() => {
+  //       navigate("/ManageEmployeeAccounts");
+  //     }, 2000);
+  //   } catch (error) {
+  //     console.error("Error updating employee:", error);
+  //     showToast("error", "Failed to update employee account.");
+  //     setLoading(false);
+  //   }
   // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // if (!validateForm()) {
-    //   showToast("error", "Please fill all required fields.");
-    //   return;
-    // }
+    if (!validateForm()) {
+      showToast("error", "Please fill all required fields.");
+      return;
+    }
 
     setLoading(true);
 
     // Create FormData object
     const formDataToSend = new FormData();
-    Object.keys(formData).forEach((key) => {
+
+    // Append user data to FormData
+    Object.entries(user).forEach(([key, value]) => {
       if (key !== "password" || (key === "password" && changePassword)) {
-        formDataToSend.append(key, formData[key]);
+        formDataToSend.append(key, value);
       }
     });
 
+    // Handle profile picture
     if (profilePicture instanceof File) {
       formDataToSend.append("profilePicture", profilePicture);
     } else if (profilePictureToDelete) {
-      formDataToSend.append("profilePicture", "");
+      formDataToSend.append("profilePicture", ""); // Indicate deletion
     }
 
     try {
-      await axios.put(
+      const response = await axios.put(
         `${backendURL}/api/employees/${employeeId}`,
         formDataToSend,
         {
@@ -180,6 +232,7 @@ export default function UpdateAccountForm() {
     } catch (error) {
       console.error("Error updating employee:", error);
       showToast("error", "Failed to update employee account.");
+    } finally {
       setLoading(false);
     }
   };
@@ -239,6 +292,7 @@ export default function UpdateAccountForm() {
                   <input
                     type="file"
                     accept="image/*"
+                    // value={user?.profilePicture}
                     onChange={handlePictureChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
@@ -257,18 +311,17 @@ export default function UpdateAccountForm() {
                 <input
                   type="text"
                   name="firstName"
-                  value={formData.firstName}
+                  value={user.firstName}
                   onChange={handleInputChange}
-                  disabled={true}
                   placeholder="Enter first name"
-                  className={`w-full px-4 py-3 pl-10 rounded-lg border  ${
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                     formErrors.firstName
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed placeholder-gray-300`}
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
                 />
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none ">
-                  <User className="w-4 h-4 text-gray-300" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <User className="w-4 h-4 text-gray-500" />
                 </div>
                 {formErrors.firstName && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -280,25 +333,24 @@ export default function UpdateAccountForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Last Name <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
                   type="text"
                   name="lastName"
-                  value={formData.lastName}
+                  value={user.lastName}
                   onChange={handleInputChange}
-                  disabled={true}
                   placeholder="Enter last name"
                   className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                     formErrors.lastName
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed placeholder-gray-300`}
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <User className="w-4 h-4 text-gray-300" />
+                  <User className="w-4 h-4 text-gray-500" />
                 </div>
                 {formErrors.lastName && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -317,18 +369,17 @@ export default function UpdateAccountForm() {
                 <input
                   type="email"
                   name="email"
-                  value={formData.email}
+                  value={user.email}
                   onChange={handleInputChange}
-                  disabled={true}
                   placeholder="employee@company.com"
                   className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                     formErrors.email
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed placeholder-gray-300`}
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Mail className="w-4 h-4 text-gray-300" />
+                  <Mail className="w-4 h-4 text-gray-500" />
                 </div>
                 {formErrors.email && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -363,7 +414,7 @@ export default function UpdateAccountForm() {
                 <input
                   type="password"
                   name="password"
-                  value={formData.password}
+                  value={user.password}
                   onChange={handleInputChange}
                   placeholder="••••••••"
                   disabled={!changePassword}
@@ -395,10 +446,10 @@ export default function UpdateAccountForm() {
                 <input
                   type="text"
                   name="address"
-                  value={formData.address}
+                  value={user.address}
                   onChange={handleInputChange}
                   placeholder="Enter address"
-                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all placeholder-gray-500"
+                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Home className="w-4 h-4 text-gray-500" />
@@ -413,7 +464,7 @@ export default function UpdateAccountForm() {
               <div className="relative">
                 <select
                   name="gender"
-                  value={formData.gender}
+                  value={user.gender}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
                 >
@@ -452,7 +503,7 @@ export default function UpdateAccountForm() {
                 <input
                   type="date"
                   name="dateOfBirth"
-                  value={formData.dateOfBirth}
+                  value={user.dateOfBirth}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
                 />
@@ -470,17 +521,16 @@ export default function UpdateAccountForm() {
                 <input
                   type="date"
                   name="hiredDate"
-                  value={formData.hiredDate}
+                  value={user?.hiredDate}
                   onChange={handleInputChange}
-                  disabled={true}
-                  className={`w-full px-4 py-3 pl-10 rounded-lg border text-gray-300 ${
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                     formErrors.hiredDate
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed`}
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Calendar className="w-4 h-4 text-gray-300" />
+                  <Calendar className="w-4 h-4 text-gray-500" />
                 </div>
                 {formErrors.hiredDate && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -501,14 +551,13 @@ export default function UpdateAccountForm() {
             <div className="relative">
               <select
                 name="position"
-                value={formData.position}
+                value={user.position}
                 onChange={handleInputChange}
-                disabled={true}
-                className={`w-full px-4 py-3 pl-10 rounded-lg border text-gray-300 ${
+                className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                   formErrors.position
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300 bg-gray-50"
-                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none cursor-not-allowed`}
+                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
               >
                 <option value="" disabled>
                   Select Position
@@ -522,7 +571,7 @@ export default function UpdateAccountForm() {
                 <option value="Sales Assistant">Sales Assistant</option>
               </select>
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Briefcase className="w-4 h-4 text-gray-300" />
+                <Briefcase className="w-4 h-4 text-gray-500" />
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                 <svg
@@ -555,10 +604,9 @@ export default function UpdateAccountForm() {
             <div className="relative">
               <select
                 name="status"
-                value={formData.status}
+                value={user.status}
                 onChange={handleInputChange}
-                disabled={true}
-                className="w-full px-4 py-3 pl-10 rounded-lg border text-gray-300 border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none cursor-not-allowed"
+                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
               >
                 <option value="" disabled>
                   Select Status
@@ -569,8 +617,8 @@ export default function UpdateAccountForm() {
                 <option value="Absent">Absent</option>
                 <option value="On-Leave">On-Leave</option>
               </select>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none ">
-                <User className="w-4 h-4 text-gray-300" />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <User className="w-4 h-4 text-gray-500" />
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                 <svg
@@ -594,18 +642,17 @@ export default function UpdateAccountForm() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Rate Per Hour
             </label>
-            <div className="relative ">
+            <div className="relative">
               <input
                 type="number"
                 name="ratePerHour"
-                value={formData.ratePerHour}
+                value={user.ratePerHour}
                 onChange={handleInputChange}
-                disabled={true}
                 placeholder="0.00"
-                className="w-full px-4 py-3 pl-10 rounded-lg border text-gray-300 border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed placeholder-gray-300"
+                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
               />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none ">
-                <DollarSign className="w-4 h-4 text-gray-300" />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <DollarSign className="w-4 h-4 text-gray-500" />
               </div>
             </div>
           </div>
@@ -617,10 +664,9 @@ export default function UpdateAccountForm() {
             <div className="relative">
               <select
                 name="shift"
-                value={formData.shift}
+                value={user.shift}
                 onChange={handleInputChange}
-                disabled={true}
-                className="w-full px-4 py-3 pl-10 rounded-lg border text-gray-300 border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none cursor-not-allowed"
+                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
               >
                 <option value="" disabled>
                   Select Shift
@@ -629,8 +675,8 @@ export default function UpdateAccountForm() {
                 <option value="Afternoon">Afternoon</option>
                 <option value="Night">Night</option>
               </select>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none ">
-                <Clock className="w-4 h-4 text-gray-300" />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Clock className="w-4 h-4 text-gray-500" />
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                 <svg
@@ -654,7 +700,7 @@ export default function UpdateAccountForm() {
         <div className="mt-8 flex justify-end gap-4">
           <button
             type="button"
-            onClick={handleCancel} // Reset form instead of navigating
+            onClick={() => navigate("/ManageEmployeeAccounts")}
             className="px-6 py-2.5 text-sm font-medium bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all flex items-center"
           >
             <X className="w-4 h-4 mr-2" />

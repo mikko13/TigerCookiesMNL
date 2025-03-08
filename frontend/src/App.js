@@ -54,6 +54,7 @@ export default function App() {
           path="/ManageAttendance"
           element={<EmployeeManageAttendance />}
         />
+        <Route path="/ManageAccount" element={<EmployeeManageAccount />} />
         <Route path="/Payroll" element={<EmployeePayroll />} />
 
         {/* Admin Side */}
@@ -71,7 +72,6 @@ export default function App() {
           path="/ManageEmployeeAttendance"
           element={<AdminManageAttendance />}
         />
-        <Route path="/ManageAccount" element={<EmployeeManageAccount />} />
 
         <Route path="/ManageOvertime" element={<AdminManageOvertime />} />
 

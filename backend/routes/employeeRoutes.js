@@ -255,6 +255,76 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
   }
 });
 
+// Employee Side Route.put
+// router.put(
+//   "/:employeeId",
+//   upload.single("profilePicture"),
+//   async (req, res) => {
+//     const { employeeId } = req.params;
+//     const { password, address, gender } = req.body;
+
+//     try {
+//       const employee = await Account.findById(employeeId);
+//       if (!employee) {
+//         return res.status(404).json({ message: "Employee not found" });
+//       }
+
+//       if (password) {
+//         const hashedPassword = await bcrypt.hash(password, 10);
+//         employee.password = hashedPassword;
+//       }
+
+//       employee.address = address || employee.address;
+//       employee.gender = gender || employee.gender;
+
+//       if (req.body.profilePicture === "") {
+//         const fs = require("fs");
+//         const oldFilePath = path.join(
+//           __dirname,
+//           `../../frontend/public/employee-profile-pics/${employee.profilePicture}`
+//         );
+
+//         if (employee.profilePicture && fs.existsSync(oldFilePath)) {
+//           fs.unlinkSync(oldFilePath);
+//         }
+
+//         employee.profilePicture = "";
+//       }
+
+//       if (req.file) {
+//         const fs = require("fs");
+//         const oldFilePath = path.join(
+//           __dirname,
+//           `../../frontend/public/employee-profile-pics/${employee.profilePicture}`
+//         );
+
+//         if (employee.profilePicture && fs.existsSync(oldFilePath)) {
+//           fs.unlinkSync(oldFilePath);
+//         }
+
+//         const newFilename = `${employee._id}_profilepic${path.extname(
+//           req.file.originalname
+//         )}`;
+//         const newFilePath = path.join(path.dirname(req.file.path), newFilename);
+//         fs.renameSync(req.file.path, newFilePath);
+
+//         employee.profilePicture = newFilename;
+//       }
+
+//       await employee.save();
+//       res.status(200).json({
+//         message: "Employee updated successfully",
+//         employee: {
+//           ...employee.toObject(),
+//           profilePicture: `/employee-profile-pics/${employee.profilePicture}`, // Ensure correct URL path
+//         },
+//       });
+//     } catch (error) {
+//       res.status(500).json({ message: error.message });
+//     }
+//   }
+// );
+
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
