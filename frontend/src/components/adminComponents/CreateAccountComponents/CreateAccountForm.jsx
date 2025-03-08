@@ -19,7 +19,7 @@ import { backendURL } from "../../../urls/URL";
 
 export default function CreateAccountForm() {
   const [formData, setFormData] = useState({
-    role: "Employee", // default role is Employee
+    role: "Employee",
     firstName: "",
     lastName: "",
     email: "",
@@ -43,7 +43,6 @@ export default function CreateAccountForm() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Clear error when field is updated
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: null });
     }
@@ -70,18 +69,85 @@ export default function CreateAccountForm() {
     setTimeout(() => setToast(null), 5000);
   };
 
+  const validateDates = () => {
+    const errors = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (formData.dateOfBirth) {
+      const dob = new Date(formData.dateOfBirth);
+
+      if (isNaN(dob.getTime())) {
+        errors.dateOfBirth = "Invalid date format";
+      } else {
+        if (dob > today) {
+          errors.dateOfBirth = "Date of birth cannot be in the future";
+        }
+
+        const minAgeDate = new Date();
+        minAgeDate.setFullYear(minAgeDate.getFullYear() - 16);
+        if (dob > minAgeDate) {
+          errors.dateOfBirth = "Employee must be at least 16 years old";
+        }
+      }
+    }
+
+    if (formData.hiredDate) {
+      const hiredDate = new Date(formData.hiredDate);
+
+      if (isNaN(hiredDate.getTime())) {
+        errors.hiredDate = "Invalid date format";
+      } else {
+        const maxPastDate = new Date();
+        maxPastDate.setFullYear(maxPastDate.getFullYear() - 50);
+        if (hiredDate < maxPastDate) {
+          errors.hiredDate = "Hired date cannot be more than 50 years ago";
+        }
+
+        const maxFutureDate = new Date();
+        maxFutureDate.setDate(maxFutureDate.getDate() + 14);
+        if (hiredDate > maxFutureDate) {
+          errors.hiredDate =
+            "Hired date cannot be more than 2 weeks in the future";
+        }
+
+        if (formData.dateOfBirth) {
+          const dob = new Date(formData.dateOfBirth);
+          const minWorkingAge = new Date(dob);
+          minWorkingAge.setFullYear(minWorkingAge.getFullYear() + 16);
+
+          if (hiredDate < minWorkingAge) {
+            errors.hiredDate =
+              "Employee must be at least 16 years old when hired";
+          }
+        }
+      }
+    }
+
+    return errors;
+  };
+
   const validateForm = () => {
     const errors = {};
 
     if (!formData.firstName) errors.firstName = "First name is required";
     if (!formData.lastName) errors.lastName = "Last name is required";
     if (!formData.email) errors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      errors.email = "Email is invalid";
+
     if (!formData.password) errors.password = "Password is required";
-    // Only require position and hiredDate for employees
+    else if (formData.password.length < 8)
+      errors.password = "Password must be at least 8 characters";
+
     if (formData.role.toLowerCase() === "employee") {
       if (!formData.position) errors.position = "Position is required";
       if (!formData.hiredDate) errors.hiredDate = "Hired date is required";
     }
+
+    const dateErrors = validateDates();
+    Object.assign(errors, dateErrors);
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -89,13 +155,12 @@ export default function CreateAccountForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      showToast("error", "Please fill all required fields.");
+      showToast("error", "Please correct the errors in the form.");
       return;
     }
     setLoading(true);
 
     try {
-      // Create FormData object to handle file upload
       const formDataToSend = new FormData();
       Object.keys(formData).forEach((key) => {
         formDataToSend.append(key, formData[key]);
@@ -104,7 +169,6 @@ export default function CreateAccountForm() {
         formDataToSend.append("profilePicture", profilePicture);
       }
 
-      // Determine API endpoint and success message based on role (case-insensitive)
       const roleLower = formData.role.toLowerCase();
       const endpoint = roleLower === "admin" ? "admins" : "employees";
       const successMessage =
@@ -169,7 +233,6 @@ export default function CreateAccountForm() {
         </p>
       </div>
 
-      {/* Role Selection Field */}
       <div className="p-6">
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Role <span className="text-red-500">*</span>
@@ -221,7 +284,8 @@ export default function CreateAccountForm() {
                 <>
                   <Camera className="w-12 h-12 text-gray-400 mb-2" />
                   <p className="text-sm text-gray-500 text-center">
-                    <span className="font-medium">Click to upload</span> or drag and drop
+                    <span className="font-medium">Click to upload</span> or drag
+                    and drop
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
                     PNG, JPG up to 5MB
@@ -260,7 +324,8 @@ export default function CreateAccountForm() {
                 </div>
                 {formErrors.firstName && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.firstName}
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.firstName}
                   </p>
                 )}
               </div>
@@ -288,7 +353,8 @@ export default function CreateAccountForm() {
                 </div>
                 {formErrors.lastName && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.lastName}
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.lastName}
                   </p>
                 )}
               </div>
@@ -316,7 +382,8 @@ export default function CreateAccountForm() {
                 </div>
                 {formErrors.email && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.email}
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.email}
                   </p>
                 )}
               </div>
@@ -344,7 +411,8 @@ export default function CreateAccountForm() {
                 </div>
                 {formErrors.password && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.password}
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.password}
                   </p>
                 )}
               </div>
@@ -402,11 +470,21 @@ export default function CreateAccountForm() {
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                    formErrors.dateOfBirth
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-gray-50"
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Calendar className="w-4 h-4 text-gray-500" />
                 </div>
+                {formErrors.dateOfBirth && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.dateOfBirth}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -431,7 +509,8 @@ export default function CreateAccountForm() {
                 </div>
                 {formErrors.hiredDate && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.hiredDate}
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.hiredDate}
                   </p>
                 )}
               </div>
@@ -442,7 +521,10 @@ export default function CreateAccountForm() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Position {formData.role.toLowerCase() === "employee" && <span className="text-red-500">*</span>}
+              Position{" "}
+              {formData.role.toLowerCase() === "employee" && (
+                <span className="text-red-500">*</span>
+              )}
             </label>
             <div className="relative">
               <select
@@ -450,7 +532,9 @@ export default function CreateAccountForm() {
                 value={formData.position}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                  formErrors.position ? "border-red-500 bg-red-50" : "border-gray-300 bg-gray-50"
+                  formErrors.position
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 bg-gray-50"
                 } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
               >
                 <option value="" disabled>
@@ -484,7 +568,8 @@ export default function CreateAccountForm() {
               </div>
               {formErrors.position && (
                 <p className="mt-1 text-xs text-red-500 flex items-center">
-                  <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.position}
+                  <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                  {formErrors.position}
                 </p>
               )}
             </div>

@@ -1,23 +1,57 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { User, Clock, ClockAlert, PhilippinePeso, LogOut, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  User,
+  Clock,
+  ClockAlert,
+  PhilippinePeso,
+  LogOut,
+  X,
+} from "lucide-react";
+import axios from "axios";
+import { backendURL } from "../../../urls/URL";
 
 export default function AdminSidebar({
-  isExpanded,
+  isExpanded = true,
   toggleExpand,
-  isMobile,
+  isMobile = false,
   toggleVisibility,
 }) {
   const location = useLocation();
-  const [adminInfo] = React.useState({
-    name: "Admin Name",
-    email: "admin@company.com",
-    avatar: "/api/placeholder/100/100",
-  });
+  const navigate = useNavigate();
+  const [admin, setAdmin] = useState(null);
+
+  useEffect(() => {
+    const storedAdmin = localStorage.getItem("user");
+    if (storedAdmin) {
+      setAdmin(JSON.parse(storedAdmin));
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${backendURL}/api/admins/logout`,
+        {},
+        { withCredentials: true }
+      );
+
+      localStorage.removeItem("admin");
+      setAdmin(null);
+      navigate("/");
+    } catch (error) {
+      console.error(
+        "Logout failed:",
+        error.response?.data?.message || error.message
+      );
+    }
+  };
 
   const isActiveRoute = (route) => {
     return location.pathname === route;
   };
+
+  const profilePicPath = `/admin-profile-pics/${admin?.id}_profilepic.jpg`;
 
   const sidebarLinks = [
     {
@@ -44,7 +78,6 @@ export default function AdminSidebar({
 
   return (
     <div className="h-full overflow-hidden relative">
-      {/* Close button for mobile */}
       {isMobile && (
         <button
           onClick={toggleVisibility}
@@ -66,17 +99,17 @@ export default function AdminSidebar({
           }`}
         >
           <img
-            src={adminInfo.avatar}
-            alt="Admin"
+            src={profilePicPath}
+            alt="Admin Profile"
             className="w-10 h-10 rounded-full object-cover border-2 border-yellow-600"
           />
           {isExpanded && (
             <div className="overflow-hidden">
               <p className="text-sm font-medium text-gray-800 truncate">
-                {adminInfo.name}
+                {admin?.firstName} {admin?.lastName}
               </p>
               <p className="text-xs text-gray-600 truncate mt-0.5">
-                {adminInfo.email}
+                {admin?.email}
               </p>
             </div>
           )}
@@ -108,11 +141,10 @@ export default function AdminSidebar({
           </ul>
         </nav>
 
-        {/* Logout Button */}
         <div className="mt-auto">
-          <Link
-            to="/logout"
-            className={`flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-yellow-200 rounded-lg transition-all ${
+          <a
+            onClick={handleLogout}
+            className={`flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-yellow-200 rounded-lg transition-all cursor-pointer ${
               !isExpanded && "justify-center px-2"
             }`}
             title={!isExpanded ? "Logout" : ""}
@@ -121,7 +153,7 @@ export default function AdminSidebar({
               <LogOut size={20} />
             </span>
             {isExpanded && <span>Logout</span>}
-          </Link>
+          </a>
         </div>
       </aside>
     </div>

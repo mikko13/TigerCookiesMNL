@@ -24,8 +24,6 @@ export default function UpdateAccountForm() {
   const { employeeId } = useParams();
   const navigate = useNavigate();
 
-  // const [formData, setFormData] = useState({
-
   const [user, setUser] = useState({
     firstName: "",
     lastName: "",
@@ -50,41 +48,63 @@ export default function UpdateAccountForm() {
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    const fetchEmployeeData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(
-          `${backendURL}/api/employees/${employeeId}`
-        );
+    // First check localStorage for logged-in user data
+    const loggedInUser = JSON.parse(localStorage.getItem("user"));
 
-        const employeeData = response.data;
-        setUser(employeeData);
-
-        // Handle profile picture
-        if (employeeData.profilePicture) {
-          setProfilePicture(employeeData.profilePicture);
-          setProfilePreview(
-            `/employee-profile-pics/${employeeData.profilePicture}`
-          );
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching employee data:", error);
-        showToast("error", "Failed to load employee data");
-        setLoading(false);
-      }
-    };
-
-    fetchEmployeeData();
+    // If we have employee ID in URL params, prioritize fetching that specific employee
+    if (employeeId) {
+      fetchEmployeeData(employeeId);
+    }
+    // Otherwise use the logged-in user data from localStorage
+    else if (loggedInUser && loggedInUser.id) {
+      fetchEmployeeData(loggedInUser.id);
+    } else {
+      // If no params and no localStorage, check session
+      checkSession();
+    }
   }, [employeeId]);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+  const checkSession = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${backendURL}/api/employees/session`);
+      if (response.data && response.data.user) {
+        // If we get session data, fetch the full employee details
+        fetchEmployeeData(response.data.user.id);
+        // Also update localStorage
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Session check failed:", error);
+      showToast("error", "Unable to verify your session");
+      setLoading(false);
     }
-  }, []);
+  };
+
+  const fetchEmployeeData = async (id) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${backendURL}/api/employees/${id}`);
+
+      const employeeData = response.data;
+      setUser(employeeData);
+
+      // Handle profile picture
+      if (employeeData.profilePicture) {
+        setProfilePicture(employeeData.profilePicture);
+        setProfilePreview(
+          `/employee-profile-pics/${employeeData.profilePicture}`
+        );
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching employee data:", error);
+      showToast("error", "Failed to load employee data");
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -141,52 +161,6 @@ export default function UpdateAccountForm() {
     return Object.keys(errors).length === 0;
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   if (!validateForm()) {
-  //     showToast("error", "Please fill all required fields.");
-  //     return;
-  //   }
-
-  //   setLoading(true);
-
-  //   // Create FormData object
-  //   const formDataToSend = new FormData();
-  //   Object.keys(User).forEach((key) => {
-  //     if (key !== "password" || (key === "password" && changePassword)) {
-  //       formDataToSend.append(key, user[key]);
-  //     }
-  //   });
-
-  //   if (profilePicture instanceof File) {
-  //     formDataToSend.append("profilePicture", profilePicture);
-  //   } else if (profilePictureToDelete) {
-  //     formDataToSend.append("profilePicture", "");
-  //   }
-
-  //   try {
-  //     await axios.put(
-  //       `${backendURL}/api/employees/${employeeId}`,
-  //       formDataToSend,
-  //       {
-  //         headers: { "Content-Type": "multipart/form-data" },
-  //       }
-  //     );
-
-  //     showToast("success", "Employee account updated successfully!");
-
-  //     // Delay navigation to show success toast
-  //     setTimeout(() => {
-  //       navigate("/ManageEmployeeAccounts");
-  //     }, 2000);
-  //   } catch (error) {
-  //     console.error("Error updating employee:", error);
-  //     showToast("error", "Failed to update employee account.");
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -197,41 +171,53 @@ export default function UpdateAccountForm() {
 
     setLoading(true);
 
-    // Create FormData object
+    const idToUse = employeeId || JSON.parse(localStorage.getItem("user"))?.id;
+
+    if (!idToUse) {
+      showToast("error", "No employee ID found for update.");
+      setLoading(false);
+      return;
+    }
+
     const formDataToSend = new FormData();
 
-    // Append user data to FormData
     Object.entries(user).forEach(([key, value]) => {
       if (key !== "password" || (key === "password" && changePassword)) {
         formDataToSend.append(key, value);
       }
     });
 
-    // Handle profile picture
     if (profilePicture instanceof File) {
       formDataToSend.append("profilePicture", profilePicture);
     } else if (profilePictureToDelete) {
-      formDataToSend.append("profilePicture", ""); // Indicate deletion
+      formDataToSend.append("profilePicture", "");
     }
 
     try {
       const response = await axios.put(
-        `${backendURL}/api/employees/${employeeId}`,
+        `${backendURL}/api/employees/${idToUse}`,
         formDataToSend,
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
-      showToast("success", "Employee account updated successfully!");
+      const loggedInUser = JSON.parse(localStorage.getItem("user"));
+      if (loggedInUser && loggedInUser.id === idToUse) {
+        loggedInUser.firstName = user.firstName;
+        loggedInUser.lastName = user.lastName;
+        loggedInUser.email = user.email;
+        localStorage.setItem("user", JSON.stringify(loggedInUser));
+      }
 
-      // Delay navigation to show success toast
+      showToast("success", "Account updated successfully!");
+
       setTimeout(() => {
         navigate("/ManageEmployeeAccounts");
       }, 2000);
     } catch (error) {
       console.error("Error updating employee:", error);
-      showToast("error", "Failed to update employee account.");
+      showToast("error", "Failed to update account.");
     } finally {
       setLoading(false);
     }
@@ -242,16 +228,15 @@ export default function UpdateAccountForm() {
       <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <UserCircle className="mr-2" size={24} />
-          Update Employee Account
+          Update Account
         </h2>
         <p className="text-yellow-50 mt-1 opacity-90">
-          Edit employee information
+          Edit your account information
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Profile Picture Upload */}
           <div className="col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Profile Picture
@@ -292,7 +277,6 @@ export default function UpdateAccountForm() {
                   <input
                     type="file"
                     accept="image/*"
-                    // value={user?.profilePicture}
                     onChange={handlePictureChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
@@ -301,7 +285,6 @@ export default function UpdateAccountForm() {
             </div>
           </div>
 
-          {/* Personal Information */}
           <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -464,7 +447,7 @@ export default function UpdateAccountForm() {
               <div className="relative">
                 <select
                   name="gender"
-                  value={user.gender}
+                  value={user.gender || ""}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
                 >
@@ -503,7 +486,7 @@ export default function UpdateAccountForm() {
                 <input
                   type="date"
                   name="dateOfBirth"
-                  value={user.dateOfBirth}
+                  value={user.dateOfBirth || ""}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
                 />
@@ -521,7 +504,7 @@ export default function UpdateAccountForm() {
                 <input
                   type="date"
                   name="hiredDate"
-                  value={user?.hiredDate}
+                  value={user.hiredDate || ""}
                   onChange={handleInputChange}
                   className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                     formErrors.hiredDate
@@ -551,7 +534,7 @@ export default function UpdateAccountForm() {
             <div className="relative">
               <select
                 name="position"
-                value={user.position}
+                value={user.position || ""}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                   formErrors.position
@@ -604,7 +587,7 @@ export default function UpdateAccountForm() {
             <div className="relative">
               <select
                 name="status"
-                value={user.status}
+                value={user.status || ""}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
               >
@@ -646,7 +629,7 @@ export default function UpdateAccountForm() {
               <input
                 type="number"
                 name="ratePerHour"
-                value={user.ratePerHour}
+                value={user.ratePerHour || ""}
                 onChange={handleInputChange}
                 placeholder="0.00"
                 className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
@@ -664,7 +647,7 @@ export default function UpdateAccountForm() {
             <div className="relative">
               <select
                 name="shift"
-                value={user.shift}
+                value={user.shift || ""}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
               >
