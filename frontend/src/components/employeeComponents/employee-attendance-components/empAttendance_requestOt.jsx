@@ -126,6 +126,9 @@ export default function EmpAttendanceRequestOt() {
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Hours:</span> {lastOvertime.overtimeTime}
               </p>
+              <p className="text-sm text-gray-600">
+                <span className="font-medium">Notes:</span> {lastOvertime.overtimeNote}
+              </p>
             </div>
           )}
 

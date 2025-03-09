@@ -8,12 +8,15 @@ const emailNotification = require("../services/emailNotification");
 // 🔹 Function to send email notifications
 async function notifyAdmins(employeeID, overtimeTime, overtimeNote) {
   try {
-    // Fetch employee details
+    // Fetch employee details using the Account model
     const employee = await Employee.findById(employeeID);
     if (!employee) {
       console.error("Employee not found.");
       return;
     }
+
+    // Construct the full name correctly
+    const employeeFullName = `${employee.firstName} ${employee.lastName}`;
 
     // Fetch all admin emails
     const admins = await Admin.find({}, "firstName lastName email");
@@ -26,7 +29,7 @@ async function notifyAdmins(employeeID, overtimeTime, overtimeNote) {
           emailNotification.sendOvertimeRequestEmail(
             admin.email,
             `${admin.firstName} ${admin.lastName}`, // Admin's full name
-            employee.name,
+            employeeFullName, // Correctly formatted employee name
             overtimeTime,
             overtimeNote
           )
