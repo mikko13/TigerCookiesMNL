@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
-import { Clock, CalendarClock, FileText } from "lucide-react";
+import { Clock, CalendarClock } from "lucide-react";
 
 export default function EmpAttendanceRequestOt() {
   const [overtimeTime, setOvertimeTime] = useState("");
@@ -11,6 +11,7 @@ export default function EmpAttendanceRequestOt() {
   const [lastOvertime, setLastOvertime] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const employeeID = JSON.parse(localStorage.getItem("user"))?.id;
+  const employeeName = JSON.parse(localStorage.getItem("user"))?.name;
 
   useEffect(() => {
     const fetchLastOvertime = async () => {
@@ -54,7 +55,7 @@ export default function EmpAttendanceRequestOt() {
       overtimeTime,
       overtimeNote,
       overtimeDate: new Date().toISOString(),
-      status: "Pending", 
+      status: "Pending",
     };
 
     try {
@@ -63,10 +64,22 @@ export default function EmpAttendanceRequestOt() {
       setOvertimeTime("");
       setOvertimeNote("");
       setLastOvertime(overtimeData);
+
+      // Fetch all admins and send email notifications
+      const adminsResponse = await axios.get(`${backendURL}/api/admins`);
+      const admins = adminsResponse.data;
+
+      for (const admin of admins) {
+        await axios.post(`${backendURL}/api/send-overtime-email`, {
+          adminEmail: admin.email,
+          adminName: `${admin.firstName} ${admin.lastName}`,
+          employeeName,
+          overtimeTime,
+          overtimeNote,
+        });
+      }
     } catch (error) {
-      setError(
-        error.response?.data?.message || "Failed to submit overtime request."
-      );
+      setError(error.response?.data?.message || "");
     } finally {
       setIsSubmitting(false);
     }
@@ -124,21 +137,16 @@ export default function EmpAttendanceRequestOt() {
               <label htmlFor="overtime-hour" className="block text-gray-700 font-medium mb-2">
                 Overtime Hours <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Clock size={18} className="text-gray-400" />
-                </div>
-                <input
-                  id="overtime-hour"
-                  type="number"
-                  min="1"
-                  step="0.5"
-                  placeholder="Enter hours"
-                  value={overtimeTime}
-                  onChange={(e) => setOvertimeTime(e.target.value)}
-                  className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none"
-                />
-              </div>
+              <input
+                id="overtime-hour"
+                type="number"
+                min="1"
+                step="0.5"
+                placeholder="Enter hours"
+                value={overtimeTime}
+                onChange={(e) => setOvertimeTime(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 focus:outline-none"
+              />
             </div>
 
             <div>
@@ -159,7 +167,7 @@ export default function EmpAttendanceRequestOt() {
               type="button"
               onClick={handleRequestOvertime}
               disabled={isSubmitting}
-              className={`w-full px-6 py-3 text-sm font-medium rounded-lg transition-all ${isSubmitting ? "bg-yellow-300 cursor-not-allowed" : "bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500"} text-white`}
+              className={`w-full px-6 py-3 text-sm font-medium rounded-lg transition-all ${isSubmitting ? "bg-yellow-300 cursor-not-allowed" : "bg-yellow-400 hover:bg-yellow-500"} text-white`}
             >
               {isSubmitting ? "Submitting..." : "Request Overtime"}
             </button>
