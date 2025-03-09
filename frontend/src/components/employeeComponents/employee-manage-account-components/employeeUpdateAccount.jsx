@@ -4,7 +4,7 @@ import EmployeeSidebar from "../../sidebarComponents/employee-sidebar/employeeSi
 import Background from "../../images/background.png";
 import { Menu } from "lucide-react";
 
-export default function EmployeeUpdateAccount() {
+export default function EmployeeManageAccount() {
   const [sidebarState, setSidebarState] = useState({
     isVisible: true,
     isExpanded: true,
