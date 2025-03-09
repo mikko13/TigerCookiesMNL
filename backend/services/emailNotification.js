@@ -59,7 +59,7 @@ class emailNotification {
     try {
       const transporter = await this.createTransporter();
       const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from: `Tiger Cookies MNL <${process.env.EMAIL_USER}>`,
         to,
         subject,
         html: htmlContent,
