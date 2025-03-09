@@ -239,7 +239,7 @@ export default function UpdateAccountForm() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Profile Picture
+              Profile Picture <span className="text-red-500">*</span>
             </label>
             <div
               className={`border-2 border-dashed rounded-lg ${
@@ -288,23 +288,24 @@ export default function UpdateAccountForm() {
           <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name <span className="text-red-500">*</span>
+                First Name
               </label>
               <div className="relative">
                 <input
                   type="text"
                   name="firstName"
                   value={user.firstName}
+                  disabled="true"
                   onChange={handleInputChange}
                   placeholder="Enter first name"
-                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border text-gray-400 ${
                     formErrors.firstName
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed`}
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <User className="w-4 h-4 text-gray-500" />
+                  <User className="w-4 h-4 text-gray-400" />
                 </div>
                 {formErrors.firstName && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -317,23 +318,24 @@ export default function UpdateAccountForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name <span className="text-red-500">*</span>
+                Last Name
               </label>
               <div className="relative">
                 <input
                   type="text"
                   name="lastName"
                   value={user.lastName}
+                  disabled="true"
                   onChange={handleInputChange}
                   placeholder="Enter last name"
-                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border  text-gray-400 ${
                     formErrors.lastName
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed`}
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <User className="w-4 h-4 text-gray-500" />
+                  <User className="w-4 h-4 text-gray-400" />
                 </div>
                 {formErrors.lastName && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -346,23 +348,24 @@ export default function UpdateAccountForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email <span className="text-red-500">*</span>
+                Email
               </label>
               <div className="relative">
                 <input
                   type="email"
                   name="email"
                   value={user.email}
+                  disabled="true"
                   onChange={handleInputChange}
                   placeholder="employee@company.com"
-                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border  text-gray-400 ${
                     formErrors.email
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed`}
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Mail className="w-4 h-4 text-gray-500" />
+                  <Mail className="w-4 h-4 text-gray-400" />
                 </div>
                 {formErrors.email && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -423,7 +426,7 @@ export default function UpdateAccountForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address
+                Address <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -448,8 +451,9 @@ export default function UpdateAccountForm() {
                 <select
                   name="gender"
                   value={user.gender || ""}
+                  disabled="true"
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
+                  className="w-full px-4 py-3 pl-10 rounded-lg border  text-gray-400 border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none cursor-not-allowed"
                 >
                   <option value="" disabled>
                     Select Gender
@@ -458,7 +462,7 @@ export default function UpdateAccountForm() {
                   <option value="Female">Female</option>
                 </select>
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <User className="w-4 h-4 text-gray-500" />
+                  <User className="w-4 h-4 text-gray-400" />
                 </div>
                 <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                   <svg
@@ -487,33 +491,35 @@ export default function UpdateAccountForm() {
                   type="date"
                   name="dateOfBirth"
                   value={user.dateOfBirth || ""}
+                  disabled="true"
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                  className="w-full px-4 py-3 pl-10 rounded-lg border text-gray-400 border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed"
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <Calendar className="w-4 h-4 text-gray-400" />
                 </div>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hired Date <span className="text-red-500">*</span>
+                Hired Date
               </label>
               <div className="relative">
                 <input
                   type="date"
                   name="hiredDate"
                   value={user.hiredDate || ""}
+                  disabled="true"
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border  text-gray-400 ${
                     formErrors.hiredDate
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed`}
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <Calendar className="w-4 h-4 text-gray-400" />
                 </div>
                 {formErrors.hiredDate && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -529,18 +535,19 @@ export default function UpdateAccountForm() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Position <span className="text-red-500">*</span>
+              Position
             </label>
             <div className="relative">
               <select
                 name="position"
                 value={user.position || ""}
+                disabled="true"
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                className={`w-full px-4 py-3 pl-10 rounded-lg border  text-gray-400 ${
                   formErrors.position
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300 bg-gray-50"
-                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
+                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none cursor-not-allowed`}
               >
                 <option value="" disabled>
                   Select Position
@@ -554,7 +561,7 @@ export default function UpdateAccountForm() {
                 <option value="Sales Assistant">Sales Assistant</option>
               </select>
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Briefcase className="w-4 h-4 text-gray-500" />
+                <Briefcase className="w-4 h-4 text-gray-400" />
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                 <svg
@@ -588,8 +595,9 @@ export default function UpdateAccountForm() {
               <select
                 name="status"
                 value={user.status || ""}
+                disabled="true"
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
+                className="w-full px-4 py-3 pl-10 rounded-lg border  text-gray-400 border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none cursor-not-allowed"
               >
                 <option value="" disabled>
                   Select Status
@@ -601,7 +609,7 @@ export default function UpdateAccountForm() {
                 <option value="On-Leave">On-Leave</option>
               </select>
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <User className="w-4 h-4 text-gray-500" />
+                <User className="w-4 h-4 text-gray-400" />
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                 <svg
@@ -630,12 +638,13 @@ export default function UpdateAccountForm() {
                 type="number"
                 name="ratePerHour"
                 value={user.ratePerHour || ""}
+                disabled="true"
                 onChange={handleInputChange}
                 placeholder="0.00"
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                className="w-full px-4 py-3 pl-10 rounded-lg border  text-gray-400 border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all cursor-not-allowed"
               />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <DollarSign className="w-4 h-4 text-gray-500" />
+                <DollarSign className="w-4 h-4 text-gray-400" />
               </div>
             </div>
           </div>
@@ -648,8 +657,9 @@ export default function UpdateAccountForm() {
               <select
                 name="shift"
                 value={user.shift || ""}
+                disabled="true"
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
+                className="w-full px-4 py-3 pl-10 rounded-lg border  text-gray-400 border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none cursor-not-allowed"
               >
                 <option value="" disabled>
                   Select Shift
@@ -659,7 +669,7 @@ export default function UpdateAccountForm() {
                 <option value="Night">Night</option>
               </select>
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Clock className="w-4 h-4 text-gray-500" />
+                <Clock className="w-4 h-4 text-gray-400" />
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                 <svg

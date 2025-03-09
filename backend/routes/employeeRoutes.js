@@ -5,10 +5,12 @@ const bcrypt = require("bcryptjs");
 const Account = require("../models/Employees");
 const router = express.Router();
 
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../../frontend/public/employee-profile-pics"));
+    cb(
+      null,
+      path.join(__dirname, "../../frontend/public/employee-profile-pics")
+    );
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -19,7 +21,9 @@ const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
     const fileTypes = /jpeg|jpg|png/;
-    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = fileTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
     const mimetype = fileTypes.test(file.mimetype);
     if (mimetype && extname) {
       return cb(null, true);
@@ -67,7 +71,9 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
     });
 
     if (req.file) {
-      const newFilename = `${account._id}_profilepic${path.extname(req.file.originalname)}`;
+      const newFilename = `${account._id}_profilepic${path.extname(
+        req.file.originalname
+      )}`;
       const newFilePath = path.join(path.dirname(req.file.path), newFilename);
       fs.renameSync(req.file.path, newFilePath);
       account.profilePicture = newFilename;
@@ -114,7 +120,9 @@ router.post("/login", async (req, res) => {
       user: req.session.user,
     });
   } catch (error) {
-    res.status(500).json({ message: "An error occurred", error: error.message });
+    res
+      .status(500)
+      .json({ message: "An error occurred", error: error.message });
   }
 });
 
@@ -146,7 +154,10 @@ router.delete("/:id", async (req, res) => {
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
-    const filePath = path.join(__dirname, `../../frontend/public/employee-profile-pics/${employee.profilePicture}`);
+    const filePath = path.join(
+      __dirname,
+      `../../frontend/public/employee-profile-pics/${employee.profilePicture}`
+    );
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
@@ -199,7 +210,10 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     employee.role = role || employee.role;
 
     if (req.body.profilePicture === "") {
-      const oldFilePath = path.join(__dirname, `../../frontend/public/employee-profile-pics/${employee.profilePicture}`);
+      const oldFilePath = path.join(
+        __dirname,
+        `../../frontend/public/employee-profile-pics/${employee.profilePicture}`
+      );
       if (employee.profilePicture && fs.existsSync(oldFilePath)) {
         fs.unlinkSync(oldFilePath);
       }
@@ -207,11 +221,16 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     }
 
     if (req.file) {
-      const oldFilePath = path.join(__dirname, `../../frontend/public/employee-profile-pics/${employee.profilePicture}`);
+      const oldFilePath = path.join(
+        __dirname,
+        `../../frontend/public/employee-profile-pics/${employee.profilePicture}`
+      );
       if (employee.profilePicture && fs.existsSync(oldFilePath)) {
         fs.unlinkSync(oldFilePath);
       }
-      const newFilename = `${employee._id}_profilepic${path.extname(req.file.originalname)}`;
+      const newFilename = `${employee._id}_profilepic${path.extname(
+        req.file.originalname
+      )}`;
       const newFilePath = path.join(path.dirname(req.file.path), newFilename);
       fs.renameSync(req.file.path, newFilePath);
       employee.profilePicture = newFilename;
