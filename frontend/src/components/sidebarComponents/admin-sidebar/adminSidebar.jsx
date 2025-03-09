@@ -56,7 +56,12 @@ export default function AdminSidebar({
   const sidebarLinks = [
     {
       path: "/ManageEmployeeAccounts",
-      name: "Manage Accounts",
+      name: "Manage Employee Accounts",
+      icon: <User size={20} />,
+    },
+    {
+      path: "/ManageAdminAccounts",
+      name: "Manage Admin Accounts",
       icon: <User size={20} />,
     },
     {
