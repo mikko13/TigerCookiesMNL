@@ -34,7 +34,6 @@ export default function AdminCreateAttendanceForm() {
         const response = await axios.get(`${backendURL}/api/employees`);
         setEmployees(response.data);
       } catch (error) {
-        console.error("Error fetching employees:", error);
         showToast("error", "Failed to load employees data.");
       }
     };
@@ -110,7 +109,6 @@ export default function AdminCreateAttendanceForm() {
       showToast("success", "Attendance recorded successfully!");
       resetForm();
     } catch (error) {
-      console.error("Error recording attendance:", error);
       showToast(
         "error",
         error.response?.data?.message || "Failed to record attendance."

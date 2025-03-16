@@ -40,7 +40,6 @@ export default function EmployeePayrollMain({
         setError(null);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch payroll data");
-        console.error("Error fetching payroll data:", err);
       } finally {
         setLoading(false);
       }

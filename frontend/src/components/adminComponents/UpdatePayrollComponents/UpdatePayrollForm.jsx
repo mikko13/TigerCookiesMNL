@@ -143,7 +143,6 @@ export default function UpdatePayrollForm({ onUpdateSuccess }) {
           }
         }
       } catch (error) {
-        console.error("Error fetching payroll record:", error);
         showToast("error", "Failed to load payroll data.");
         setInitialLoading(false);
       }
@@ -154,7 +153,6 @@ export default function UpdatePayrollForm({ onUpdateSuccess }) {
         const response = await axios.get(`${backendURL}/api/employees`);
         setEmployees(response.data);
       } catch (error) {
-        console.error("Error fetching employees:", error);
         showToast("error", "Failed to load employees data.");
       }
     };
@@ -305,7 +303,6 @@ export default function UpdatePayrollForm({ onUpdateSuccess }) {
         setTimeout(() => navigate("/ManageEmployeePayroll"), 2000);
       }
     } catch (error) {
-      console.error("Error updating payroll record:", error);
       showToast(
         "error",
         error.response?.data?.message || "Failed to update payroll record."

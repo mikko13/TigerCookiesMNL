@@ -42,7 +42,6 @@ export default function UpdateAttendanceForm() {
         const response = await axios.get(`${backendURL}/api/employees`);
         setEmployees(response.data);
       } catch (error) {
-        console.error("Error fetching employees:", error);
         showToast("error", "Failed to load employees data.");
       }
     };
@@ -145,7 +144,6 @@ export default function UpdateAttendanceForm() {
         navigate("/ManageEmployeeAttendance");
       }, 2000);
     } catch (error) {
-      console.error("Error updating attendance:", error);
       showToast(
         "error",
         error.response?.data?.message || "Failed to update attendance."

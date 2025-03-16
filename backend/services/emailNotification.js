@@ -2,7 +2,6 @@ require("dotenv").config();
 const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 
-// Create a more robust email service with OAuth2 and fallback options
 class emailNotification {
   constructor() {
     this.oauth2Client = new google.auth.OAuth2(
@@ -18,7 +17,6 @@ class emailNotification {
 
   async createTransporter() {
     try {
-      // Try OAuth2 first
       const accessTokenResponse = await this.oauth2Client.getAccessToken();
       if (!accessTokenResponse || !accessTokenResponse.token) {
         throw new Error("Failed to obtain access token");
@@ -39,7 +37,6 @@ class emailNotification {
         },
       });
     } catch (error) {
-      console.log("OAuth authentication failed, falling back to password auth:", error.message);
       
       // Fallback to password authentication
       return nodemailer.createTransport({
@@ -66,9 +63,7 @@ class emailNotification {
       };
 
       await transporter.sendMail(mailOptions);
-      console.log(`📩 Email sent to ${to}`);
     } catch (error) {
-      console.error("❌ Error sending email:", error);
     }
   }
 

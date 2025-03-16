@@ -23,7 +23,6 @@ export function useLoginState() {
           navigate("/checkin");
         }
       } catch (error) {
-        console.log("Not logged in");
       }
     };
     checkSession();

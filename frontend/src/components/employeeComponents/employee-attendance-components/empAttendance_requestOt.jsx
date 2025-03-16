@@ -21,7 +21,6 @@ export default function EmpAttendanceRequestOt() {
         );
         setLastOvertime(response.data);
       } catch (err) {
-        console.error("Error fetching last overtime request:", err);
       }
     };
     fetchLastOvertime();

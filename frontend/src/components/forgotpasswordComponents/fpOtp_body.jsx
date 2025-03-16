@@ -72,8 +72,6 @@ export default function FpOtpBody() {
 
     const email = sessionStorage.getItem("emailForOTP");
 
-    console.log("Submitting OTP:", otp, "for email:", email);
-
     if (!email) {
       setError("Session expired. Please request a new OTP.");
       return;
@@ -90,20 +88,13 @@ export default function FpOtpBody() {
         { email, otp }
       );
 
-      console.log("API Response:", response.data); // Debugging log
-
       if (response.data.success) {
         sessionStorage.setItem("verifiedEmail", email);
         navigate("/forgotpasswordconfirm");
       } else {
-        console.error("OTP Verification Failed:", response.data);
         setError(response.data.message || "Invalid OTP. Please try again.");
       }
     } catch (error) {
-      console.error(
-        "Error submitting OTP:",
-        error.response?.data || error.message
-      );
       setError(
         error.response?.data?.message ||
           "An error occurred. Please try again later."

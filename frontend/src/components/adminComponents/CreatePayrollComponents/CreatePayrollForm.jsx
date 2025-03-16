@@ -52,7 +52,6 @@ export default function CreatePayrollForm() {
         const response = await axios.get(`${backendURL}/api/employees`);
         setEmployees(response.data);
       } catch (error) {
-        console.error("Error fetching employees:", error);
         showToast("error", "Failed to load employees data.");
       }
     };
@@ -195,7 +194,6 @@ export default function CreatePayrollForm() {
       showToast("success", "Payroll record created successfully!");
       resetForm();
     } catch (error) {
-      console.error("Error creating payroll record:", error);
       showToast(
         "error",
         error.response?.data?.message || "Failed to create payroll record."

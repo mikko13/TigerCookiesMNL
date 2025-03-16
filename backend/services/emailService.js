@@ -1,9 +1,7 @@
-// emailService.js - Create this as a separate module
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 
-// Create a more robust email service with OAuth2 and fallback options
 class EmailService {
   constructor() {
     this.oauth2Client = new google.auth.OAuth2(
@@ -40,7 +38,6 @@ class EmailService {
         },
       });
     } catch (error) {
-      console.log("OAuth authentication failed, falling back to password auth:", error.message);
       
       // Fallback to password authentication
       return nodemailer.createTransport({
@@ -71,10 +68,8 @@ class EmailService {
       };
 
       const info = await transporter.sendMail(mailOptions);
-      console.log("✅ Email sent successfully:", info.messageId);
       return { success: true, message: "Email sent successfully" };
     } catch (error) {
-      console.error("❌ Failed to send email:", error);
       return { 
         success: false, 
         message: `Failed to send email: ${error.message}`,

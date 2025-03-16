@@ -19,7 +19,6 @@ const handleAdminDelete = async (id) => {
       Swal.fire("Deleted!", "Admin deleted successfully.", "success");
       window.location.reload();
     } catch (error) {
-      console.error("Error deleting admin:", error);
       Swal.fire("Error", "Error deleting admin", "error");
     }
   }

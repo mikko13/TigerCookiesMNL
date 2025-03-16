@@ -19,7 +19,6 @@ const handleDelete = async (id) => {
       Swal.fire("Deleted!", "Employee deleted successfully.", "success");
       window.location.reload();
     } catch (error) {
-      console.error("Error deleting employee:", error);
       Swal.fire("Error", "Error deleting employee", "error");
     }
   }

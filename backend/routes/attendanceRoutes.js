@@ -104,7 +104,6 @@ router.post(
         attendance: newAttendance,
       });
     } catch (error) {
-      console.error("Error saving attendance:", error);
       res
         .status(500)
         .json({ success: false, message: "Server error. Try again later." });
@@ -327,7 +326,6 @@ router.put(
         attendance: attendanceRecord,
       });
     } catch (error) {
-      console.error("Error updating attendance:", error);
       res.status(500).json({ message: "Server error. Please try again." });
     }
   }

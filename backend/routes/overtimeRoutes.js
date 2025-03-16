@@ -5,31 +5,25 @@ const Admin = require("../models/Admin");
 const Employee = require("../models/Employees");
 const emailNotification = require("../services/emailNotification");
 
-// 🔹 Function to send email notifications
 async function notifyAdmins(employeeID, overtimeTime, overtimeNote) {
   try {
-    // Fetch employee details using the Account model
     const employee = await Employee.findById(employeeID);
     if (!employee) {
-      console.error("Employee not found.");
       return;
     }
 
-    // Construct the full name correctly
     const employeeFullName = `${employee.firstName} ${employee.lastName}`;
 
-    // Fetch all admin emails
     const admins = await Admin.find({}, "firstName lastName email");
     const adminEmails = admins.map((admin) => admin.email).filter(Boolean);
 
     if (adminEmails.length > 0) {
-      // Send email notification to all admins
       await Promise.all(
         admins.map((admin) =>
           emailNotification.sendOvertimeRequestEmail(
             admin.email,
-            `${admin.firstName} ${admin.lastName}`, // Admin's full name
-            employeeFullName, // Correctly formatted employee name
+            `${admin.firstName} ${admin.lastName}`,
+            employeeFullName,
             overtimeTime,
             overtimeNote
           )
@@ -37,30 +31,24 @@ async function notifyAdmins(employeeID, overtimeTime, overtimeNote) {
       );
     }
   } catch (error) {
-    console.error("Error sending email notifications:", error);
   }
 }
 
-// 🔹 POST: Create a new overtime request
 router.post("/", async (req, res) => {
   try {
     const { employeeID, overtimeTime, overtimeNote } = req.body;
 
-    // Create new overtime request
     const overtimeRequest = new Overtime(req.body);
     const newOvertime = await overtimeRequest.save();
 
-    // Trigger email notification in the background (no delay for user response)
     notifyAdmins(employeeID, overtimeTime, overtimeNote);
 
     res.status(201).json(newOvertime);
   } catch (error) {
-    console.error("Error submitting overtime request:", error);
     res.status(500).json({ message: "Failed to submit overtime request." });
   }
 });
 
-// 🔹 GET: Fetch overtime records for a specific employee
 router.get("/", async (req, res) => {
   try {
     const { employeeID } = req.query;
@@ -75,7 +63,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 🔹 GET: Fetch all overtime records
 router.get("/all", async (req, res) => {
   try {
     const overtimeRecords = await Overtime.find();
@@ -85,7 +72,6 @@ router.get("/all", async (req, res) => {
   }
 });
 
-// 🔹 PUT: Update an overtime record status
 router.put("/update/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -101,7 +87,6 @@ router.put("/update/:id", async (req, res) => {
   }
 });
 
-// 🔹 DELETE: Remove an overtime record
 router.delete("/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;

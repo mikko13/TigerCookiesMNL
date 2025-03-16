@@ -61,7 +61,6 @@ const generatePayslipPDF = (record) => {
     });
     finalY = doc.lastAutoTable.finalY;
   } catch (e) {
-    console.warn("Standard autoTable approach failed, trying alternative:", e);
 
     try {
       const { autoTable } = require("jspdf-autotable");
@@ -75,7 +74,6 @@ const generatePayslipPDF = (record) => {
       });
       finalY = doc.lastAutoTable.finalY;
     } catch (e2) {
-      console.error("Both autoTable approaches failed:", e2);
       finalY = 140;
     }
   }

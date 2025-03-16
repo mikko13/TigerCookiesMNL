@@ -14,17 +14,10 @@ const useEmployeeOvertime = () => {
   useEffect(() => {
     const fetchAllOvertime = async () => {
       try {
-        console.log("📡 Fetching all overtime records...");
         const response = await axios.get(`${backendURL}/api/overtime/all`);
-        console.log(
-          `✅ Total Overtime Records Fetched: ${response.data.length}`
-        );
         setOvertime(response.data);
       } catch (error) {
-        console.error(
-          "❌ Error fetching overtime records:",
-          error.response?.data || error.message
-        );
+
       } finally {
         setLoading(false);
       }

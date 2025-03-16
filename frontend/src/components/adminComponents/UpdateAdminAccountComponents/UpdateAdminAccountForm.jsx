@@ -66,7 +66,6 @@ export default function UpdateAdminAccountForm() {
 
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching admin data:", error);
         showToast("error", "Failed to load admin data");
         setLoading(false);
       }
@@ -164,12 +163,10 @@ export default function UpdateAdminAccountForm() {
 
       showToast("success", "Admin account updated successfully!");
 
-      // Delay navigation to show success toast
       setTimeout(() => {
         navigate("/ManageAdminAccounts");
       }, 2000);
     } catch (error) {
-      console.error("Error updating admin:", error);
       showToast("error", "Failed to update admin account.");
       setLoading(false);
     }

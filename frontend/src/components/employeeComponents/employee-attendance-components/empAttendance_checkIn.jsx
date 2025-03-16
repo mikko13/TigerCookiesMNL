@@ -22,7 +22,6 @@ export default function EmpAttendanceCheckIn() {
         );
         setAlreadyCheckedIn(response.data.checkedIn);
       } catch (error) {
-        console.error("Error checking attendance status:", error);
       }
       setLoading(false);
     };

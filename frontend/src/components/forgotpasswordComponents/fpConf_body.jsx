@@ -105,7 +105,6 @@ export default function FpConfBody({ showToast }) {
         );
       }
     } catch (error) {
-      console.error("Error resetting password:", error);
       setError("An error occurred. Please try again.");
       showToast("error", "An error occurred. Please try again.");
     } finally {

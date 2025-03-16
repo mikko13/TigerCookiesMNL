@@ -23,7 +23,6 @@ export default function ManagePayrollMain({
         const response = await axios.get(`${backendURL}/api/payroll`);
         setPayrolls(response.data);
       } catch (error) {
-        console.error("Error fetching payrolls:", error);
       } finally {
         setLoading(false);
       }
@@ -79,7 +78,6 @@ export default function ManagePayrollMain({
           "success"
         );
       } catch (error) {
-        console.error("Error deleting payroll:", error);
         Swal.fire(
           "Error!",
           "There was an error deleting the payroll record.",
@@ -114,7 +112,6 @@ export default function ManagePayrollMain({
           "success"
         );
       } catch (error) {
-        console.error("Error publishing payroll:", error);
         Swal.fire(
           "Error!",
           "There was an error publishing the payroll record.",

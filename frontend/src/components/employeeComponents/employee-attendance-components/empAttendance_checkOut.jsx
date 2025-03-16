@@ -32,7 +32,6 @@ export default function EmpAttendanceCheckOut() {
           setAlreadyCheckedOut(checkOutResponse.data.checkedOut);
         }
       } catch (error) {
-        console.error("Error fetching attendance status:", error);
       }
       setLoading(false);
     };

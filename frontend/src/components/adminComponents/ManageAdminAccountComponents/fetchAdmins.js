@@ -11,7 +11,6 @@ export const useAdmins = () => {
         const response = await axios.get(`${backendURL}/api/admins`);
         setAdmins(response.data);
       } catch (error) {
-        console.error("Error fetching admins data:", error);
       }
     };
 

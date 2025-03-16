@@ -11,7 +11,6 @@ export const useEmployees = () => {
         const response = await axios.get(`${backendURL}/api/employees`);
         setEmployees(response.data);
       } catch (error) {
-        console.error("Error fetching employees data:", error);
       }
     };
 

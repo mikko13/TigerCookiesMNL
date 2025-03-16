@@ -200,7 +200,6 @@ export default function CreateAccountForm({ onRoleChange }) {
       showToast("success", successMessage);
       resetForm();
     } catch (error) {
-      console.error("Error creating account:", error);
       showToast("error", error.message || "Failed to create account.");
     } finally {
       setLoading(false);

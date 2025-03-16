@@ -39,7 +39,6 @@ export default function EmpAttendanceCheckInPage() {
         backgroundAttachment: "fixed",
       }}
     >
-      {/* Mobile toggle button */}
       {isMobile && !isSidebarVisible && (
         <button
           onClick={toggleSidebar}
@@ -50,7 +49,6 @@ export default function EmpAttendanceCheckInPage() {
         </button>
       )}
 
-      {/* Overlay for mobile when sidebar is open */}
       {isMobile && isSidebarVisible && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
@@ -58,7 +56,6 @@ export default function EmpAttendanceCheckInPage() {
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`transition-all duration-300 ease-in-out ${
           !isSidebarVisible
@@ -75,7 +72,6 @@ export default function EmpAttendanceCheckInPage() {
         )}
       </div>
 
-      {/* Main content */}
       <main
         className={`flex-1 transition-all duration-300 ease-in-out flex items-center justify-center p-4 ${
           isMobile ? "w-full" : ""

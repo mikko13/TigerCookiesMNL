@@ -37,7 +37,6 @@ const handleDelete = async (attendanceID, setAttendance) => {
       }
     }
   } catch (error) {
-    console.error("Error deleting attendance record:", error);
     Swal.fire({
       title: "Error",
       text: "Server error. Please try again later.",

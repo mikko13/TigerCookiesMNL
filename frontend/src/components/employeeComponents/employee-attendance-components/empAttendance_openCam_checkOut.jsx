@@ -28,7 +28,6 @@ export default function EmpAttendanceOpenCamCheckOut() {
         faceapi.nets.faceExpressionNet.loadFromUri("/models"),
       ]);
 
-      console.log("Face API models loaded!");
       setMessage("Face detection ready. Please position yourself.");
 
       setTimeout(() => startFaceDetection(), 500);
@@ -69,7 +68,6 @@ export default function EmpAttendanceOpenCamCheckOut() {
         return;
       }
     } catch (error) {
-      console.error("Error fetching attendance status:", error);
       navigate("/CheckOut");
     }
     setLoading(false);
@@ -193,8 +191,6 @@ export default function EmpAttendanceOpenCamCheckOut() {
         }
       );
 
-      console.log("Server Response:", response.data);
-
       if (response.data.success) {
         await Swal.fire({
           title: "Check Out Successful!",
@@ -213,7 +209,6 @@ export default function EmpAttendanceOpenCamCheckOut() {
         });
       }
     } catch (error) {
-      console.error("Error submitting attendance:", error);
 
       await Swal.fire({
         title: "Error",

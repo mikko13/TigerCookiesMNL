@@ -50,18 +50,14 @@ export default function UpdateAccountForm() {
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    // First check localStorage for logged-in user data
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
 
-    // If we have employee ID in URL params, prioritize fetching that specific employee
     if (employeeId) {
       fetchEmployeeData(employeeId);
     }
-    // Otherwise use the logged-in user data from localStorage
     else if (loggedInUser && loggedInUser.id) {
       fetchEmployeeData(loggedInUser.id);
     } else {
-      // If no params and no localStorage, check session
       checkSession();
     }
   }, [employeeId]);
@@ -71,14 +67,11 @@ export default function UpdateAccountForm() {
       setLoading(true);
       const response = await axios.get(`${backendURL}/api/employees/session`);
       if (response.data && response.data.user) {
-        // If we get session data, fetch the full employee details
         fetchEmployeeData(response.data.user.id);
-        // Also update localStorage
         localStorage.setItem("user", JSON.stringify(response.data.user));
       }
       setLoading(false);
     } catch (error) {
-      console.error("Session check failed:", error);
       showToast("error", "Unable to verify your session");
       setLoading(false);
     }
@@ -102,7 +95,6 @@ export default function UpdateAccountForm() {
 
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching employee data:", error);
       showToast("error", "Failed to load employee data");
       setLoading(false);
     }
@@ -221,7 +213,6 @@ export default function UpdateAccountForm() {
         navigate("/ManageEmployeeAccounts");
       }, 2000);
     } catch (error) {
-      console.error("Error updating employee:", error);
       showToast("error", "Failed to update account.");
     } finally {
       setLoading(false);

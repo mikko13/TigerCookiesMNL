@@ -28,7 +28,6 @@ export default function EmpAttendanceOpenCam() {
         faceapi.nets.faceExpressionNet.loadFromUri("/models"),
       ]);
 
-      console.log("Face API models loaded!");
       setMessage("Face detection ready. Please position yourself.");
 
       setTimeout(() => startFaceDetection(), 500);
@@ -56,7 +55,6 @@ export default function EmpAttendanceOpenCam() {
         navigate("/CheckIn");
       }
     } catch (error) {
-      console.error("Error checking attendance status:", error);
     }
     setLoading(false);
   };
@@ -177,8 +175,6 @@ export default function EmpAttendanceOpenCam() {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      console.log("Server Response:", response.data);
-
       if (response.data.success) {
         await Swal.fire({
           title: "Check-In Successful!",
@@ -197,7 +193,6 @@ export default function EmpAttendanceOpenCam() {
         });
       }
     } catch (error) {
-      console.error("Error submitting attendance:", error);
 
       await Swal.fire({
         title: "Error",

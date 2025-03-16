@@ -43,7 +43,6 @@ router.post("/send-otp", async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
-    console.error("Error in send-otp route:", error);
     res
       .status(500)
       .json({ error: "Internal server error", message: error.message });
@@ -70,7 +69,6 @@ router.post("/verify-otp", async (req, res) => {
 
     if (!isMatch) return res.status(400).json({ message: "Invalid OTP." });
 
-    // Update only the necessary fields
     await Employee.updateOne(
       { _id: user._id },
       { $set: { otp: null, otpExpires: null } }
@@ -78,14 +76,12 @@ router.post("/verify-otp", async (req, res) => {
 
     res.json({ success: true, message: "OTP verified successfully." });
   } catch (error) {
-    console.error("Error in verify-otp route:", error);
     res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
   }
 });
 
-// Reset Password
 router.post("/reset-password", async (req, res) => {
   const { email, password } = req.body;
 
@@ -95,28 +91,21 @@ router.post("/reset-password", async (req, res) => {
       .json({ message: "Email and password are required." });
 
   try {
-    console.log(`Finding user with email: ${email} for password reset`);
     const user = await Employee.findOne({ email });
 
     if (!user) {
-      console.log("User not found for password reset");
       return res.status(404).json({ message: "User not found." });
     }
 
-    console.log("User found, hashing new password");
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Use updateOne to avoid validation errors
-    console.log("Updating user password");
     await Employee.updateOne(
       { _id: user._id },
       { $set: { password: hashedPassword } }
     );
 
-    console.log("Password updated successfully");
     res.json({ success: true, message: "Password updated successfully." });
   } catch (error) {
-    console.error("Error in reset-password route:", error);
     res
       .status(500)
       .json({ message: "Internal server error", error: error.message });

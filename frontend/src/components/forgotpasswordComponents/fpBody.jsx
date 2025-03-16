@@ -63,7 +63,6 @@ export default function FPBody({ showToast }) {
         showToast("error", "Email not found in our records");
       }
     } catch (error) {
-      console.error("Error sending OTP:", error);
       showToast("error", "An error occurred. Please try again later.");
     } finally {
       setIsLoading(false);

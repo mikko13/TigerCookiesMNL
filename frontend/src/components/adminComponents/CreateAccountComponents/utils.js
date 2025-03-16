@@ -9,7 +9,6 @@ export const handleSubmitForm = async (formData, profilePicture, setToast) => {
     form.append("profilePicture", profilePicture);
   }
 
-  // Determine endpoint and success message based on role (default to "employee")
   const role = formData.role ? formData.role.toLowerCase() : "employee";
   const endpoint = role === "admin" ? "admins" : "employees";
   const successMessage =

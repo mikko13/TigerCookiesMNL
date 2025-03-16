@@ -70,7 +70,6 @@ export default function UpdateAccountForm() {
 
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching employee data:", error);
         showToast("error", "Failed to load employee data");
         setLoading(false);
       }
@@ -175,7 +174,6 @@ export default function UpdateAccountForm() {
         navigate("/ManageEmployeeAccounts");
       }, 2000);
     } catch (error) {
-      console.error("Error updating employee:", error);
       showToast("error", "Failed to update employee account.");
       setLoading(false);
     }
