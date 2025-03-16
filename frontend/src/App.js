@@ -29,6 +29,7 @@ import AdminUpdatePayroll from "./components/adminComponents/UpdatePayrollCompon
 import AdminManageOvertime from "./components/adminComponents/ManageAttendanceComponents/ManageAttendanceOT";
 
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import EmployeeProtectedRoute from "./components/EmployeeProtectedRoute";
 
 import NotFound from "./components/NotFound";
 
@@ -38,33 +39,39 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login />} />
 
-        {/* Employee Side */}
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
         <Route path="/ForgotPasswordOtp" element={<ForgotPasswordOtp />} />
         <Route
           path="/ForgotPasswordConfirm"
           element={<ForgotPasswordConfirm />}
         />
-        <Route path="/Opencam" element={<EmployeeAttendanceOpenCam />} />
-        <Route
-          path="/Opencamcheckout"
-          element={<EmployeeAttendanceOpenCamCheckOut />}
-        />
-        <Route path="/Checkin" element={<EmployeeAttendanceChkIn />} />
-        <Route path="/Checkout" element={<EmployeeAttendanceChkOut />} />
-        <Route path="/Requestovertime" element={<EmployeeAttendanceReqOT />} />
-        <Route
-          path="/Overtimerecords"
-          element={<EmployeeManageAttendanceOT />}
-        />
-        <Route
-          path="/ManageAttendance"
-          element={<EmployeeManageAttendance />}
-        />
-        <Route path="/ManageAccount" element={<EmployeeManageAccount />} />
-        <Route path="/Payroll" element={<EmployeePayroll />} />
 
-        {/* Admin Side (Protected) */}
+        {/* Employee Side */}
+        <Route element={<EmployeeProtectedRoute />}>
+          <Route path="/Opencam" element={<EmployeeAttendanceOpenCam />} />
+          <Route
+            path="/Opencamcheckout"
+            element={<EmployeeAttendanceOpenCamCheckOut />}
+          />
+          <Route path="/Checkin" element={<EmployeeAttendanceChkIn />} />
+          <Route path="/Checkout" element={<EmployeeAttendanceChkOut />} />
+          <Route
+            path="/Requestovertime"
+            element={<EmployeeAttendanceReqOT />}
+          />
+          <Route
+            path="/Overtimerecords"
+            element={<EmployeeManageAttendanceOT />}
+          />
+          <Route
+            path="/ManageAttendance"
+            element={<EmployeeManageAttendance />}
+          />
+          <Route path="/ManageAccount" element={<EmployeeManageAccount />} />
+          <Route path="/Payroll" element={<EmployeePayroll />} />
+        </Route>
+
+        {/* Admin Side */}
         <Route element={<AdminProtectedRoute />}>
           <Route
             path="/ManageEmployeeAccounts"
