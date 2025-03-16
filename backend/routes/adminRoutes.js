@@ -20,7 +20,9 @@ const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
     const fileTypes = /jpeg|jpg|png/;
-    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = fileTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
     const mimetype = fileTypes.test(file.mimetype);
     if (mimetype && extname) {
       return cb(null, true);
@@ -38,6 +40,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       firstName,
       lastName,
       email,
+      phone,
       password,
       address,
       gender,
@@ -61,6 +64,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       firstName,
       lastName,
       email,
+      phone,
       password: hashedPassword,
       address,
       gender,
@@ -73,14 +77,18 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
     });
 
     if (req.file) {
-      const newFilename = `${admin._id}_profilepic${path.extname(req.file.originalname)}`;
+      const newFilename = `${admin._id}_profilepic${path.extname(
+        req.file.originalname
+      )}`;
       const newFilePath = path.join(path.dirname(req.file.path), newFilename);
       fs.renameSync(req.file.path, newFilePath);
       admin.profilePicture = newFilename;
     }
 
     await admin.save();
-    res.status(201).json({ message: "Admin account created successfully", admin });
+    res
+      .status(201)
+      .json({ message: "Admin account created successfully", admin });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -104,11 +112,16 @@ router.post("/login", async (req, res) => {
       firstName: admin.firstName,
       lastName: admin.lastName,
       email: admin.email,
+      phone: admin.phone,
       role: admin.role,
     };
-    res.status(200).json({ message: "Login successful", user: req.session.user });
+    res
+      .status(200)
+      .json({ message: "Login successful", user: req.session.user });
   } catch (error) {
-    res.status(500).json({ message: "An error occurred", error: error.message });
+    res
+      .status(500)
+      .json({ message: "An error occurred", error: error.message });
   }
 });
 
@@ -162,6 +175,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     firstName,
     lastName,
     email,
+    phone,
     password,
     address,
     gender,
@@ -187,6 +201,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     admin.firstName = firstName || admin.firstName;
     admin.lastName = lastName || admin.lastName;
     admin.email = email || admin.email;
+    admin.phone = phone || admin.phone;
     admin.address = address || admin.address;
     admin.gender = gender || admin.gender;
     admin.dateOfBirth = dateOfBirth || admin.dateOfBirth;
@@ -198,7 +213,10 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
 
     // If front-end sends an empty profilePicture field, remove the file
     if (req.body.profilePicture === "") {
-      const oldFilePath = path.join(__dirname, `../../frontend/public/admin-profile-pics/${admin.profilePicture}`);
+      const oldFilePath = path.join(
+        __dirname,
+        `../../frontend/public/admin-profile-pics/${admin.profilePicture}`
+      );
       if (admin.profilePicture && fs.existsSync(oldFilePath)) {
         fs.unlinkSync(oldFilePath);
       }
@@ -207,11 +225,16 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
 
     // If a new file is uploaded, update the profile picture
     if (req.file) {
-      const oldFilePath = path.join(__dirname, `../../frontend/public/admin-profile-pics/${admin.profilePicture}`);
+      const oldFilePath = path.join(
+        __dirname,
+        `../../frontend/public/admin-profile-pics/${admin.profilePicture}`
+      );
       if (admin.profilePicture && fs.existsSync(oldFilePath)) {
         fs.unlinkSync(oldFilePath);
       }
-      const newFilename = `${admin._id}_profilepic${path.extname(req.file.originalname)}`;
+      const newFilename = `${admin._id}_profilepic${path.extname(
+        req.file.originalname
+      )}`;
       const newFilePath = path.join(path.dirname(req.file.path), newFilename);
       fs.renameSync(req.file.path, newFilePath);
       admin.profilePicture = newFilename;
@@ -238,7 +261,10 @@ router.delete("/:id", async (req, res) => {
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }
-    const filePath = path.join(__dirname, `../../frontend/public/admin-profile-pics/${admin.profilePicture}`);
+    const filePath = path.join(
+      __dirname,
+      `../../frontend/public/admin-profile-pics/${admin.profilePicture}`
+    );
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }

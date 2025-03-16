@@ -12,6 +12,7 @@ import {
   DollarSign,
   Briefcase,
   Mail,
+  Phone,
   Lock,
   Home,
   User,
@@ -23,11 +24,12 @@ import { backendURL } from "../../../urls/URL";
 export default function UpdateAccountForm() {
   const { employeeId } = useParams();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
     password: "",
     address: "",
     gender: "",
@@ -54,16 +56,18 @@ export default function UpdateAccountForm() {
         const response = await axios.get(
           `${backendURL}/api/employees/${employeeId}`
         );
-        
+
         const employeeData = response.data;
         setFormData(employeeData);
-        
+
         // Handle profile picture
         if (employeeData.profilePicture) {
           setProfilePicture(employeeData.profilePicture);
-          setProfilePreview(`/employee-profile-pics/${employeeData.profilePicture}`);
+          setProfilePreview(
+            `/employee-profile-pics/${employeeData.profilePicture}`
+          );
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching employee data:", error);
@@ -95,7 +99,7 @@ export default function UpdateAccountForm() {
 
       setProfilePicture(file);
       setProfilePictureToDelete(false);
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfilePreview(reader.result);
@@ -121,7 +125,11 @@ export default function UpdateAccountForm() {
     if (!formData.firstName) errors.firstName = "First name is required";
     if (!formData.lastName) errors.lastName = "Last name is required";
     if (!formData.email) errors.email = "Email is required";
-    if (changePassword && !formData.password) errors.password = "Password is required";
+    if (!formData.phone) errors.phone = "Phone number is required";
+    else if (!/^(\+63|0)9\d{9}$/.test(formData.phone))
+      errors.phone = "Phone number is invalid";
+    if (changePassword && !formData.password)
+      errors.password = "Password is required";
     if (!formData.position) errors.position = "Position is required";
     if (!formData.hiredDate) errors.hiredDate = "Hired date is required";
 
@@ -141,8 +149,8 @@ export default function UpdateAccountForm() {
 
     // Create FormData object
     const formDataToSend = new FormData();
-    Object.keys(formData).forEach(key => {
-      if (key !== 'password' || (key === 'password' && changePassword)) {
+    Object.keys(formData).forEach((key) => {
+      if (key !== "password" || (key === "password" && changePassword)) {
         formDataToSend.append(key, formData[key]);
       }
     });
@@ -163,12 +171,11 @@ export default function UpdateAccountForm() {
       );
 
       showToast("success", "Employee account updated successfully!");
-      
+
       // Delay navigation to show success toast
       setTimeout(() => {
         navigate("/ManageEmployeeAccounts");
       }, 2000);
-      
     } catch (error) {
       console.error("Error updating employee:", error);
       showToast("error", "Failed to update employee account.");
@@ -328,9 +335,39 @@ export default function UpdateAccountForm() {
               </div>
             </div>
 
+            {/* Phone Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Number <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 09171234567"
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                    formErrors.phone
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-gray-50"
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Phone className="w-4 h-4 text-gray-500" />
+                </div>
+                {formErrors.phone && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.phone}
+                  </p>
+                )}
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                Password 
+                Password
                 {changePassword && <span className="text-red-500 ml-1">*</span>}
                 <div className="ml-auto">
                   <input
@@ -340,7 +377,10 @@ export default function UpdateAccountForm() {
                     onChange={() => setChangePassword(!changePassword)}
                     className="mr-2"
                   />
-                  <label htmlFor="changePassword" className="text-xs text-gray-500">
+                  <label
+                    htmlFor="changePassword"
+                    className="text-xs text-gray-500"
+                  >
                     Change password
                   </label>
                 </div>
@@ -579,7 +619,7 @@ export default function UpdateAccountForm() {
             </label>
             <div className="relative">
               <input
-                type="number"
+                type="tel"
                 name="ratePerHour"
                 value={formData.ratePerHour}
                 onChange={handleInputChange}

@@ -22,7 +22,11 @@ router.post("/send-otp", async (req, res) => {
     const hashedOTP = await bcrypt.hash(String(otp), 10);
 
     // Use your email service to send the OTP
-    const response = await emailService.sendOTPEmail(email, user.firstName, otp);
+    const response = await emailService.sendOTPEmail(
+      email,
+      user.firstName,
+      otp
+    );
     if (!response.success) {
       return res.status(500).json(response);
     }
@@ -33,7 +37,9 @@ router.post("/send-otp", async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error", message: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal server error", message: error.message });
   }
 });
 
@@ -56,7 +62,9 @@ router.post("/verify-otp", async (req, res) => {
     await user.save();
     res.json({ success: true, message: "OTP verified successfully." });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 });
 
@@ -64,7 +72,9 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/reset-password", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
-    return res.status(400).json({ message: "Email and password are required." });
+    return res
+      .status(400)
+      .json({ message: "Email and password are required." });
   try {
     const user = await Employee.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found." });
@@ -72,7 +82,9 @@ router.post("/reset-password", async (req, res) => {
     await user.save();
     res.json({ success: true, message: "Password updated successfully." });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 });
 
@@ -107,10 +119,13 @@ router.post("/", async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      phone: user.phone,
       role: role,
     };
 
-    res.status(200).json({ message: "Login successful", user: req.session.user });
+    res
+      .status(200)
+      .json({ message: "Login successful", user: req.session.user });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

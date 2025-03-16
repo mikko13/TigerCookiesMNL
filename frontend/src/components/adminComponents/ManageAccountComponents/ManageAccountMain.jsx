@@ -30,12 +30,13 @@ export default function ManageAccountMain({ searchTerm }) {
 
   const filteredEmployees = employees.filter((employee) => {
     if (!searchTerm) return true;
-    
+
     const lowerQuery = searchTerm.toLowerCase();
     return (
       employee.firstName.toLowerCase().includes(lowerQuery) ||
       employee.lastName.toLowerCase().includes(lowerQuery) ||
       employee.email.toLowerCase().includes(lowerQuery) ||
+      employee.phone.toLowerCase().includes(lowerQuery) ||
       employee.address.toLowerCase().includes(lowerQuery) ||
       employee.gender.toLowerCase().includes(lowerQuery) ||
       employee.dateOfBirth.toLowerCase().includes(lowerQuery) ||
@@ -126,6 +127,10 @@ export default function ManageAccountMain({ searchTerm }) {
                           <p className="font-medium">{employee.email}</p>
                         </div>
                         <div>
+                          <p className="text-gray-500">Phone Number</p>
+                          <p className="font-medium">{employee.phone}</p>
+                        </div>
+                        <div>
                           <p className="text-gray-500">Address</p>
                           <p className="font-medium">{employee.address}</p>
                         </div>
@@ -192,6 +197,9 @@ export default function ManageAccountMain({ searchTerm }) {
                       Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Phone Number
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Gender
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -239,6 +247,9 @@ export default function ManageAccountMain({ searchTerm }) {
                         {employee.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {employee.phone}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {employee.gender}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
@@ -267,7 +278,7 @@ export default function ManageAccountMain({ searchTerm }) {
                             <Edit size={18} />
                           </Link>
                           <button
-                            onClick={() =>handleDelete(employee._id)}
+                            onClick={() => handleDelete(employee._id)}
                             className="text-red-600 hover:text-red-800 transition-colors"
                             title="Delete"
                           >

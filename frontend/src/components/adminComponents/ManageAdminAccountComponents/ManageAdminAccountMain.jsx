@@ -36,6 +36,7 @@ export default function ManageAdminAccountMain({ searchTerm }) {
       admin.firstName.toLowerCase().includes(lowerQuery) ||
       admin.lastName.toLowerCase().includes(lowerQuery) ||
       admin.email.toLowerCase().includes(lowerQuery) ||
+      admin.phone.toLowerCase().includes(lowerQuery) ||
       admin.address.toLowerCase().includes(lowerQuery) ||
       admin.gender.toLowerCase().includes(lowerQuery) ||
       admin.dateOfBirth.toLowerCase().includes(lowerQuery) ||
@@ -126,6 +127,10 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                           <p className="font-medium">{admin.email}</p>
                         </div>
                         <div>
+                          <p className="text-gray-500">Phone Number</p>
+                          <p className="font-medium">{admin.phone}</p>
+                        </div>
+                        <div>
                           <p className="text-gray-500">Address</p>
                           <p className="font-medium">{admin.address}</p>
                         </div>
@@ -192,6 +197,9 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                       Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Phone Number
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Gender
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -237,6 +245,9 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {admin.email}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {admin.phone}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {admin.gender}

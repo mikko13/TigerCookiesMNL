@@ -41,6 +41,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       firstName,
       lastName,
       email,
+      phone,
       password,
       address,
       gender,
@@ -59,6 +60,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       firstName,
       lastName,
       email,
+      phone,
       password: hashedPassword,
       address,
       gender,
@@ -113,6 +115,7 @@ router.post("/login", async (req, res) => {
       firstName: account.firstName,
       lastName: account.lastName,
       email: account.email,
+      phone: account.phone,
       role: account.role,
     };
     res.status(200).json({
@@ -175,6 +178,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     firstName,
     lastName,
     email,
+    phone,
     password,
     address,
     gender,
@@ -200,6 +204,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     employee.firstName = firstName || employee.firstName;
     employee.lastName = lastName || employee.lastName;
     employee.email = email || employee.email;
+    employee.phone = phone || employee.phone;
     employee.address = address || employee.address;
     employee.gender = gender || employee.gender;
     employee.dateOfBirth = dateOfBirth || employee.dateOfBirth;

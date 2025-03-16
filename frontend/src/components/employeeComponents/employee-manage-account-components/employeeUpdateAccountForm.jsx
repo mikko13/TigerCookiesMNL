@@ -12,6 +12,7 @@ import {
   DollarSign,
   Briefcase,
   Mail,
+  Phone,
   Lock,
   Home,
   User,
@@ -28,6 +29,7 @@ export default function UpdateAccountForm() {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
     password: "",
     address: "",
     gender: "",
@@ -152,6 +154,9 @@ export default function UpdateAccountForm() {
     if (!user.firstName) errors.firstName = "First name is required";
     if (!user.lastName) errors.lastName = "Last name is required";
     if (!user.email) errors.email = "Email is required";
+    if (!user.phone) errors.phone = "Phone number is required";
+    else if (!/^(\+63|0)9\d{9}$/.test(user.phone))
+      errors.phone = "Phone number is invalid";
     if (changePassword && !user.password)
       errors.password = "Password is required";
     if (!user.position) errors.position = "Position is required";
@@ -371,6 +376,35 @@ export default function UpdateAccountForm() {
                   <p className="mt-1 text-xs text-red-500 flex items-center">
                     <AlertTriangle className="w-3 h-3 mr-1" />{" "}
                     {formErrors.email}
+                  </p>
+                )}
+              </div>
+            </div>
+            {/* Phone Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Number <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  name="phone"
+                  value={user.phone}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 09171234567"
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                    formErrors.phone
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-gray-50"
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all `}
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Phone className="w-4 h-4 text-gray-500" />
+                </div>
+                {formErrors.phone && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.phone}
                   </p>
                 )}
               </div>
