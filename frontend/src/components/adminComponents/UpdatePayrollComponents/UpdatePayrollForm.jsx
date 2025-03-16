@@ -15,8 +15,16 @@ import {
   Save,
 } from "lucide-react";
 import { backendURL } from "../../../urls/URL";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 
-export default function UpdatePayrollForm({ payrollId, onUpdateSuccess }) {
+export default function UpdatePayrollForm({ onUpdateSuccess }) {
+  const { id: payrollId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // If payrollId wasn't provided via props, check if it's in the location state or params
+  const effectivePayrollId = payrollId || location.state?.record?._id;
+
   const [formData, setFormData] = useState({
     employeeID: "",
     payPeriod: "",
@@ -52,41 +60,88 @@ export default function UpdatePayrollForm({ payrollId, onUpdateSuccess }) {
   useEffect(() => {
     const fetchPayrollData = async () => {
       try {
-        const response = await axios.get(
-          `${backendURL}/api/payroll/${payrollId}`
-        );
-        const payrollData = response.data;
-        setOriginalPayroll(payrollData);
+        // Check if record is passed via location state (for optimization)
+        if (location.state?.record) {
+          const payrollData = location.state.record;
+          setOriginalPayroll(payrollData);
 
-        // Set form data from the retrieved payroll
-        setFormData({
-          employeeID: payrollData.employeeID._id || payrollData.employeeID, // Handle both populated and unpopulated
-          payPeriod: payrollData.payPeriod,
-          regularHours: payrollData.regularHours.toString(),
-          hourlyRate: payrollData.hourlyRate.toString(),
-          baseSalary: payrollData.baseSalary.toString(),
-          holidayPay: (payrollData.holidayPay || 0).toString(),
-          overtimePay: (payrollData.overtimePay || 0).toString(),
-          nightDiffPay: (payrollData.nightDiffPay || 0).toString(),
-          incentives: (payrollData.incentives || 0).toString(),
-          thirteenthMonthPay: (payrollData.thirteenthMonthPay || 0).toString(),
-          sssDeduction: (payrollData.sssDeduction || 0).toString(),
-          philhealthDeduction: (
-            payrollData.philhealthDeduction || 0
-          ).toString(),
-          pagibigDeduction: (payrollData.pagibigDeduction || 0).toString(),
-          withholdingTax: (payrollData.withholdingTax || 0).toString(),
-          otherDeductions: (payrollData.otherDeductions || 0).toString(),
-        });
+          setFormData({
+            employeeID: payrollData.employeeID._id || payrollData.employeeID,
+            payPeriod: payrollData.payPeriod,
+            regularHours: payrollData.regularHours.toString(),
+            hourlyRate: payrollData.hourlyRate.toString(),
+            baseSalary: payrollData.baseSalary.toString(),
+            holidayPay: (payrollData.holidayPay || 0).toString(),
+            overtimePay: (payrollData.overtimePay || 0).toString(),
+            nightDiffPay: (payrollData.nightDiffPay || 0).toString(),
+            incentives: (payrollData.incentives || 0).toString(),
+            thirteenthMonthPay: (
+              payrollData.thirteenthMonthPay || 0
+            ).toString(),
+            sssDeduction: (payrollData.sssDeduction || 0).toString(),
+            philhealthDeduction: (
+              payrollData.philhealthDeduction || 0
+            ).toString(),
+            pagibigDeduction: (payrollData.pagibigDeduction || 0).toString(),
+            withholdingTax: (payrollData.withholdingTax || 0).toString(),
+            otherDeductions: (payrollData.otherDeductions || 0).toString(),
+          });
 
-        // Initialize calculations
-        setCalculations({
-          totalEarnings: payrollData.totalEarnings,
-          totalDeductions: payrollData.totalDeductions,
-          netPay: payrollData.netPay,
-        });
+          setCalculations({
+            totalEarnings: payrollData.totalEarnings,
+            totalDeductions: payrollData.totalDeductions,
+            netPay: payrollData.netPay,
+          });
 
-        setInitialLoading(false);
+          setInitialLoading(false);
+        } else if (effectivePayrollId) {
+          // Fetch from API if no state data is available
+          const response = await axios.get(
+            `${backendURL}/api/payroll/${effectivePayrollId}`
+          );
+          const payrollData = response.data;
+          setOriginalPayroll(payrollData);
+
+          // Set form data from the retrieved payroll
+          setFormData({
+            employeeID: payrollData.employeeID._id || payrollData.employeeID,
+            payPeriod: payrollData.payPeriod,
+            regularHours: payrollData.regularHours.toString(),
+            hourlyRate: payrollData.hourlyRate.toString(),
+            baseSalary: payrollData.baseSalary.toString(),
+            holidayPay: (payrollData.holidayPay || 0).toString(),
+            overtimePay: (payrollData.overtimePay || 0).toString(),
+            nightDiffPay: (payrollData.nightDiffPay || 0).toString(),
+            incentives: (payrollData.incentives || 0).toString(),
+            thirteenthMonthPay: (
+              payrollData.thirteenthMonthPay || 0
+            ).toString(),
+            sssDeduction: (payrollData.sssDeduction || 0).toString(),
+            philhealthDeduction: (
+              payrollData.philhealthDeduction || 0
+            ).toString(),
+            pagibigDeduction: (payrollData.pagibigDeduction || 0).toString(),
+            withholdingTax: (payrollData.withholdingTax || 0).toString(),
+            otherDeductions: (payrollData.otherDeductions || 0).toString(),
+          });
+
+          // Initialize calculations
+          setCalculations({
+            totalEarnings: payrollData.totalEarnings,
+            totalDeductions: payrollData.totalDeductions,
+            netPay: payrollData.netPay,
+          });
+
+          setInitialLoading(false);
+        } else {
+          setInitialLoading(false);
+          showToast("error", "No payroll ID provided.");
+          if (onUpdateSuccess) {
+            setTimeout(() => onUpdateSuccess(), 2000);
+          } else {
+            setTimeout(() => navigate("/ManageEmployeePayroll"), 2000);
+          }
+        }
       } catch (error) {
         console.error("Error fetching payroll record:", error);
         showToast("error", "Failed to load payroll data.");
@@ -137,16 +192,10 @@ export default function UpdatePayrollForm({ payrollId, onUpdateSuccess }) {
       return periods;
     };
 
-    if (payrollId) {
-      fetchPayrollData();
-    } else {
-      setInitialLoading(false);
-      showToast("error", "No payroll ID provided.");
-    }
-
+    fetchPayrollData();
     fetchEmployees();
     setPayPeriods(generatePayPeriods());
-  }, [payrollId]);
+  }, [effectivePayrollId, location.state, onUpdateSuccess, navigate]);
 
   useEffect(() => {
     if (formData.regularHours && formData.hourlyRate) {
@@ -245,11 +294,15 @@ export default function UpdatePayrollForm({ payrollId, onUpdateSuccess }) {
     };
 
     try {
-      // Using PUT since that's what the component is set up to use
-      await axios.put(`${backendURL}/api/payroll/${payrollId}`, payrollData);
+      await axios.put(
+        `${backendURL}/api/payroll/${effectivePayrollId}`,
+        payrollData
+      );
       showToast("success", "Payroll record updated successfully!");
       if (onUpdateSuccess) {
-        onUpdateSuccess();
+        setTimeout(() => onUpdateSuccess(), 2000);
+      } else {
+        setTimeout(() => navigate("/ManageEmployeePayroll"), 2000);
       }
     } catch (error) {
       console.error("Error updating payroll record:", error);
@@ -280,7 +333,7 @@ export default function UpdatePayrollForm({ payrollId, onUpdateSuccess }) {
 
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-yellow-500 to-yellow-700 p-6">
+      <div className="bg-gradient-to-r from-yellow-500 to-yellow-500 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <PhilippinePeso className="mr-2" size={24} />
           Update Employee Payroll
@@ -722,59 +775,60 @@ export default function UpdatePayrollForm({ payrollId, onUpdateSuccess }) {
 
         <div className="mt-8 flex justify-end gap-4">
           <button
-  type="button"
-  onClick={() => {
-    if (onUpdateSuccess) {
-      onUpdateSuccess();
-    }
-  }}
-  className="px-6 py-2.5 text-sm font-medium text-gray-600 bg-white rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
->
-  <X className="w-4 h-4 mr-2 inline" />
-  Cancel
-</button>
-<button
-  type="submit"
-  disabled={loading}
-  className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-yellow-500 to-yellow-700 rounded-lg hover:bg-gradient-to-r hover:from-yellow-600 hover:to-yellow-800 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all flex items-center"
->
-  {loading ? (
-    <>
-      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-      Updating...
-    </>
-  ) : (
-    <>
-      <Save className="w-4 h-4 mr-2" />
-      Update Payroll
-    </>
-  )}
-</button>
-</div>
+            type="button"
+            onClick={() => {
+              navigate("/ManageEmployeePayroll");
+              if (onUpdateSuccess) {
+                onUpdateSuccess();
+              }
+            }}
+            className="px-6 py-2.5 text-sm font-medium text-gray-600 bg-white rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+          >
+            <X className="w-4 h-4 mr-2 inline" />
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r bg-yellow-500 hover:bg-yellow-600 rounded-lg hover:bg-gradient-to-r focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all flex items-center"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Update
+              </>
+            )}
+          </button>
+        </div>
 
-{toast && (
-  <div
-    className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg flex items-center ${
-      toast.type === "success" 
-        ? "bg-green-100 text-green-800 border-l-4 border-green-500" 
-        : "bg-red-100 text-red-800 border-l-4 border-red-500"
-    }`}
-  >
-    {toast.type === "success" ? (
-      <CheckCircle className="w-5 h-5 mr-2" />
-    ) : (
-      <AlertTriangle className="w-5 h-5 mr-2" />
-    )}
-    <span>{toast.message}</span>
-    <button
-      onClick={() => setToast(null)}
-      className="ml-4 text-gray-500 hover:text-gray-700"
-    >
-      <X className="w-4 h-4" />
-    </button>
-  </div>
-)}
-</form>
-</div>
-);
+        {toast && (
+          <div
+            className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg flex items-center ${
+              toast.type === "success"
+                ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+                : "bg-red-100 text-red-800 border-l-4 border-red-500"
+            }`}
+          >
+            {toast.type === "success" ? (
+              <CheckCircle className="w-5 h-5 mr-2" />
+            ) : (
+              <AlertTriangle className="w-5 h-5 mr-2" />
+            )}
+            <span>{toast.message}</span>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-4 text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </form>
+    </div>
+  );
 }

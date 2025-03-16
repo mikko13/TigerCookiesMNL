@@ -136,10 +136,10 @@ export default function AdminCreateAttendanceForm() {
 
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
+      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <Clock className="mr-2" size={24} />
-          Record Employee Attendance
+          Create Employee Attendance
         </h2>
         <p className="text-yellow-50 mt-1 opacity-90">
           Create a new attendance record for employees
@@ -402,12 +402,12 @@ export default function AdminCreateAttendanceForm() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                Creating...
               </>
             ) : (
               <>
                 <CheckCircle className="w-4 h-4 mr-2" />
-                Submit
+                Create
               </>
             )}
           </button>

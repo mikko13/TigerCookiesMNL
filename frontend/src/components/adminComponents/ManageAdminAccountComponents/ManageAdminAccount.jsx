@@ -69,12 +69,15 @@ export default function ManageAdminAccount() {
         />
       )}
 
+      {/* Key change: Sidebar is now fixed on desktop and properly styled */}
       <div
         className={`transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
             ? "w-0 min-w-0 opacity-0 pointer-events-none"
+            : isMobile
+            ? "w-[250px] min-w-[250px]"
             : "w-[250px] min-w-[250px]"
-        } ${isMobile ? "fixed h-full z-40" : "relative h-screen"}`}
+        } ${isMobile ? "fixed h-full z-40" : "fixed h-screen z-30"}`}
       >
         {sidebarState.isVisible && (
           <AdminSidebar
@@ -85,9 +88,10 @@ export default function ManageAdminAccount() {
         )}
       </div>
 
+      {/* Main content area now has padding-left to accommodate fixed sidebar */}
       <main
         className={`flex-1 transition-all duration-300 ease-in-out overflow-y-auto ${
-          isMobile ? "w-full" : ""
+          isMobile ? "w-full" : sidebarState.isVisible ? "pl-[250px]" : ""
         }`}
       >
         <div className="max-w-7xl mx-auto p-4">

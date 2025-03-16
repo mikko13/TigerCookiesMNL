@@ -2,40 +2,87 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { backendURL } from "../../urls/URL";
+import { LockClosedIcon, EyeIcon, EyeSlashIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { errorToast, successToast } from "./toastMessages";
 
 export default function FpConfBody() {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState(null);
   const navigate = useNavigate();
+
+  const showToast = (type) => {
+    setToast(type);
+    setTimeout(() => {
+      setToast(null);
+    }, 4000);
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
 
+  const getPasswordStrength = () => {
+    if (!password) return { strength: 0, text: "", color: "bg-gray-200" };
+    
+    let strength = 0;
+    if (password.length >= 8) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    
+    const strengthMap = {
+      1: { text: "Weak", color: "bg-red-500" },
+      2: { text: "Fair", color: "bg-yellow-500" },
+      3: { text: "Good", color: "bg-blue-500" },
+      4: { text: "Strong", color: "bg-green-500" }
+    };
+    
+    return { 
+      strength, 
+      text: strengthMap[strength]?.text || "", 
+      color: strengthMap[strength]?.color || "" 
+    };
+  };
+  
+  const passwordStrength = getPasswordStrength();
+
+  const validatePassword = () => {
+    if (!password) {
+      setError("Password is required");
+      return false;
+    }
+    
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return false;
+    }
+    
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+    
+    setError(null);
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validatePassword()) {
+      return;
+    }
+
+    setIsLoading(true);
     const email = sessionStorage.getItem("verifiedEmail");
 
     if (!email) {
-      setError("Session expired. Please request a new OTP.");
-      return;
-    }
-
-    if (!password || !confirmPassword) {
-      setError("Both password fields are required.");
-      return;
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError("Session expired. Please request a new verification code.");
+      setIsLoading(false);
       return;
     }
 
@@ -46,62 +93,132 @@ export default function FpConfBody() {
       });
 
       if (response.data.success) {
-        sessionStorage.removeItem("verifiedEmail"); 
-        navigate("/");
+        sessionStorage.removeItem("verifiedEmail");
+        showToast("success");
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
       } else {
         setError(response.data.message || "Failed to reset password.");
+        showToast("error");
       }
     } catch (error) {
       console.error("Error resetting password:", error);
       setError("An error occurred. Please try again.");
+      showToast("error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2 font-sans text-gray-800 max-w-md mx-auto px-4 sm:px-6 md:px-8 mt-12">
-      <div className="relative flex items-center mb-4">
-        <input
-          type={showPassword ? "text" : "password"}
-          placeholder="New Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="px-4 py-3 bg-gray-100 focus:bg-transparent w-full text-sm border outline-blue-500 rounded-md transition-all focus:ring-2 focus:ring-blue-500"
-          required
-        />
+    <div className="p-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="password" className="text-sm font-medium text-gray-700">New Password</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <LockClosedIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter new password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`pl-10 pr-12 py-3 bg-white w-full text-gray-800 border ${
+                error && !confirmPassword ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
+              } rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
+              required
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+            >
+              {showPassword ? 
+                <EyeSlashIcon className="h-5 w-5" aria-hidden="true" /> : 
+                <EyeIcon className="h-5 w-5" aria-hidden="true" />
+              }
+            </button>
+          </div>
+        </div>
+
+        {password && (
+          <div className="space-y-1">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full ${passwordStrength.color}`} 
+                style={{ width: `${passwordStrength.strength * 25}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-gray-500">{passwordStrength.text}</span>
+              <span className="text-gray-500">
+                {passwordStrength.strength < 4 && "Use 8+ chars, uppercase, numbers & symbols"}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm Password</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <LockClosedIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="confirmPassword"
+              type={showPassword ? "text" : "password"}
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={`pl-10 pr-4 py-3 bg-white w-full text-gray-800 border ${
+                error && password ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
+              } rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
+              required
+            />
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
+
         <button
-          type="button"
-          onClick={togglePasswordVisibility}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          type="submit"
+          disabled={isLoading}
+          className="w-full py-3 px-4 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 transition-all duration-200 flex justify-center items-center"
         >
-          {showPassword ? "👁️" : "🙈"}
+          {isLoading ? (
+            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            "Reset Password"
+          )}
         </button>
-      </div>
 
-      <div className="relative flex items-center mb-4">
-        <input
-          type={showPassword ? "text" : "password"}
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="px-4 py-3 bg-gray-100 focus:bg-transparent w-full text-sm border outline-blue-500 rounded-md transition-all focus:ring-2 focus:ring-blue-500"
-          required
-        />
-      </div>
+        <a href="./forgotpasswordotp" className="block mt-4">
+          <button
+            type="button"
+            className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg flex justify-center items-center gap-2 transition-all duration-200"
+          >
+            <ArrowLeftIcon className="h-4 w-4" />
+            Back
+          </button>
+        </a>
+      </form>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-
-      <button type="submit" className="px-6 py-3 mt-6 w-full text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded-md transition-all">
-        Submit
-      </button>
-
-      <a href="./forgotpasswordotp">
-        <button
-          type="button"
-          className="px-6 py-3 mt-2 w-full text-sm bg-gray-700 hover:bg-gray-800 text-white rounded-md transition-all"
-        >
-          Back
-        </button>
-      </a>
-    </form>
+      {toast === "error" && (
+        <div className="z-50 fixed bottom-4 left-4">{errorToast}</div>
+      )}
+      {toast === "success" && (
+        <div className="z-50 fixed bottom-4 left-4">{successToast}</div>
+      )}
+    </div>
   );
 }

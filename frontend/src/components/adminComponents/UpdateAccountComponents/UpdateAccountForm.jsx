@@ -83,7 +83,6 @@ export default function UpdateAccountForm() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Clear error when field is updated
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: null });
     }
@@ -172,7 +171,6 @@ export default function UpdateAccountForm() {
 
       showToast("success", "Employee account updated successfully!");
 
-      // Delay navigation to show success toast
       setTimeout(() => {
         navigate("/ManageEmployeeAccounts");
       }, 2000);
@@ -185,7 +183,7 @@ export default function UpdateAccountForm() {
 
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
+      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <UserCircle className="mr-2" size={24} />
           Update Employee Account
@@ -197,7 +195,6 @@ export default function UpdateAccountForm() {
 
       <form onSubmit={handleSubmit} className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Profile Picture Upload */}
           <div className="col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Profile Picture
@@ -246,7 +243,6 @@ export default function UpdateAccountForm() {
             </div>
           </div>
 
-          {/* Personal Information */}
           <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -691,7 +687,7 @@ export default function UpdateAccountForm() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                Updating...
               </>
             ) : (
               <>

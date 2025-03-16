@@ -137,7 +137,6 @@ export default function CreateAccountForm() {
     if (!formData.email) errors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
       errors.email = "Email is invalid";
-    //Phone Number
     if (!formData.phone) errors.phone = "Phone number is required";
     else if (!/^(\+63|0)9\d{9}$/.test(formData.phone))
       errors.phone = "Phone number is invalid";
@@ -225,7 +224,7 @@ export default function CreateAccountForm() {
 
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
+      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <UserCircle className="mr-2" size={24} />
           {formData.role.toLowerCase() === "admin"
@@ -394,7 +393,6 @@ export default function CreateAccountForm() {
                 )}
               </div>
             </div>
-            {/* Phone Number */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Phone Number <span className="text-red-500">*</span>
@@ -688,12 +686,12 @@ export default function CreateAccountForm() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                Creating...
               </>
             ) : (
               <>
                 <CheckCircle className="w-4 h-4 mr-2" />
-                Submit
+                Create
               </>
             )}
           </button>

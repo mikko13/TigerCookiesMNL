@@ -8,15 +8,11 @@ const useAttendance = () => {
   useEffect(() => {
     const fetchAdminAttendance = async () => {
       try {
-        console.log("📡 Fetching ALL attendance records for Admin...");
-
-        const response = await axios.get(`${backendURL}/api/attendance?isAdmin=true`);
-
-        console.log("✅ Admin Attendance Fetched:", response.data.length);
+        const response = await axios.get(
+          `${backendURL}/api/attendance?isAdmin=true`
+        );
         setAttendance(response.data);
-      } catch (error) {
-        console.error("❌ Error fetching admin attendance:", error.response?.data || error.message);
-      }
+      } catch (error) {}
     };
 
     fetchAdminAttendance();

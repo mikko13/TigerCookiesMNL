@@ -111,18 +111,6 @@ export default function EmployeePayroll() {
               </p>
             </div>
 
-            {/* View All Payslips button */}
-            <div className="flex gap-3 justify-center md:justify-end ml-8 lg:ml-0">
-              <button
-                onClick={handleViewAllPayslips}
-                className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow-sm transition-colors duration-200"
-              >
-                <Download size={18} className="mr-2" />
-                All Payslips
-              </button>
-            </div>
-
-            {/* Search and filter controls - responsive layout */}
             <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

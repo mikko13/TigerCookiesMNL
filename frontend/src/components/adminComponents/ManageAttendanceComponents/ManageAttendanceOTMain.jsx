@@ -5,6 +5,7 @@ import useAttendance from "./fetchAttendance";
 import { getStatusClass } from "./getStatusClass";
 import { AlertTriangle, Check, X, Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
+import OvertimeSummaryCards from "./OvertimeSummaryCards";
 
 const useEmployeeOvertime = () => {
   const [overtime, setOvertime] = useState([]);
@@ -15,10 +16,15 @@ const useEmployeeOvertime = () => {
       try {
         console.log("📡 Fetching all overtime records...");
         const response = await axios.get(`${backendURL}/api/overtime/all`);
-        console.log(`✅ Total Overtime Records Fetched: ${response.data.length}`);
+        console.log(
+          `✅ Total Overtime Records Fetched: ${response.data.length}`
+        );
         setOvertime(response.data);
       } catch (error) {
-        console.error("❌ Error fetching overtime records:", error.response?.data || error.message);
+        console.error(
+          "❌ Error fetching overtime records:",
+          error.response?.data || error.message
+        );
       } finally {
         setLoading(false);
       }
@@ -30,21 +36,32 @@ const useEmployeeOvertime = () => {
   return { overtime, loading, setOvertime };
 };
 
-export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }) {
-  const { overtime: overtimeRecords, loading, setOvertime } = useEmployeeOvertime();
+export default function EmployeeManageAttendanceOT({
+  searchTerm,
+  setSearchTerm,
+}) {
+  const {
+    overtime: overtimeRecords,
+    loading,
+    setOvertime,
+  } = useEmployeeOvertime();
   const attendanceRecords = useAttendance();
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric",
-    }).replace(/\//g, "-");
+    return date
+      .toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      })
+      .replace(/\//g, "-");
   };
 
   const getEmployeeName = (employeeID) => {
-    const attendance = attendanceRecords.find(record => record.employeeID === employeeID);
+    const attendance = attendanceRecords.find(
+      (record) => record.employeeID === employeeID
+    );
     return attendance ? attendance.employeeName : "Unknown";
   };
 
@@ -62,8 +79,16 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
     if (confirmResult.isConfirmed) {
       try {
         await axios.put(`${backendURL}/api/overtime/update/${id}`, { status });
-        setOvertime(prev => prev.map(record => record._id === id ? { ...record, status } : record));
-        Swal.fire("Updated!", `Overtime request has been marked as ${status}.`, "success");
+        setOvertime((prev) =>
+          prev.map((record) =>
+            record._id === id ? { ...record, status } : record
+          )
+        );
+        Swal.fire(
+          "Updated!",
+          `Overtime request has been marked as ${status}.`,
+          "success"
+        );
       } catch (error) {
         Swal.fire("Error", error.response?.data || error.message, "error");
       }
@@ -84,31 +109,51 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
     if (confirmResult.isConfirmed) {
       try {
         await axios.delete(`${backendURL}/api/overtime/delete/${id}`);
-        setOvertime(prev => prev.filter(record => record._id !== id));
-        Swal.fire("Deleted!", "The overtime record has been deleted.", "success");
+        setOvertime((prev) => prev.filter((record) => record._id !== id));
+        Swal.fire(
+          "Deleted!",
+          "The overtime record has been deleted.",
+          "success"
+        );
       } catch (error) {
         Swal.fire("Error", error.response?.data || error.message, "error");
       }
     }
   };
 
-  const filteredRecords = overtimeRecords.filter(record => 
+  const filteredRecords = overtimeRecords.filter((record) =>
     formatDate(record.createdAt).includes(searchTerm || "")
   );
 
+  const sortedRecords = [...filteredRecords].sort((a, b) => {
+    const aIsPending = !a.status || a.status === "Pending";
+    const bIsPending = !b.status || b.status === "Pending";
+
+    if (aIsPending && !bIsPending) return -1;
+    if (!aIsPending && bIsPending) return 1;
+
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
   return (
     <div className="flex flex-col space-y-6">
+      <OvertimeSummaryCards overtime={overtimeRecords} />
+
       {loading ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading overtime records...</p>
         </div>
-      ) : filteredRecords.length === 0 ? (
+      ) : sortedRecords.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center flex flex-col items-center">
           <AlertTriangle size={48} className="text-yellow-500 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-800">No Records Found</h3>
+          <h3 className="text-lg font-semibold text-gray-800">
+            No Records Found
+          </h3>
           <p className="text-gray-600 mt-2">
-            {searchTerm ? "No overtime records match your search criteria." : "No overtime records available yet."}
+            {searchTerm
+              ? "No overtime records match your search criteria."
+              : "No overtime records available yet."}
           </p>
           {searchTerm && (
             <button
@@ -125,40 +170,87 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
             <table className="w-full table-auto">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Overtime Hours</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Note</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Employee
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Overtime Hours
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Note
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredRecords.map((record) => (
-                  <tr key={record._id} className="hover:bg-gray-50 transition-colors duration-150">
-                    <td className="px-6 py-4 text-gray-900 font-medium">{getEmployeeName(record.employeeID)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{formatDate(record.createdAt)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{record.overtimeTime} hrs</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{record.overtimeNote || "No note provided"}</td>
+                {sortedRecords.map((record) => (
+                  <tr
+                    key={record._id}
+                    className="hover:bg-gray-50 transition-colors duration-150"
+                  >
+                    <td className="px-6 py-4 text-gray-900 font-medium">
+                      {getEmployeeName(record.employeeID)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {formatDate(record.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {record.overtimeTime} hrs
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {record.overtimeNote || "No note provided"}
+                    </td>
                     <td className="px-6 py-4 text-sm">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(record.status || "Pending")}`}>{record.status || "Pending"}</span>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(
+                          record.status || "Pending"
+                        )}`}
+                      >
+                        {record.status || "Pending"}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-sm flex space-x-2">
-                      <button onClick={() => updateOvertimeStatus(record._id, "Approved")} className="text-green-600 hover:text-green-700"><Check size={18} /></button>
-                      <button onClick={() => updateOvertimeStatus(record._id, "Rejected")} className="text-red-600 hover:text-red-700"><X size={18} /></button>
-                      <button onClick={() => deleteOvertimeRecord(record._id)} className="text-blue-600 hover:text-blue-700"><Trash2 size={18} /></button>
+                      <button
+                        onClick={() =>
+                          updateOvertimeStatus(record._id, "Approved")
+                        }
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <Check size={18} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          updateOvertimeStatus(record._id, "Rejected")
+                        }
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X size={18} />
+                      </button>
+                      <button
+                        onClick={() => deleteOvertimeRecord(record._id)}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
             <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-sm text-gray-600">
-            Showing {filteredRecords.length} of {overtimeRecords.length} records
-          </div>
+              Showing {sortedRecords.length} of {overtimeRecords.length} records
+            </div>
           </div>
         </div>
       )}
-      
     </div>
   );
 }

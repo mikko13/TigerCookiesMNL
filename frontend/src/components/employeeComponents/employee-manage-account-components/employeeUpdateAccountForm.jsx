@@ -230,7 +230,7 @@ export default function UpdateAccountForm() {
 
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
+      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <UserCircle className="mr-2" size={24} />
           Update Account
@@ -434,9 +434,7 @@ export default function UpdateAccountForm() {
                 <input
                   type="password"
                   name="password"
-                  value={user.password}
                   onChange={handleInputChange}
-                  placeholder="••••••••"
                   disabled={!changePassword}
                   className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                     formErrors.password
@@ -743,7 +741,7 @@ export default function UpdateAccountForm() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                Updating...
               </>
             ) : (
               <>

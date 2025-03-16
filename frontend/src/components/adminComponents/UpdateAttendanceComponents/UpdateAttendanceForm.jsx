@@ -158,7 +158,7 @@ export default function UpdateAttendanceForm() {
 
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
+      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <Clock className="mr-2" size={24} />
           Update Employee Attendance
@@ -414,7 +414,7 @@ export default function UpdateAttendanceForm() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                Updating...
               </>
             ) : (
               <>

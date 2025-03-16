@@ -39,7 +39,6 @@ export default function ManageAttendance({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-
   const toggleSidebarVisibility = () => {
     setSidebarState((prev) => ({
       ...prev,
@@ -48,15 +47,19 @@ export default function ManageAttendance({
   };
 
   return (
-    <div
-      className="flex min-h-screen bg-gray-50 overflow-hidden relative"
-      style={{
-        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-      }}
-    >
+    <div className="flex min-h-screen bg-gray-50 overflow-hidden relative">
+      {/* Fixed background for the entire page */}
+      <div
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${Background})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+        }}
+      />
+
+      {/* Mobile menu button */}
       {isMobile && !sidebarState.isVisible && (
         <button
           onClick={toggleSidebarVisibility}
@@ -67,19 +70,23 @@ export default function ManageAttendance({
         </button>
       )}
 
+      {/* Mobile overlay */}
       {isMobile && sidebarState.isVisible && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
           onClick={toggleSidebarVisibility}
         />
       )}
 
+      {/* Fixed sidebar container */}
       <div
-        className={`transition-all duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-screen z-40 transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
             ? "w-0 min-w-0 opacity-0 pointer-events-none"
+            : isMobile
+            ? "w-[250px] min-w-[250px]"
             : "w-[250px] min-w-[250px]"
-        } ${isMobile ? "fixed h-full z-40" : "relative h-screen"}`}
+        }`}
       >
         {sidebarState.isVisible && (
           <AdminSidebar
@@ -90,7 +97,12 @@ export default function ManageAttendance({
         )}
       </div>
 
-      <main className={`flex-1 transition-all duration-300 ease-in-out overflow-y-auto ${isMobile ? "w-full" : ""}`}>
+      {/* Main content with padding to account for fixed sidebar */}
+      <main
+        className={`relative z-10 min-h-screen w-full transition-all duration-300 ease-in-out ${
+          !isMobile && sidebarState.isVisible ? "ml-[250px]" : "ml-0"
+        }`}
+      >
         <div className="max-w-7xl mx-auto p-4">
           <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:justify-between md:items-center">
             <div className="ml-8 lg:ml-0">

@@ -89,7 +89,7 @@ export default function PayrollTable({
                     record.isPublished
                   )}`}
                 >
-                  {record.isPublished ? "Published" : "Unpublished"}
+                  {record.isPublished ? "Published" : "Pending"}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
@@ -118,13 +118,6 @@ export default function PayrollTable({
                       <Send size={18} />
                     </button>
                   )}
-                  <Link
-                    to={`/DownloadPayslip/${record._id}`}
-                    className="text-purple-600 hover:text-purple-800 transition-colors"
-                    title="Download Payslip"
-                  >
-                    <Download size={18} />
-                  </Link>
                 </div>
               </td>
             </tr>

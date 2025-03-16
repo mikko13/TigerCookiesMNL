@@ -30,7 +30,7 @@ const accountSchema = new mongoose.Schema(
     shift: { type: String },
     otp: { type: String },
     otpExpires: { type: Date },
-    role: { type: String, default: "employee" }, // Added role field
+    role: { type: String, default: "employee" },
   },
   { timestamps: true, collection: "empAccounts" }
 );

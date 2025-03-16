@@ -78,12 +78,6 @@ export default function EmployeePayrollMain({
     }).format(amount);
   };
 
-  const getStatusClass = (isPublished) => {
-    return isPublished
-      ? "bg-green-100 text-green-800"
-      : "bg-yellow-100 text-yellow-800";
-  };
-
   const getEmployeeName = (record) => {
     if (record.employeeID && typeof record.employeeID === "object") {
       return `${record.employeeID.firstName} ${record.employeeID.lastName}`;
@@ -155,21 +149,6 @@ export default function EmployeePayrollMain({
                       <div className="text-sm text-green-600 font-medium">
                         {formatCurrency(record.netPay)}
                       </div>
-                    </div>
-                    <div className="flex items-center">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getStatusClass(
-                          record.isPublished
-                        )}`}
-                      >
-                        {record.isPublished ? "Published" : "Processing"}
-                      </span>
-                      <ChevronRight
-                        size={20}
-                        className={`text-gray-400 transition-transform ${
-                          expandedRow === record._id ? "rotate-90" : ""
-                        }`}
-                      />
                     </div>
                   </div>
 
@@ -274,9 +253,6 @@ export default function EmployeePayrollMain({
                       Net Pay
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -313,15 +289,6 @@ export default function EmployeePayrollMain({
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                         {formatCurrency(record.netPay)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(
-                            record.isPublished
-                          )}`}
-                        >
-                          {record.isPublished ? "Published" : "Processing"}
-                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         <div className="flex justify-center">

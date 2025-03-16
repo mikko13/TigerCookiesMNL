@@ -3,10 +3,13 @@ import axios from "axios";
 import "./ToastStyles.css";
 import { errorToast, successToast } from "./toastMessages";
 import { backendURL } from "../../urls/URL";
+import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
-export default function FpBody() {
+export default function FPBody() {
   const [email, setEmail] = useState("");
   const [toast, setToast] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
   const showToast = (type) => {
     setToast(type);
@@ -17,16 +20,27 @@ export default function FpBody() {
 
   const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
-  const handleEmailCheck = async () => {
+  const validateEmail = () => {
     if (!email) {
-      showToast("error");
+      setEmailError("Email is required");
+      return false;
+    }
+    if (!isValidEmail(email)) {
+      setEmailError("Please enter a valid email address");
+      return false;
+    }
+    setEmailError("");
+    return true;
+  };
+
+  const handleEmailCheck = async (e) => {
+    e.preventDefault();
+    
+    if (!validateEmail()) {
       return;
     }
 
-    if (!isValidEmail(email)) {
-      showToast("error");
-      return;
-    }
+    setIsLoading(true);
 
     try {
       const response = await axios.post(
@@ -42,7 +56,6 @@ export default function FpBody() {
 
         if (otpResponse.data.success) {
           showToast("success");
-
           sessionStorage.setItem("emailForOTP", email);
 
           setTimeout(() => {
@@ -52,48 +65,75 @@ export default function FpBody() {
           showToast("error");
         }
       } else {
+        setEmailError("Email not found in our records");
         showToast("error");
       }
     } catch (error) {
       console.error("Error sending OTP:", error);
       showToast("error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex-grow items-center justify-center mt-48">
-      <form className="space-y-2 font-sans text-gray-800 max-w-md mx-auto md:px-8">
-        <div className="relative flex items-center mb-4">
-          <input
-            type="email"
-            placeholder="Verify Email"
-            onChange={(e) => setEmail(e.target.value)}
-            className="px-4 py-3 bg-gray-100 focus:bg-transparent w-full text-sm border outline-blue-500 rounded-md transition-all focus:ring-2 focus:ring-blue-500"
-          />
+    <div className="p-6">
+      <form onSubmit={handleEmailCheck} className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="email"
+              type="email"
+              placeholder="your-email@example.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailError) validateEmail();
+              }}
+              className={`pl-10 pr-4 py-3 bg-white w-full text-gray-800 border ${
+                emailError ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
+              } rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
+            />
+          </div>
+          {emailError && <p className="text-red-500 text-xs mt-1">{emailError}</p>}
         </div>
+
         <button
-          type="button"
-          onClick={handleEmailCheck}
-          className="px-6 py-3 w-full text-sm bg-yellow-400 hover:bg-yellow-500 text-white rounded-md active:bg-yellow-600 focus:ring-2 focus:ring-yellow-500 transition-all"
+          type="submit"
+          disabled={isLoading}
+          className="w-full py-3 px-4 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 transition-all duration-200 flex justify-center items-center"
         >
-          Submit
+          {isLoading ? (
+            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            "Send Verification Code"
+          )}
         </button>
-        <a href="./">
+
+        <a href="./" className="block mt-4">
           <button
             type="button"
-            className="px-6 py-3 mt-2 w-full text-sm bg-gray-700 hover:bg-gray-800 text-white rounded-md active:bg-gray-900 focus:ring-2 focus:ring-gray-900 transition-all"
+            className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg flex justify-center items-center gap-2 transition-all duration-200"
           >
-            Back
+            <ArrowLeftIcon className="h-4 w-4" />
+            Back to Login
           </button>
         </a>
-
-        {toast === "error" && (
-          <div className="z-50 fixed bottom-4 left-4">{errorToast}</div>
-        )}
-        {toast === "success" && (
-          <div className="z-50 fixed bottom-4 left-4">{successToast}</div>
-        )}
       </form>
+
+      {toast === "error" && (
+        <div className="z-50 fixed bottom-4 left-4">{errorToast}</div>
+      )}
+      {toast === "success" && (
+        <div className="z-50 fixed bottom-4 left-4">{successToast}</div>
+      )}
     </div>
   );
 }

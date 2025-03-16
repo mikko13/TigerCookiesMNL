@@ -235,7 +235,7 @@ export default function CreatePayrollForm() {
 
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6">
+      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center">
           <PhilippinePeso className="mr-2" size={24} />
           Create Employee Payroll
@@ -694,12 +694,12 @@ export default function CreatePayrollForm() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                Creating...
               </>
             ) : (
               <>
                 <CheckCircle className="w-4 h-4 mr-2" />
-                Create Payroll
+                Create
               </>
             )}
           </button>

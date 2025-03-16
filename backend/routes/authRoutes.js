@@ -8,13 +8,12 @@ const router = express.Router();
 
 const generateOTP = () => Math.floor(1000 + Math.random() * 9000);
 
-// ----- OTP Routes -----
-// Send OTP (for employee accounts; adjust as needed for admins)
 router.post("/send-otp", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email is required" });
 
   try {
+    // Make sure this is finding the record from the correct collection
     const user = await Employee.findOne({ email });
     if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -31,37 +30,55 @@ router.post("/send-otp", async (req, res) => {
       return res.status(500).json(response);
     }
 
-    user.otp = hashedOTP;
-    user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
-    await user.save();
+    // Update only the OTP fields to avoid validation errors
+    await Employee.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          otp: hashedOTP,
+          otpExpires: Date.now() + 5 * 60 * 1000,
+        },
+      }
+    );
 
     res.status(200).json(response);
   } catch (error) {
+    console.error("Error in send-otp route:", error);
     res
       .status(500)
       .json({ error: "Internal server error", message: error.message });
   }
 });
 
-// Verify OTP
 router.post("/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
+
   if (!email || !otp)
     return res.status(400).json({ message: "Email and OTP are required." });
+
   try {
     const user = await Employee.findOne({ email });
+
     if (!user) return res.status(404).json({ message: "User not found." });
+
     if (!user.otp || Date.now() > user.otpExpires) {
       return res.status(400).json({ message: "OTP expired." });
     }
+
+    // Ensure we're comparing strings correctly
     const isMatch = await bcrypt.compare(String(otp), user.otp);
+
     if (!isMatch) return res.status(400).json({ message: "Invalid OTP." });
 
-    user.otp = null;
-    user.otpExpires = null;
-    await user.save();
+    // Update only the necessary fields
+    await Employee.updateOne(
+      { _id: user._id },
+      { $set: { otp: null, otpExpires: null } }
+    );
+
     res.json({ success: true, message: "OTP verified successfully." });
   } catch (error) {
+    console.error("Error in verify-otp route:", error);
     res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
@@ -71,26 +88,41 @@ router.post("/verify-otp", async (req, res) => {
 // Reset Password
 router.post("/reset-password", async (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password)
     return res
       .status(400)
       .json({ message: "Email and password are required." });
+
   try {
+    console.log(`Finding user with email: ${email} for password reset`);
     const user = await Employee.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found." });
-    user.password = await bcrypt.hash(password, 10);
-    await user.save();
+
+    if (!user) {
+      console.log("User not found for password reset");
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    console.log("User found, hashing new password");
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Use updateOne to avoid validation errors
+    console.log("Updating user password");
+    await Employee.updateOne(
+      { _id: user._id },
+      { $set: { password: hashedPassword } }
+    );
+
+    console.log("Password updated successfully");
     res.json({ success: true, message: "Password updated successfully." });
   } catch (error) {
+    console.error("Error in reset-password route:", error);
     res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
   }
 });
 
-// ----- Unified Login Route -----
-// This POST route is defined at "/" so that when mounted at "/api/login"
-// the full URL is "http://localhost:5000/api/login"
 router.post("/", async (req, res) => {
   const { email, password } = req.body;
   try {

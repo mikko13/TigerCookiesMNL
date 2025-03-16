@@ -4,6 +4,7 @@ import handleDelete from "./handleDelete";
 import { Link } from "react-router-dom";
 import { getStatusClass } from "./getStatusClass";
 import { Edit, Trash2, Image, AlertTriangle, ChevronRight } from "lucide-react";
+import AttendanceSummaryCards from "./AttendanceSummaryCards";
 
 export default function ManageAttendanceMain({
   searchTerm,
@@ -52,6 +53,8 @@ export default function ManageAttendanceMain({
 
   return (
     <div className="flex flex-col space-y-6">
+      <AttendanceSummaryCards attendance={attendance} />
+
       {loading ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto"></div>

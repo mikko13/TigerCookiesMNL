@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { backendURL } from "../../../urls/URL";
 import PayrollTable from "./PayrollTable";
 import MobilePayrollList from "./MobilePayrollList";
+import PayrollSummaryCards from "./PayrollSummaryCards";
 
 export default function ManagePayrollMain({
   searchTerm,
@@ -153,6 +154,7 @@ export default function ManagePayrollMain({
   if (filteredPayrolls.length === 0) {
     return (
       <div className="flex flex-col space-y-6">
+        <PayrollSummaryCards payrolls={filteredPayrolls} />
         <div className="bg-white rounded-lg shadow-md p-8 text-center flex flex-col items-center">
           <AlertTriangle size={48} className="text-yellow-500 mb-4" />
           <h3 className="text-lg font-semibold text-gray-800">
@@ -189,6 +191,7 @@ export default function ManagePayrollMain({
 
   return (
     <div className="flex flex-col space-y-6">
+      <PayrollSummaryCards payrolls={filteredPayrolls} />
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {isMobile ? (
           <MobilePayrollList

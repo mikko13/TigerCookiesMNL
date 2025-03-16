@@ -142,13 +142,6 @@ export default function MobilePayrollList({
                     <span>Publish</span>
                   </button>
                 )}
-                <Link
-                  to={`/DownloadPayslip/${record._id}`}
-                  className="flex items-center text-purple-600 hover:text-purple-800"
-                >
-                  <Download size={16} className="mr-1" />
-                  <span>Download</span>
-                </Link>
               </div>
             </div>
           )}
