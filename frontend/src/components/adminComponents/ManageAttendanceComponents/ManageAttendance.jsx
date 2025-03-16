@@ -4,12 +4,9 @@ import AdminSidebar from "../../sidebarComponents/admin-sidebar/adminSidebar";
 import Background from "../../images/background.png";
 import { Search, Calendar, Plus, Menu } from "lucide-react";
 
-export default function ManageAttendance({
-  searchTerm,
-  setSearchTerm,
-  filterDate,
-  setFilterDate,
-}) {
+export default function ManageAttendance() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterDate, setFilterDate] = useState("");
   const [sidebarState, setSidebarState] = useState({
     isVisible: true,
     isExpanded: true,
@@ -44,6 +41,19 @@ export default function ManageAttendance({
       ...prev,
       isVisible: !prev.isVisible,
     }));
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleDateChange = (e) => {
+    setFilterDate(e.target.value);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterDate("");
   };
 
   return (
@@ -121,8 +131,8 @@ export default function ManageAttendance({
                 </div>
                 <input
                   type="text"
-                  value={searchTerm || ""}
-                  onChange={(e) => setSearchTerm?.(e.target.value)}
+                  value={searchTerm}
+                  onChange={handleSearchChange}
                   placeholder="Search employee name"
                   className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
                 />
@@ -134,8 +144,8 @@ export default function ManageAttendance({
                 </div>
                 <input
                   type="date"
-                  value={filterDate || ""}
-                  onChange={(e) => setFilterDate?.(e.target.value)}
+                  value={filterDate}
+                  onChange={handleDateChange}
                   className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
                 />
               </div>
@@ -164,7 +174,12 @@ export default function ManageAttendance({
             </nav>
           </div>
 
-          <ManageAttendanceMain />
+          <ManageAttendanceMain
+            searchTerm={searchTerm}
+            filterDate={filterDate}
+            setSearchTerm={setSearchTerm}
+            setFilterDate={setFilterDate}
+          />
         </div>
       </main>
     </div>

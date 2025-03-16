@@ -15,14 +15,14 @@ import { backendURL } from "../../../urls/URL";
 export default function UpdateAttendanceForm() {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     employeeID: "",
     attendanceDate: "",
     checkInTime: "",
     checkOutTime: "",
   });
-  
+
   const [checkInPhoto, setCheckInPhoto] = useState(null);
   const [checkOutPhoto, setCheckOutPhoto] = useState(null);
   const [checkInPreview, setCheckInPreview] = useState(null);
@@ -62,7 +62,7 @@ export default function UpdateAttendanceForm() {
         checkInPhoto: record.checkInPhoto || "",
         checkOutPhoto: record.checkOutPhoto || "",
       });
-      
+
       // Set preview images for existing photos
       if (record.checkInPhoto) {
         setCheckInPreview(`/employee-checkin-photos/${record.checkInPhoto}`);
@@ -138,13 +138,12 @@ export default function UpdateAttendanceForm() {
         formDataToSend,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-      
+
       showToast("success", "Attendance updated successfully!");
-      
+
       setTimeout(() => {
         navigate("/ManageEmployeeAttendance");
       }, 2000);
-      
     } catch (error) {
       console.error("Error updating attendance:", error);
       showToast(
@@ -428,22 +427,21 @@ export default function UpdateAttendanceForm() {
 
       {toast && (
         <div
-          className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-xl ${
-            toast.type === "success" ? "bg-green-500" : "bg-red-500"
-          } text-white flex items-center justify-between max-w-md animate-fadeIn`}
+          className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg flex items-center ${
+            toast.type === "success"
+              ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+              : "bg-red-100 text-red-800 border-l-4 border-red-500"
+          }`}
         >
-          <div className="flex items-center">
-            {toast.type === "success" ? (
-              <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-            ) : (
-              <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0" />
-            )}
-            <p className="text-sm">{toast.message}</p>
-          </div>
+          {toast.type === "success" ? (
+            <CheckCircle className="w-5 h-5 mr-2" />
+          ) : (
+            <AlertTriangle className="w-5 h-5 mr-2" />
+          )}
+          <span>{toast.message}</span>
           <button
             onClick={() => setToast(null)}
-            className="ml-4 text-white hover:text-gray-100 focus:outline-none"
-            aria-label="Close notification"
+            className="ml-4 text-gray-500 hover:text-gray-700"
           >
             <X className="w-4 h-4" />
           </button>

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-expressions */
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
@@ -6,7 +5,6 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { backendURL } from "../../../urls/URL";
 import PayrollTable from "./PayrollTable";
-import MobilePayrollList from "./MobilePayrollList";
 import PayrollSummaryCards from "./PayrollSummaryCards";
 
 export default function ManagePayrollMain({
@@ -17,6 +15,7 @@ export default function ManagePayrollMain({
   const [payrolls, setPayrolls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [expandedRow, setExpandedRow] = useState(null);
 
   useEffect(() => {
     const fetchPayrolls = async () => {
@@ -168,9 +167,7 @@ export default function ManagePayrollMain({
           {searchTerm || filterPeriod || filterStatus ? (
             <button
               onClick={() => {
-                searchTerm;
-                filterPeriod;
-                filterStatus;
+                // Clear search filters functionality would go here
               }}
               className="mt-4 text-yellow-600 hover:text-yellow-700 font-medium"
             >
@@ -193,23 +190,16 @@ export default function ManagePayrollMain({
     <div className="flex flex-col space-y-6">
       <PayrollSummaryCards payrolls={filteredPayrolls} />
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {isMobile ? (
-          <MobilePayrollList
-            filteredPayrolls={filteredPayrolls}
-            formatCurrency={formatCurrency}
-            getStatusClass={getStatusClass}
-            handleDelete={handleDelete}
-            handlePublish={handlePublish}
-          />
-        ) : (
-          <PayrollTable
-            filteredPayrolls={filteredPayrolls}
-            formatCurrency={formatCurrency}
-            getStatusClass={getStatusClass}
-            handleDelete={handleDelete}
-            handlePublish={handlePublish}
-          />
-        )}
+        <PayrollTable
+          filteredPayrolls={filteredPayrolls}
+          formatCurrency={formatCurrency}
+          getStatusClass={getStatusClass}
+          handleDelete={handleDelete}
+          handlePublish={handlePublish}
+        />
+        <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-sm text-gray-600">
+          Showing {filteredPayrolls.length} of {payrolls.length} records
+        </div>
       </div>
     </div>
   );

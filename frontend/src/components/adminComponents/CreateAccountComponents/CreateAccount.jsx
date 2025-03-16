@@ -10,6 +10,12 @@ export default function CreateAccount() {
     isExpanded: true,
   });
   const [isMobile, setIsMobile] = useState(false);
+  const [currentRole, setCurrentRole] = useState("Employee");
+
+  // Function to handle role change from the form component
+  const handleRoleChange = (role) => {
+    setCurrentRole(role);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -97,11 +103,9 @@ export default function CreateAccount() {
           <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:justify-between md:items-center">
             <div className="ml-8 lg:ml-0">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-                Employee Management
+                Accounts Management
               </h1>
-              <p className="text-gray-600 mt-1">
-                Create and manage employee accounts
-              </p>
+              <p className="text-gray-600 mt-1">Create accounts</p>
             </div>
           </div>
 
@@ -111,10 +115,14 @@ export default function CreateAccount() {
                 <li>
                   <div className="flex items-center">
                     <a
-                      href="/ManageEmployeeAccounts"
+                      href={
+                        currentRole === "Admin"
+                          ? "/ManageAdminAccounts"
+                          : "/ManageEmployeeAccounts"
+                      }
                       className="text-gray-700 hover:text-yellow-600 text-sm font-medium"
                     >
-                      Employees
+                      {currentRole === "Admin" ? "Admin" : "Employees"}
                     </a>
                   </div>
                 </li>
@@ -136,7 +144,7 @@ export default function CreateAccount() {
             </nav>
           </div>
 
-          <CreateAccountForm />
+          <CreateAccountForm onRoleChange={handleRoleChange} />
         </div>
       </main>
     </div>

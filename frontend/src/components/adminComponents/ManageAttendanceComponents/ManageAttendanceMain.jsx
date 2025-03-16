@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { getStatusClass } from "./getStatusClass";
 import { Edit, Trash2, Image, AlertTriangle, ChevronRight } from "lucide-react";
 import AttendanceSummaryCards from "./AttendanceSummaryCards";
+import PhotoModal from "./PhotoModal";
 
 export default function ManageAttendanceMain({
   searchTerm,
@@ -17,6 +18,10 @@ export default function ManageAttendanceMain({
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [photoModal, setPhotoModal] = useState({
+    isOpen: false,
+    imageUrl: "",
+  });
 
   useEffect(() => {
     if (fetchedAttendance.length > 0) {
@@ -35,24 +40,70 @@ export default function ManageAttendanceMain({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const filteredAttendance = attendance.filter(
-    (record) =>
-      record.employeeName
-        .toLowerCase()
-        .includes((searchTerm || "").toLowerCase()) &&
-      (filterDate ? record.attendanceDate === filterDate : true)
-  );
+const filteredAttendance = attendance.filter((record) => {
+  const nameMatch = record.employeeName
+    .toLowerCase()
+    .includes((searchTerm || "").toLowerCase());
+  
+  let dateMatch = true;
+  if (filterDate) {
+
+    try {
+      const recordDate = new Date(record.attendanceDate);
+      const filterDateObj = new Date(filterDate);
+      
+      dateMatch = 
+        recordDate.getFullYear() === filterDateObj.getFullYear() &&
+        recordDate.getMonth() === filterDateObj.getMonth() &&
+        recordDate.getDate() === filterDateObj.getDate();
+    } catch (error) {
+      dateMatch = record.attendanceDate === filterDate;
+    }
+  }
+  
+  return nameMatch && dateMatch;
+});
 
   const confirmDelete = (id) => {
-      handleDelete(id, setAttendance);
+    handleDelete(id, setAttendance);
   };
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
   };
 
+  const openPhotoModal = (photoId, type) => {
+    // Construct URL based on photo type
+    const url =
+      type === "checkin"
+        ? `/employee-checkin-photos/${photoId}`
+        : `/employee-checkout-photos/${photoId}`;
+
+    setPhotoModal({
+      isOpen: true,
+      imageUrl: url,
+    });
+  };
+
+  const closePhotoModal = () => {
+    setPhotoModal({
+      isOpen: false,
+      imageUrl: "",
+    });
+  };
+
+  const clearFilters = () => {
+    if (setSearchTerm) setSearchTerm("");
+    if (setFilterDate) setFilterDate("");
+  };
+
   return (
     <div className="flex flex-col space-y-6">
+      <PhotoModal
+        isOpen={photoModal.isOpen}
+        imageUrl={photoModal.imageUrl}
+        onClose={closePhotoModal}
+      />
       <AttendanceSummaryCards attendance={attendance} />
 
       {loading ? (
@@ -73,10 +124,7 @@ export default function ManageAttendanceMain({
           </p>
           {searchTerm || filterDate ? (
             <button
-              onClick={() => {
-                setSearchTerm("");
-                setFilterDate("");
-              }}
+              onClick={clearFilters}
               className="mt-4 text-yellow-600 hover:text-yellow-700 font-medium"
             >
               Clear filters
@@ -140,26 +188,33 @@ export default function ManageAttendanceMain({
                         </div>
                         <div>
                           <p className="text-gray-500">Check In Photo</p>
-                          <Link
-                            to={`/employee-checkin-photos/${record.checkinPhoto}`}
-                            target="_blank"
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openPhotoModal(record.checkinPhoto, "checkin");
+                            }}
                             className="inline-flex items-center text-blue-600"
                           >
                             <Image size={16} className="mr-1" />
                             <span>View</span>
-                          </Link>
+                          </button>
                         </div>
                         <div>
                           <p className="text-gray-500">Check Out Photo</p>
                           {record.checkoutPhoto ? (
-                            <Link
-                              to={`/employee-checkout-photos/${record.checkoutPhoto}`}
-                              target="_blank"
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openPhotoModal(
+                                  record.checkoutPhoto,
+                                  "checkout"
+                                );
+                              }}
                               className="inline-flex items-center text-blue-600"
                             >
                               <Image size={16} className="mr-1" />
                               <span>View</span>
-                            </Link>
+                            </button>
                           ) : (
                             <span className="text-gray-500">No photo</span>
                           )}
@@ -241,28 +296,30 @@ export default function ManageAttendanceMain({
                         {record.checkinTime}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link
-                          to={`/employee-checkin-photos/${record.checkinPhoto}`}
-                          target="_blank"
+                        <button
+                          onClick={() =>
+                            openPhotoModal(record.checkinPhoto, "checkin")
+                          }
                           className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
                         >
                           <Image size={16} className="mr-1" />
                           <span>View</span>
-                        </Link>
+                        </button>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {record.checkoutTime || "Not checked out"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {record.checkoutPhoto ? (
-                          <Link
-                            to={`/employee-checkout-photos/${record.checkoutPhoto}`}
-                            target="_blank"
+                          <button
+                            onClick={() =>
+                              openPhotoModal(record.checkoutPhoto, "checkout")
+                            }
                             className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
                           >
                             <Image size={16} className="mr-1" />
                             <span>View</span>
-                          </Link>
+                          </button>
                         ) : (
                           <span className="text-gray-500">No photo</span>
                         )}
