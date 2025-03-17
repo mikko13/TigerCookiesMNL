@@ -41,21 +41,27 @@ export default function ManagePayrollMain({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const filteredPayrolls = payrolls.filter(
-    (record) =>
+  const filteredPayrolls = payrolls.filter((record) => {
+    const nameMatches =
       (record.employeeID?.firstName?.toLowerCase() || "").includes(
         (searchTerm || "").toLowerCase()
       ) ||
-      ((record.employeeID?.lastName?.toLowerCase() || "").includes(
+      (record.employeeID?.lastName?.toLowerCase() || "").includes(
         (searchTerm || "").toLowerCase()
-      ) &&
-        (filterPeriod ? record.payPeriod === filterPeriod : true) &&
-        (filterStatus
-          ? filterStatus === "Published"
-            ? record.isPublished
-            : !record.isPublished
-          : true))
-  );
+      );
+
+    const periodMatches = !filterPeriod || record.payPeriod === filterPeriod;
+
+    const statusMatches =
+      !filterStatus ||
+      (filterStatus === "Published" ? record.isPublished : !record.isPublished);
+
+    return nameMatches && periodMatches && statusMatches;
+  });
+
+  const clearFilters = () => {
+    window.dispatchEvent(new CustomEvent("clearPayrollFilters"));
+  };
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -163,10 +169,8 @@ export default function ManagePayrollMain({
           </p>
           {searchTerm || filterPeriod || filterStatus ? (
             <button
-              onClick={() => {
-                // Clear search filters functionality would go here
-              }}
-              className="mt-4 text-yellow-600 hover:text-yellow-700 font-medium"
+              onClick={clearFilters}
+              className="mt-4 text-yellow-500 hover:text-yellow-600 font-medium"
             >
               Clear filters
             </button>

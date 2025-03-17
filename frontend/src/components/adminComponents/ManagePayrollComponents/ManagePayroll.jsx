@@ -159,7 +159,7 @@ export default function ManagePayroll() {
                 >
                   <option value="">All Statuses</option>
                   <option value="Published">Published</option>
-                  <option value="Draft">Draft</option>
+                  <option value="Pending">Pending</option>
                 </select>
               </div>
 

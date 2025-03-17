@@ -3,18 +3,13 @@ import {
   UserCircle,
   Camera,
   X,
-  Calendar,
-  Clock,
   AlertTriangle,
   CheckCircle,
   Loader2,
-  Upload,
-  DollarSign,
   Briefcase,
   Mail,
   Phone,
   Lock,
-  Home,
   User,
 } from "lucide-react";
 import axios from "axios";
@@ -31,14 +26,7 @@ export default function UpdateAdminAccountForm() {
     email: "",
     phone: "",
     password: "",
-    address: "",
-    gender: "",
-    dateOfBirth: "",
-    hiredDate: "",
     position: "",
-    status: "",
-    ratePerHour: "",
-    shift: "",
   });
 
   const [profilePicture, setProfilePicture] = useState(null);
@@ -56,7 +44,15 @@ export default function UpdateAdminAccountForm() {
         const response = await axios.get(`${backendURL}/api/admins/${adminId}`);
 
         const adminData = response.data;
-        setFormData(adminData);
+        // Only set the simplified fields we're keeping
+        setFormData({
+          firstName: adminData.firstName || "",
+          lastName: adminData.lastName || "",
+          email: adminData.email || "",
+          phone: adminData.phone || "",
+          password: "",
+          position: adminData.position || "",
+        });
 
         // Handle profile picture
         if (adminData.profilePicture) {
@@ -126,7 +122,6 @@ export default function UpdateAdminAccountForm() {
     if (changePassword && !formData.password)
       errors.password = "Password is required";
     if (!formData.position) errors.position = "Position is required";
-    if (!formData.hiredDate) errors.hiredDate = "Hired date is required";
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -144,16 +139,19 @@ export default function UpdateAdminAccountForm() {
 
     // Create FormData object
     const formDataToSend = new FormData();
+
+    // Only include the fields we're keeping
     Object.keys(formData).forEach((key) => {
       if (key !== "password" || (key === "password" && changePassword)) {
         formDataToSend.append(key, formData[key]);
       }
     });
 
+    // Handle profile picture state
     if (profilePicture instanceof File) {
       formDataToSend.append("profilePicture", profilePicture);
     } else if (profilePictureToDelete) {
-      formDataToSend.append("profilePicture", "");
+      formDataToSend.append("profilePicture", ""); // Signal to delete existing picture
     }
 
     try {
@@ -233,7 +231,7 @@ export default function UpdateAdminAccountForm() {
             </div>
           </div>
 
-          {/* Personal Information */}
+          {/* Personal Information - Only keeping essential fields */}
           <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -321,18 +319,18 @@ export default function UpdateAdminAccountForm() {
                 )}
               </div>
             </div>
-            {/* Phone Number */}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number <span className="text-red-500">*</span>
+                Phone <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
-                  type="tel"
+                  type="text"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  placeholder="e.g., 09171234567"
+                  placeholder="+639123456789"
                   className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                     formErrors.phone
                       ? "border-red-500 bg-red-50"
@@ -352,327 +350,93 @@ export default function UpdateAdminAccountForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                Password
-                {changePassword && <span className="text-red-500 ml-1">*</span>}
-                <div className="ml-auto">
-                  <input
-                    type="checkbox"
-                    id="changePassword"
-                    checked={changePassword}
-                    onChange={() => setChangePassword(!changePassword)}
-                    className="mr-2"
-                  />
-                  <label
-                    htmlFor="changePassword"
-                    className="text-xs text-gray-500"
-                  >
-                    Change password
-                  </label>
-                </div>
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="••••••••"
-                  disabled={!changePassword}
-                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                    formErrors.password
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all ${
-                    !changePassword ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                />
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Lock className="w-4 h-4 text-gray-500" />
-                </div>
-                {formErrors.password && changePassword && (
-                  <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                    {formErrors.password}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address
+                Position <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  name="address"
-                  value={formData.address}
+                  name="position"
+                  value={formData.position}
                   onChange={handleInputChange}
-                  placeholder="Enter address"
-                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
-                />
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Home className="w-4 h-4 text-gray-500" />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Gender
-              </label>
-              <div className="relative">
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
-                >
-                  <option value="" disabled>
-                    Select Gender
-                  </option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <User className="w-4 h-4 text-gray-500" />
-                </div>
-                <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                  <svg
-                    className="w-4 h-4 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Date of Birth
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  name="dateOfBirth"
-                  value={formData.dateOfBirth}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
-                />
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hired Date <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  name="hiredDate"
-                  value={formData.hiredDate}
-                  onChange={handleInputChange}
+                  placeholder="Enter position"
                   className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                    formErrors.hiredDate
+                    formErrors.position
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
                   } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <Briefcase className="w-4 h-4 text-gray-500" />
                 </div>
-                {formErrors.hiredDate && (
+                {formErrors.position && (
                   <p className="mt-1 text-xs text-red-500 flex items-center">
                     <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                    {formErrors.hiredDate}
+                    {formErrors.position}
                   </p>
                 )}
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Position <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <select
-                name="position"
-                value={formData.position}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                  formErrors.position
-                    ? "border-red-500 bg-red-50"
-                    : "border-gray-300 bg-gray-50"
-                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
-              >
-                <option value="" disabled>
-                  Select Position
-                </option>
-                <option value="Sole Proprietor">Sole Proprietor</option>
-                <option value="Business Development Manager">
-                  Business Development Manager
-                </option>
-                <option value="Operations Manager">Operations Manager</option>
-                <option value="Branch Manager">Branch Manager</option>
-                <option value="Sales Assistant">Sales Assistant</option>
-              </select>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Briefcase className="w-4 h-4 text-gray-500" />
-              </div>
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            <div className="col-span-2">
+              <div className="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  id="changePassword"
+                  checked={changePassword}
+                  onChange={() => setChangePassword(!changePassword)}
+                  className="w-4 h-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-400"
+                />
+                <label
+                  htmlFor="changePassword"
+                  className="ml-2 text-sm text-gray-700"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                  Change Password
+                </label>
               </div>
-              {formErrors.position && (
-                <p className="mt-1 text-xs text-red-500 flex items-center">
-                  <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                  {formErrors.position}
-                </p>
+
+              {changePassword && (
+                <div className="relative">
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Enter new password"
+                    className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                      formErrors.password
+                        ? "border-red-500 bg-red-50"
+                        : "border-gray-300 bg-gray-50"
+                    } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                  />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Lock className="w-4 h-4 text-gray-500" />
+                  </div>
+                  {formErrors.password && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center">
+                      <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                      {formErrors.password}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <div className="relative">
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
-              >
-                <option value="" disabled>
-                  Select Status
-                </option>
-                <option value="N/A">N/A</option>
-                <option value="Present">Present</option>
-                <option value="Late">Late</option>
-                <option value="Absent">Absent</option>
-                <option value="On-Leave">On-Leave</option>
-              </select>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <User className="w-4 h-4 text-gray-500" />
-              </div>
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Rate Per Hour
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                name="ratePerHour"
-                value={formData.ratePerHour}
-                onChange={handleInputChange}
-                placeholder="0.00"
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
-              />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <DollarSign className="w-4 h-4 text-gray-500" />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Shift
-            </label>
-            <div className="relative">
-              <select
-                name="shift"
-                value={formData.shift}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
-              >
-                <option value="" disabled>
-                  Select Shift
-                </option>
-                <option value="Morning">Morning</option>
-                <option value="Afternoon">Afternoon</option>
-                <option value="Night">Night</option>
-              </select>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Clock className="w-4 h-4 text-gray-500" />
-              </div>
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div className="mt-8 flex justify-end gap-4">
+        {/* Submit Buttons */}
+        <div className="mt-8 flex justify-end space-x-4">
           <button
             type="button"
             onClick={() => navigate("/ManageAdminAccounts")}
-            className="px-6 py-2.5 text-sm font-medium bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all flex items-center"
+            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium transition-all hover:bg-gray-300"
           >
-            <X className="w-4 h-4 mr-2" />
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className={`px-6 py-2.5 text-sm font-medium bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-all flex items-center ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
+            className="px-6 py-3 bg-yellow-500 text-white rounded-lg font-medium transition-all hover:bg-yellow-600 flex items-center"
           >
             {loading ? (
               <>
@@ -680,10 +444,7 @@ export default function UpdateAdminAccountForm() {
                 Updating...
               </>
             ) : (
-              <>
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Update
-              </>
+              "Update Admin"
             )}
           </button>
         </div>

@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import useAdmins from "./fetchAdmins";
 import handleAdminDelete from "./handleAdminDelete";
 import { Link } from "react-router-dom";
-import { Edit, Trash2, AlertTriangle, ChevronRight } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  AlertTriangle,
+  ChevronRight,
+  UserCircle,
+} from "lucide-react";
 
 export default function ManageAdminAccountMain({ searchTerm }) {
   const fetchedAdmins = useAdmins();
@@ -33,22 +39,23 @@ export default function ManageAdminAccountMain({ searchTerm }) {
 
     const lowerQuery = searchTerm.toLowerCase();
     return (
-      admin.firstName.toLowerCase().includes(lowerQuery) ||
-      admin.lastName.toLowerCase().includes(lowerQuery) ||
-      admin.email.toLowerCase().includes(lowerQuery) ||
-      admin.phone.toLowerCase().includes(lowerQuery) ||
-      admin.address.toLowerCase().includes(lowerQuery) ||
-      admin.gender.toLowerCase().includes(lowerQuery) ||
-      admin.dateOfBirth.toLowerCase().includes(lowerQuery) ||
-      admin.position.toLowerCase().includes(lowerQuery) ||
-      admin.hiredDate.toLowerCase().includes(lowerQuery) ||
-      admin.ratePerHour.toString().includes(lowerQuery) ||
-      admin.shift.toLowerCase().includes(lowerQuery)
+      admin.firstName?.toLowerCase().includes(lowerQuery) ||
+      admin.lastName?.toLowerCase().includes(lowerQuery) ||
+      admin.email?.toLowerCase().includes(lowerQuery) ||
+      admin.phone?.toLowerCase().includes(lowerQuery) ||
+      admin.position?.toLowerCase().includes(lowerQuery)
     );
   });
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
+  };
+
+  const getProfilePicture = (admin) => {
+    if (admin.profilePicture) {
+      return `/admin-profile-pics/${admin.profilePicture}`;
+    }
+    return null;
   };
 
   return (
@@ -78,7 +85,7 @@ export default function ManageAdminAccountMain({ searchTerm }) {
             </button>
           ) : (
             <Link
-              to="/CreateEmployeeAccount"
+              to="/CreateAdminAccount"
               className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
             >
               Create First Account
@@ -97,17 +104,23 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                     onClick={() => toggleRow(admin._id)}
                   >
                     <div className="flex items-center gap-3">
-                      <img
-                        src={`/admin-profile-pics/${admin.profilePicture}`}
-                        alt="Employee Profile"
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
+                      {admin.profilePicture ? (
+                        <img
+                          src={getProfilePicture(admin)}
+                          alt="Admin Profile"
+                          className="h-10 w-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <UserCircle className="h-6 w-6 text-gray-500" />
+                        </div>
+                      )}
                       <div>
                         <div className="font-medium text-gray-900">
                           {admin.firstName} {admin.lastName}
                         </div>
                         <div className="text-sm text-gray-600">
-                          {admin.position}
+                          {admin.position || "Admin"}
                         </div>
                       </div>
                     </div>
@@ -131,35 +144,14 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                           <p className="font-medium">{admin.phone}</p>
                         </div>
                         <div>
-                          <p className="text-gray-500">Address</p>
-                          <p className="font-medium">{admin.address}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Gender</p>
-                          <p className="font-medium">{admin.gender}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Date of Birth</p>
-                          <p className="font-medium">{admin.dateOfBirth}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Hired Date</p>
-                          <p className="font-medium">{admin.hiredDate}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Rate per Hour</p>
-                          <p className="font-medium">{admin.ratePerHour}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Shift</p>
-                          <p className="font-medium">{admin.shift}</p>
+                          <p className="text-gray-500">Position</p>
+                          <p className="font-medium">{admin.position}</p>
                         </div>
                       </div>
 
                       <div className="mt-3 flex gap-3">
                         <Link
-                          to={`/ModifyAdminAccount/${admin._id}`}
-                          state={{ admin }}
+                          to={`/UpdateAdminAccount/${admin._id}`}
                           className="flex items-center text-blue-600 hover:text-blue-800"
                         >
                           <Edit size={16} className="mr-1" />
@@ -197,25 +189,10 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                       Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Phone Number
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Gender
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date of Birth
+                      Phone
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Position
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Hired Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rate
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Shift
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -229,18 +206,21 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                       className="hover:bg-gray-50 transition-colors duration-150"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <img
-                          src={`/admin-profile-pics/${admin.profilePicture}`}
-                          alt="Employee Profile"
-                          className="h-10 w-10 rounded-full object-cover"
-                        />
+                        {admin.profilePicture ? (
+                          <img
+                            src={getProfilePicture(admin)}
+                            alt="Admin Profile"
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                            <UserCircle className="h-6 w-6 text-gray-500" />
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">
                           {admin.firstName} {admin.lastName}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {admin.address}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
@@ -250,22 +230,7 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                         {admin.phone}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {admin.gender}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {admin.dateOfBirth}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {admin.position}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {admin.hiredDate}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {admin.ratePerHour}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {admin.shift}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         <div className="flex gap-3">

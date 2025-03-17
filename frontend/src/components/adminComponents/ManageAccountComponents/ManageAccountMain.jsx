@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import useEmployees from "./fetchEmployees";
 import handleDelete from "./handleDelete";
 import { Link } from "react-router-dom";
-import { Edit, Trash2, AlertTriangle, ChevronRight } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  AlertTriangle,
+  ChevronRight,
+  UserCircle,
+} from "lucide-react";
 
 export default function ManageAccountMain({ searchTerm }) {
   const fetchedEmployees = useEmployees();
@@ -13,6 +19,12 @@ export default function ManageAccountMain({ searchTerm }) {
 
   useEffect(() => {
     if (fetchedEmployees.length > 0) {
+      fetchedEmployees.forEach((employee, index) => {
+        if (!employee.firstName || !employee.lastName) {
+          console.warn(`Employee at index ${index} is missing required fields:`, employee);
+        }
+      });
+      
       setEmployees(fetchedEmployees);
       setLoading(false);
     }
@@ -33,22 +45,45 @@ export default function ManageAccountMain({ searchTerm }) {
 
     const lowerQuery = searchTerm.toLowerCase();
     return (
-      employee.firstName.toLowerCase().includes(lowerQuery) ||
-      employee.lastName.toLowerCase().includes(lowerQuery) ||
-      employee.email.toLowerCase().includes(lowerQuery) ||
-      employee.phone.toLowerCase().includes(lowerQuery) ||
-      employee.address.toLowerCase().includes(lowerQuery) ||
-      employee.gender.toLowerCase().includes(lowerQuery) ||
-      employee.dateOfBirth.toLowerCase().includes(lowerQuery) ||
-      employee.position.toLowerCase().includes(lowerQuery) ||
-      employee.hiredDate.toLowerCase().includes(lowerQuery) ||
-      employee.ratePerHour.toString().includes(lowerQuery) ||
-      employee.shift.toLowerCase().includes(lowerQuery)
+      (employee.firstName?.toLowerCase() || "").includes(lowerQuery) ||
+      (employee.lastName?.toLowerCase() || "").includes(lowerQuery) ||
+      (employee.email?.toLowerCase() || "").includes(lowerQuery) ||
+      (employee.phone?.toLowerCase() || "").includes(lowerQuery) ||
+      (employee.address?.toLowerCase() || "").includes(lowerQuery) ||
+      (employee.gender?.toLowerCase() || "").includes(lowerQuery) ||
+      (employee.dateOfBirth?.toLowerCase() || "").includes(lowerQuery) ||
+      (employee.position?.toLowerCase() || "").includes(lowerQuery) ||
+      (employee.hiredDate?.toLowerCase() || "").includes(lowerQuery) ||
+      (employee.ratePerHour?.toString() || "").includes(lowerQuery) ||
+      (employee.shift?.toLowerCase() || "").includes(lowerQuery)
     );
   });
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
+  };
+
+  // Function to render profile image with fallback
+  const renderProfileImage = (profilePicture) => {
+    if (profilePicture) {
+      return (
+        <img
+          src={`/employee-profile-pics/${profilePicture}`}
+          alt="Employee Profile"
+          className="h-10 w-10 rounded-full object-cover"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.style.display = "none";
+            e.target.nextSibling.style.display = "flex";
+          }}
+        />
+      );
+    }
+    return (
+      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+        <UserCircle className="h-8 w-8 text-gray-500" />
+      </div>
+    );
   };
 
   return (
@@ -97,11 +132,10 @@ export default function ManageAccountMain({ searchTerm }) {
                     onClick={() => toggleRow(employee._id)}
                   >
                     <div className="flex items-center gap-3">
-                      <img
-                        src={`/employee-profile-pics/${employee.profilePicture}`}
-                        alt="Employee Profile"
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
+                      {renderProfileImage(employee.profilePicture)}
+                      <div className="hidden">
+                        <UserCircle className="h-10 w-10 text-gray-500" />
+                      </div>
                       <div>
                         <div className="font-medium text-gray-900">
                           {employee.firstName} {employee.lastName}
@@ -229,11 +263,12 @@ export default function ManageAccountMain({ searchTerm }) {
                       className="hover:bg-gray-50 transition-colors duration-150"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <img
-                          src={`/employee-profile-pics/${employee.profilePicture}`}
-                          alt="Employee Profile"
-                          className="h-10 w-10 rounded-full object-cover"
-                        />
+                        <div className="flex items-center">
+                          {renderProfileImage(employee.profilePicture)}
+                          <div className="hidden">
+                            <UserCircle className="h-10 w-10 text-gray-500" />
+                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">

@@ -3,6 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const Admin = require("../models/Admin");
+const fs = require("fs");
 
 const router = express.Router();
 

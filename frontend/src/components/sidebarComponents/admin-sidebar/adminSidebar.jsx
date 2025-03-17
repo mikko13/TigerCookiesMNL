@@ -7,6 +7,7 @@ import {
   PhilippinePeso,
   LogOut,
   X,
+  UserCircle,
 } from "lucide-react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
@@ -20,13 +21,52 @@ export default function AdminSidebar({
   const location = useLocation();
   const navigate = useNavigate();
   const [admin, setAdmin] = useState(null);
+  const [profilePicUrl, setProfilePicUrl] = useState(null);
 
   useEffect(() => {
     const storedAdmin = localStorage.getItem("user");
     if (storedAdmin) {
-      setAdmin(JSON.parse(storedAdmin));
+      const parsedAdmin = JSON.parse(storedAdmin);
+      setAdmin(parsedAdmin);
+
+      // Check if admin profile picture exists
+      checkProfilePicture(parsedAdmin.id);
     }
   }, []);
+
+  // Function to check and set profile picture URL
+  const checkProfilePicture = async (adminId) => {
+    // List of common image extensions to try
+    const fileExtensions = ["png", "jpg", "jpeg", "gif", "webp", "bmp"];
+
+    for (const ext of fileExtensions) {
+      const imgUrl = `/admin-profile-pics/${adminId}_profilepic.${ext}`;
+
+      try {
+        // Create a temporary image element to check if the file exists
+        const img = new Image();
+        img.src = imgUrl;
+
+        // Wait for the image to load or fail
+        await new Promise((resolve, reject) => {
+          img.onload = () => {
+            setProfilePicUrl(imgUrl);
+            resolve();
+          };
+          img.onerror = () => reject();
+
+          // Add a timeout to prevent hanging if the image takes too long
+          setTimeout(reject, 1000);
+        });
+
+        // If we found a valid image, break the loop
+        break;
+      } catch (error) {
+        // Continue to the next extension if this one fails
+        continue;
+      }
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -50,8 +90,6 @@ export default function AdminSidebar({
   const isActiveRoute = (route) => {
     return location.pathname === route;
   };
-
-  const profilePicPath = `/admin-profile-pics/${admin?.id}_profilepic.jpg`;
 
   const sidebarLinks = [
     {
@@ -103,11 +141,21 @@ export default function AdminSidebar({
             !isExpanded && "justify-center"
           }`}
         >
-          <img
-            src={profilePicPath}
-            alt="Admin Profile"
-            className="w-10 h-10 rounded-full object-cover border-2 border-yellow-600"
-          />
+          {profilePicUrl ? (
+            <img
+              src={profilePicUrl}
+              alt="Admin Profile"
+              className="w-10 h-10 rounded-full object-cover border-2 border-yellow-600"
+              onError={(e) => {
+                e.target.style.display = "none";
+                e.target.nextSibling.style.display = "flex";
+              }}
+            />
+          ) : (
+            <div className="w-10 h-10 flex items-center justify-center bg-yellow-600 text-white rounded-full border-2 border-yellow-600">
+              <UserCircle size={24} />
+            </div>
+          )}
           {isExpanded && (
             <div className="overflow-hidden">
               <p className="text-sm font-medium text-gray-800 truncate">
