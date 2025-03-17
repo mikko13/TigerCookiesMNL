@@ -11,11 +11,8 @@
     "crypto-browserify": "^3.12.1",
     "face-api.js": "^0.22.2",
     "framer-motion": "^12.4.7",
-<<<<<<< HEAD
     "fs": "^0.0.1-security",
-=======
     "heroicons": "^2.2.0",
->>>>>>> 615dbf8d432d2299b6f63aaf9cb5ab0bd5108cf8
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "lucide-react": "^0.476.0",
