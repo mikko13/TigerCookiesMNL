@@ -64,7 +64,6 @@ export default function EmpAttendanceRequestOt() {
       setOvertimeNote("");
       setLastOvertime(overtimeData);
 
-      // Fetch all admins and send email notifications
       const adminsResponse = await axios.get(`${backendURL}/api/admins`);
       const admins = adminsResponse.data;
 

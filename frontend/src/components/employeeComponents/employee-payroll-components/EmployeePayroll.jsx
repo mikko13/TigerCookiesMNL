@@ -15,27 +15,21 @@ export default function EmployeePayroll() {
   });
   const [isMobile, setIsMobile] = useState(false);
 
-  // Generate periods for current and future years
   const generatePayPeriods = () => {
     const periods = [];
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
 
-    // Generate periods for the current year and next 2 years
     for (let year = currentYear; year <= currentYear + 2; year++) {
-      // For each month of the year
-      // If it's the current year, start from the current month
       const startMonth = year === currentYear ? currentMonth : 0;
       for (let month = startMonth; month <= 11; month++) {
         const monthName = new Date(year, month, 1).toLocaleString("default", {
           month: "long",
         });
 
-        // First half of the month (1-15)
         periods.push(`${monthName} 1-15, ${year}`);
 
-        // Second half of the month (16-end)
         periods.push(
           `${monthName} 16-${new Date(year, month + 1, 0).getDate()}, ${year}`
         );
@@ -54,7 +48,7 @@ export default function EmployeePayroll() {
       if (mobile) {
         setSidebarState({
           isVisible: false,
-          isExpanded: true, // Keep it fully expanded when it is opened on mobile
+          isExpanded: true,
         });
       } else {
         setSidebarState({
@@ -92,7 +86,6 @@ export default function EmployeePayroll() {
         backgroundAttachment: "fixed",
       }}
     >
-      {/* Mobile sidebar toggle button that peeks from the left */}
       {isMobile && !sidebarState.isVisible && (
         <button
           onClick={toggleSidebarVisibility}
@@ -103,7 +96,6 @@ export default function EmployeePayroll() {
         </button>
       )}
 
-      {/* Overlay for mobile when sidebar is open */}
       {isMobile && sidebarState.isVisible && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
@@ -111,7 +103,6 @@ export default function EmployeePayroll() {
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
@@ -121,7 +112,7 @@ export default function EmployeePayroll() {
       >
         {sidebarState.isVisible && (
           <EmployeeSidebar
-            isExpanded={true} // Always keep it expanded when visible
+            isExpanded={true}
             isMobile={isMobile}
             toggleVisibility={toggleSidebarVisibility}
           />

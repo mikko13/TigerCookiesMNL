@@ -94,7 +94,6 @@ export default function ManageAdminAccountMain({ searchTerm }) {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Mobile View */}
           {isMobile ? (
             <div className="divide-y divide-gray-200">
               {filteredAdmins.map((admin) => (

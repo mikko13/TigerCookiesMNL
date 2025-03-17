@@ -3,6 +3,7 @@ import useAttendance from "./fetchAttendance";
 import { Link } from "react-router-dom";
 import { Image, AlertTriangle, ChevronRight } from "lucide-react";
 import { getStatusClass } from "./getStatusClass";
+import PhotoModal from "./PhotoModal";
 
 export default function EmployeeManageAttendanceMain({
   searchTerm,
@@ -15,6 +16,10 @@ export default function EmployeeManageAttendanceMain({
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [photoModal, setPhotoModal] = useState({
+    isOpen: false,
+    imageUrl: "",
+  });
 
   useEffect(() => {
     if (fetchedAttendance.length > 0) {
@@ -52,8 +57,34 @@ export default function EmployeeManageAttendanceMain({
     setExpandedRow(expandedRow === id ? null : id);
   };
 
+  const openPhotoModal = (photoId, type) => {
+    // Construct URL based on photo type
+    const url =
+      type === "checkin"
+        ? `/employee-checkin-photos/${photoId}`
+        : `/employee-checkout-photos/${photoId}`;
+
+    setPhotoModal({
+      isOpen: true,
+      imageUrl: url,
+    });
+  };
+
+  const closePhotoModal = () => {
+    setPhotoModal({
+      isOpen: false,
+      imageUrl: "",
+    });
+  };
+
   return (
     <div className="flex flex-col space-y-6">
+      <PhotoModal
+        isOpen={photoModal.isOpen}
+        imageUrl={photoModal.imageUrl}
+        onClose={closePhotoModal}
+      />
+
       {loading ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto"></div>
@@ -84,7 +115,6 @@ export default function EmployeeManageAttendanceMain({
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Mobile View */}
           {isMobile ? (
             <div className="divide-y divide-gray-200">
               {filteredAttendance.map((record) => (
@@ -133,26 +163,33 @@ export default function EmployeeManageAttendanceMain({
                         </div>
                         <div>
                           <p className="text-gray-500">Check In Photo</p>
-                          <Link
-                            to={`/employee-checkin-photos/${record.checkinPhoto}`}
-                            target="_blank"
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openPhotoModal(record.checkinPhoto, "checkin");
+                            }}
                             className="inline-flex items-center text-blue-600"
                           >
                             <Image size={16} className="mr-1" />
                             <span>View</span>
-                          </Link>
+                          </button>
                         </div>
                         <div>
                           <p className="text-gray-500">Check Out Photo</p>
                           {record.checkoutPhoto ? (
-                            <Link
-                              to={`/employee-checkout-photos/${record.checkoutPhoto}`}
-                              target="_blank"
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openPhotoModal(
+                                  record.checkoutPhoto,
+                                  "checkout"
+                                );
+                              }}
                               className="inline-flex items-center text-blue-600"
                             >
                               <Image size={16} className="mr-1" />
                               <span>View</span>
-                            </Link>
+                            </button>
                           ) : (
                             <span className="text-gray-500">No photo</span>
                           )}
@@ -210,28 +247,30 @@ export default function EmployeeManageAttendanceMain({
                         {record.checkinTime}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link
-                          to={`/employee-checkin-photos/${record.checkinPhoto}`}
-                          target="_blank"
+                        <button
+                          onClick={() =>
+                            openPhotoModal(record.checkinPhoto, "checkin")
+                          }
                           className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
                         >
                           <Image size={16} className="mr-1" />
                           <span>View</span>
-                        </Link>
+                        </button>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {record.checkoutTime || "Not checked out"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {record.checkoutPhoto ? (
-                          <Link
-                            to={`/employee-checkout-photos/${record.checkoutPhoto}`}
-                            target="_blank"
+                          <button
+                            onClick={() =>
+                              openPhotoModal(record.checkoutPhoto, "checkout")
+                            }
                             className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
                           >
                             <Image size={16} className="mr-1" />
                             <span>View</span>
-                          </Link>
+                          </button>
                         ) : (
                           <span className="text-gray-500">No photo</span>
                         )}

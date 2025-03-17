@@ -44,7 +44,6 @@ export default function UpdateAdminAccountForm() {
         const response = await axios.get(`${backendURL}/api/admins/${adminId}`);
 
         const adminData = response.data;
-        // Only set the simplified fields we're keeping
         setFormData({
           firstName: adminData.firstName || "",
           lastName: adminData.lastName || "",
@@ -54,7 +53,6 @@ export default function UpdateAdminAccountForm() {
           position: adminData.position || "",
         });
 
-        // Handle profile picture
         if (adminData.profilePicture) {
           setProfilePicture(adminData.profilePicture);
           setProfilePreview(`/admin-profile-pics/${adminData.profilePicture}`);
@@ -74,7 +72,6 @@ export default function UpdateAdminAccountForm() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Clear error when field is updated
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: null });
     }
@@ -137,21 +134,18 @@ export default function UpdateAdminAccountForm() {
 
     setLoading(true);
 
-    // Create FormData object
     const formDataToSend = new FormData();
 
-    // Only include the fields we're keeping
     Object.keys(formData).forEach((key) => {
       if (key !== "password" || (key === "password" && changePassword)) {
         formDataToSend.append(key, formData[key]);
       }
     });
 
-    // Handle profile picture state
     if (profilePicture instanceof File) {
       formDataToSend.append("profilePicture", profilePicture);
     } else if (profilePictureToDelete) {
-      formDataToSend.append("profilePicture", ""); // Signal to delete existing picture
+      formDataToSend.append("profilePicture", "");
     }
 
     try {
@@ -182,7 +176,6 @@ export default function UpdateAdminAccountForm() {
 
       <form onSubmit={handleSubmit} className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Profile Picture Upload */}
           <div className="col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Profile Picture
@@ -231,7 +224,6 @@ export default function UpdateAdminAccountForm() {
             </div>
           </div>
 
-          {/* Personal Information - Only keeping essential fields */}
           <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -424,7 +416,6 @@ export default function UpdateAdminAccountForm() {
           </div>
         </div>
 
-        {/* Submit Buttons */}
         <div className="mt-8 flex justify-end space-x-4">
           <button
             type="button"

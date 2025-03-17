@@ -73,7 +73,6 @@ const filteredAttendance = attendance.filter((record) => {
   };
 
   const openPhotoModal = (photoId, type) => {
-    // Construct URL based on photo type
     const url =
       type === "checkin"
         ? `/employee-checkin-photos/${photoId}`
@@ -104,6 +103,7 @@ const filteredAttendance = attendance.filter((record) => {
         imageUrl={photoModal.imageUrl}
         onClose={closePhotoModal}
       />
+      
       <AttendanceSummaryCards attendance={attendance} />
 
       {loading ? (

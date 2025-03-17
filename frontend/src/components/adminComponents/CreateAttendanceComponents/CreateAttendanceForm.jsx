@@ -49,7 +49,6 @@ export default function AdminCreateAttendanceForm() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Clear error when field is updated
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: null });
     }

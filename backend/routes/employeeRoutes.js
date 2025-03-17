@@ -34,7 +34,6 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Create Employee Account (with role)
 router.post("/", upload.single("profilePicture"), async (req, res) => {
   try {
     const {
@@ -50,12 +49,11 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       position,
       ratePerHour,
       shift,
-      role, // new role field (if provided, otherwise model's default)
+      role,
     } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new account, defaulting role to "employee" if not provided
     const account = await Account.create({
       firstName,
       lastName,
@@ -88,7 +86,6 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
   }
 });
 
-// Get all Employees
 router.get("/", async (req, res) => {
   try {
     const employees = await Account.find();
@@ -98,7 +95,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Employee Login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -129,7 +125,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Employee Logout
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -140,7 +135,6 @@ router.post("/logout", (req, res) => {
   });
 });
 
-// Check Employee Session
 router.get("/session", (req, res) => {
   if (req.session.user) {
     return res.status(200).json({ user: req.session.user });
@@ -149,7 +143,6 @@ router.get("/session", (req, res) => {
   }
 });
 
-// Delete Employee
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -171,7 +164,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Update Employee (with role update)
 router.put("/:id", upload.single("profilePicture"), async (req, res) => {
   const { id } = req.params;
   const {
@@ -187,7 +179,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     hiredDate,
     ratePerHour,
     shift,
-    role, // update role if provided
+    role,
   } = req.body;
 
   try {

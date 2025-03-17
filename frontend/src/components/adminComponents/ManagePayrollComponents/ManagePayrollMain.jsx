@@ -140,7 +140,6 @@ export default function ManagePayrollMain({
     }).format(amount);
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="flex flex-col space-y-6">
@@ -152,7 +151,6 @@ export default function ManagePayrollMain({
     );
   }
 
-  // No records found state
   if (filteredPayrolls.length === 0) {
     return (
       <div className="flex flex-col space-y-6">

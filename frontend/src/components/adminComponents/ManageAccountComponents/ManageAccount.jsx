@@ -69,7 +69,6 @@ export default function ManageAccount() {
         />
       )}
 
-      {/* Key change: Sidebar is now fixed on desktop and properly styled */}
       <div
         className={`transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
@@ -88,7 +87,6 @@ export default function ManageAccount() {
         )}
       </div>
 
-      {/* Main content area now has padding-left to accommodate fixed sidebar */}
       <main 
         className={`flex-1 transition-all duration-300 ease-in-out overflow-y-auto ${
           isMobile 

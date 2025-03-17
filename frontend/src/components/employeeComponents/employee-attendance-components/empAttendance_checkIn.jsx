@@ -28,7 +28,6 @@ export default function EmpAttendanceCheckIn() {
 
     checkIfCheckedIn();
 
-    // Update current time every second
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);

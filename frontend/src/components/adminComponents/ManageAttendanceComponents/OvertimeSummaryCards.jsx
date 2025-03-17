@@ -54,7 +54,6 @@ export default function OvertimeSummaryCards({ overtime }) {
     };
   }, [overtime]);
 
-  // Cards configuration
   const cards = [
     {
       title: "Total Employees",

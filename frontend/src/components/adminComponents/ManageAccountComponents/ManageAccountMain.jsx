@@ -122,7 +122,6 @@ export default function ManageAccountMain({ searchTerm }) {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Mobile View */}
           {isMobile ? (
             <div className="divide-y divide-gray-200">
               {filteredEmployees.map((employee) => (

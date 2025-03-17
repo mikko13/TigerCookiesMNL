@@ -51,7 +51,6 @@ export default function PayrollSummaryCards({ payrolls }) {
     };
   }, [payrolls]);
 
-  // Format currency function
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-PH", {
       style: "currency",
@@ -59,7 +58,6 @@ export default function PayrollSummaryCards({ payrolls }) {
     }).format(amount);
   };
 
-  // Cards configuration
   const cards = [
     {
       title: "Total Employees",

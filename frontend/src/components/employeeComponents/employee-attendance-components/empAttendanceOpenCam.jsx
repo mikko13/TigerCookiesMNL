@@ -9,10 +9,8 @@ export default function EmpAttendance() {
   const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {
-    // Check if we're on mobile on initial render
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
-      // Auto-hide sidebar on mobile
       if (window.innerWidth < 768) {
         setIsSidebarVisible(false);
       } else {
@@ -20,13 +18,10 @@ export default function EmpAttendance() {
       }
     };
 
-    // Run the check immediately
     checkMobile();
 
-    // Add resize listener
     window.addEventListener("resize", checkMobile);
 
-    // Cleanup
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
@@ -40,7 +35,6 @@ export default function EmpAttendance() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Mobile sidebar overlay */}
       {isMobile && isSidebarVisible && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20"
@@ -48,7 +42,6 @@ export default function EmpAttendance() {
         ></div>
       )}
 
-      {/* Sidebar */}
       <div
         className={`${
           isMobile
@@ -68,9 +61,7 @@ export default function EmpAttendance() {
         />
       </div>
 
-      {/* Main content area */}
       <div className="flex flex-col flex-grow overflow-auto">
-        {/* Top navigation bar */}
         <header className="bg-white md:hidden shadow-sm h-16 flex items-center justify-between px-4 sticky top-0 z-10">
           <div className="flex items-center">
             <button
@@ -91,7 +82,6 @@ export default function EmpAttendance() {
           </div>
         </header>
 
-        {/* Main content */}
         <main
           className={`flex-grow flex items-center justify-center p-4 transition-all duration-300 ${
             isMobile ? "" : isExpanded ? "ml-0" : "ml-0"

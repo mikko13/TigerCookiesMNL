@@ -3,7 +3,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const Admin = require("../models/Admin");
 const Employee = require("../models/Employees");
-const emailService = require("../services/emailService"); // your OTP email service
+const emailService = require("../services/emailService");
 const router = express.Router();
 
 const generateOTP = () => Math.floor(1000 + Math.random() * 9000);
@@ -13,14 +13,12 @@ router.post("/send-otp", async (req, res) => {
   if (!email) return res.status(400).json({ error: "Email is required" });
 
   try {
-    // Make sure this is finding the record from the correct collection
     const user = await Employee.findOne({ email });
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const otp = generateOTP();
     const hashedOTP = await bcrypt.hash(String(otp), 10);
 
-    // Use your email service to send the OTP
     const response = await emailService.sendOTPEmail(
       email,
       user.firstName,
@@ -30,7 +28,6 @@ router.post("/send-otp", async (req, res) => {
       return res.status(500).json(response);
     }
 
-    // Update only the OTP fields to avoid validation errors
     await Employee.updateOne(
       { _id: user._id },
       {
@@ -64,7 +61,6 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(400).json({ message: "OTP expired." });
     }
 
-    // Ensure we're comparing strings correctly
     const isMatch = await bcrypt.compare(String(otp), user.otp);
 
     if (!isMatch) return res.status(400).json({ message: "Invalid OTP." });
@@ -115,11 +111,9 @@ router.post("/reset-password", async (req, res) => {
 router.post("/", async (req, res) => {
   const { email, password } = req.body;
   try {
-    // Check in Admin collection first
     let user = await Admin.findOne({ email });
     let role = "admin";
 
-    // If not found, check in Employee collection
     if (!user) {
       user = await Employee.findOne({ email });
       role = "employee";
@@ -134,7 +128,6 @@ router.post("/", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Save the user info in session
     req.session.user = {
       id: user._id,
       firstName: user.firstName,
@@ -152,8 +145,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ----- Session Check -----
-// GET /api/login/session returns the current session's user data
 router.get("/session", (req, res) => {
   if (req.session.user) {
     res.status(200).json({ user: req.session.user });
