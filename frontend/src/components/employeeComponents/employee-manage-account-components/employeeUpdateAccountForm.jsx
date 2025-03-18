@@ -85,7 +85,6 @@ export default function UpdateAccountForm() {
       const employeeData = response.data;
       setUser(employeeData);
 
-      // Handle profile picture
       if (employeeData.profilePicture) {
         setProfilePicture(employeeData.profilePicture);
         setProfilePreview(
@@ -104,7 +103,6 @@ export default function UpdateAccountForm() {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
 
-    // Clear error when field is updated
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: null });
     }
@@ -371,7 +369,6 @@ export default function UpdateAccountForm() {
                 )}
               </div>
             </div>
-            {/* Phone Number */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Phone Number <span className="text-red-500 ml-1">*</span>

@@ -22,7 +22,6 @@ export default function UpdatePayrollForm({ onUpdateSuccess }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // If payrollId wasn't provided via props, check if it's in the location state or params
   const effectivePayrollId = payrollId || location.state?.record?._id;
 
   const [formData, setFormData] = useState({
@@ -60,7 +59,6 @@ export default function UpdatePayrollForm({ onUpdateSuccess }) {
   useEffect(() => {
     const fetchPayrollData = async () => {
       try {
-        // Check if record is passed via location state (for optimization)
         if (location.state?.record) {
           const payrollData = location.state.record;
           setOriginalPayroll(payrollData);
@@ -95,14 +93,12 @@ export default function UpdatePayrollForm({ onUpdateSuccess }) {
 
           setInitialLoading(false);
         } else if (effectivePayrollId) {
-          // Fetch from API if no state data is available
           const response = await axios.get(
             `${backendURL}/api/payroll/${effectivePayrollId}`
           );
           const payrollData = response.data;
           setOriginalPayroll(payrollData);
 
-          // Set form data from the retrieved payroll
           setFormData({
             employeeID: payrollData.employeeID._id || payrollData.employeeID,
             payPeriod: payrollData.payPeriod,
@@ -125,7 +121,6 @@ export default function UpdatePayrollForm({ onUpdateSuccess }) {
             otherDeductions: (payrollData.otherDeductions || 0).toString(),
           });
 
-          // Initialize calculations
           setCalculations({
             totalEarnings: payrollData.totalEarnings,
             totalDeductions: payrollData.totalDeductions,

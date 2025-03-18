@@ -27,7 +27,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create new payroll
 router.post("/", async (req, res) => {
   const payroll = new Payroll(req.body);
   try {
@@ -38,7 +37,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Update payroll - support both PUT and PATCH
 router.put("/:id", async (req, res) => {
   try {
     const updatedPayroll = await Payroll.findByIdAndUpdate(
@@ -69,7 +67,6 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-// Delete payroll
 router.delete("/:id", async (req, res) => {
   try {
     const deletedPayroll = await Payroll.findByIdAndDelete(req.params.id);
@@ -81,7 +78,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Publish payroll
 router.patch("/:id/publish", async (req, res) => {
   try {
     const updatedPayroll = await Payroll.findByIdAndUpdate(

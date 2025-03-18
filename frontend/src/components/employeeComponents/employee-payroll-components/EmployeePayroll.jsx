@@ -15,6 +15,31 @@ export default function EmployeePayroll() {
   });
   const [isMobile, setIsMobile] = useState(false);
 
+  const generatePayPeriods = () => {
+    const periods = [];
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+
+    for (let year = currentYear; year <= currentYear + 2; year++) {
+      const startMonth = year === currentYear ? currentMonth : 0;
+      for (let month = startMonth; month <= 11; month++) {
+        const monthName = new Date(year, month, 1).toLocaleString("default", {
+          month: "long",
+        });
+
+        periods.push(`${monthName} 1-15, ${year}`);
+
+        periods.push(
+          `${monthName} 16-${new Date(year, month + 1, 0).getDate()}, ${year}`
+        );
+
+      }
+    }
+
+    return periods;
+  };
+
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 1024;
@@ -23,7 +48,7 @@ export default function EmployeePayroll() {
       if (mobile) {
         setSidebarState({
           isVisible: false,
-          isExpanded: true, // Keep it fully expanded when it is opened on mobile
+          isExpanded: true,
         });
       } else {
         setSidebarState({
@@ -49,6 +74,8 @@ export default function EmployeePayroll() {
     navigate("/all-payslips");
   };
 
+  const payPeriods = generatePayPeriods();
+
   return (
     <div
       className="flex min-h-screen bg-gray-50 overflow-hidden relative"
@@ -59,7 +86,6 @@ export default function EmployeePayroll() {
         backgroundAttachment: "fixed",
       }}
     >
-      {/* Mobile sidebar toggle button that peeks from the left */}
       {isMobile && !sidebarState.isVisible && (
         <button
           onClick={toggleSidebarVisibility}
@@ -70,7 +96,6 @@ export default function EmployeePayroll() {
         </button>
       )}
 
-      {/* Overlay for mobile when sidebar is open */}
       {isMobile && sidebarState.isVisible && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
@@ -78,7 +103,6 @@ export default function EmployeePayroll() {
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
@@ -88,7 +112,7 @@ export default function EmployeePayroll() {
       >
         {sidebarState.isVisible && (
           <EmployeeSidebar
-            isExpanded={true} // Always keep it expanded when visible
+            isExpanded={true}
             isMobile={isMobile}
             toggleVisibility={toggleSidebarVisibility}
           />
@@ -107,24 +131,11 @@ export default function EmployeePayroll() {
                 My Payroll
               </h1>
               <p className="text-gray-600 mt-1">
-                View your payroll history and download payslips
+                View future payroll schedules and download payslips
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search size={18} className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search records"
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-                />
-              </div>
-
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Calendar size={18} className="text-gray-400" />
@@ -134,10 +145,12 @@ export default function EmployeePayroll() {
                   onChange={(e) => setFilterPeriod(e.target.value)}
                   className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
                 >
-                  <option value="">All Periods</option>
-                  <option value="January 1-15, 2025">January 1-15, 2025</option>
-                  <option value="February 2025">February 2025</option>
-                  <option value="March 2025">March 2025</option>
+                  <option value="">All Future Periods</option>
+                  {payPeriods.map((period, index) => (
+                    <option key={index} value={period}>
+                      {period}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

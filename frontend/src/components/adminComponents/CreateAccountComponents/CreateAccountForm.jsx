@@ -44,7 +44,6 @@ export default function CreateAccountForm({ onRoleChange }) {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // If role changes, notify parent component
     if (name === "role" && onRoleChange) {
       onRoleChange(value);
     }
@@ -223,7 +222,6 @@ export default function CreateAccountForm({ onRoleChange }) {
       shift: "",
     });
 
-    // Notify parent component of reset role
     if (onRoleChange) {
       onRoleChange("Employee");
     }
@@ -233,7 +231,6 @@ export default function CreateAccountForm({ onRoleChange }) {
     setFormErrors({});
   };
 
-  // Initialize role on component mount
   useEffect(() => {
     if (onRoleChange) {
       onRoleChange(formData.role);

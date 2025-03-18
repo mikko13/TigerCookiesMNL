@@ -308,7 +308,6 @@ router.put(
         fs.renameSync(req.files["checkOutPhoto"][0].path, checkOutPhotoPath);
       }
 
-      // Automatically determine attendanceStatus
       const attendanceStatus = getAttendanceStatus(formattedCheckInTime);
 
       attendanceRecord.attendanceDate = attendanceDate;

@@ -21,16 +21,8 @@ const adminSchema = new mongoose.Schema(
       ],
     },
     password: { type: String, required: true },
-    address: { type: String },
-    gender: { type: String },
-    dateOfBirth: { type: String },
-    hiredDate: { type: String },
-    position: { type: String },
-    ratePerHour: { type: Number },
-    shift: { type: String },
-    otp: { type: String },
-    otpExpires: { type: Date },
-    role: { type: String, default: "admin" }, // Added role field
+    position: { type: String, required: true },
+    role: { type: String, default: "admin" },
   },
   { timestamps: true, collection: "adminAccounts" }
 );

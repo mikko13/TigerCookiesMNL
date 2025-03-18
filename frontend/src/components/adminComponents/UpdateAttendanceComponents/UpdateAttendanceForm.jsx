@@ -62,7 +62,6 @@ export default function UpdateAttendanceForm() {
         checkOutPhoto: record.checkOutPhoto || "",
       });
 
-      // Set preview images for existing photos
       if (record.checkInPhoto) {
         setCheckInPreview(`/employee-checkin-photos/${record.checkInPhoto}`);
       }

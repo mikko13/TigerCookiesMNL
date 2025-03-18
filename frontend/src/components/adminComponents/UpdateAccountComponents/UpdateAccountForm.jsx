@@ -60,7 +60,6 @@ export default function UpdateAccountForm() {
         const employeeData = response.data;
         setFormData(employeeData);
 
-        // Handle profile picture
         if (employeeData.profilePicture) {
           setProfilePicture(employeeData.profilePicture);
           setProfilePreview(
@@ -145,7 +144,6 @@ export default function UpdateAccountForm() {
 
     setLoading(true);
 
-    // Create FormData object
     const formDataToSend = new FormData();
     Object.keys(formData).forEach((key) => {
       if (key !== "password" || (key === "password" && changePassword)) {
@@ -156,7 +154,7 @@ export default function UpdateAccountForm() {
     if (profilePicture instanceof File) {
       formDataToSend.append("profilePicture", profilePicture);
     } else if (profilePictureToDelete) {
-      formDataToSend.append("profilePicture", "");
+      formDataToSend.append("deleteProfilePicture", "true");
     }
 
     try {
@@ -329,7 +327,6 @@ export default function UpdateAccountForm() {
               </div>
             </div>
 
-            {/* Phone Number */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Phone Number <span className="text-red-500">*</span>

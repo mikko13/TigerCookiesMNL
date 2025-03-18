@@ -3,10 +3,10 @@ const multer = require("multer");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const Admin = require("../models/Admin");
+const fs = require("fs");
 
 const router = express.Router();
 
-// Configure multer for admin profile picture uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(__dirname, "../../frontend/public/admin-profile-pics"));
@@ -33,7 +33,6 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Create Admin Account
 router.post("/", upload.single("profilePicture"), async (req, res) => {
   try {
     const {
@@ -49,10 +48,9 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       position,
       ratePerHour,
       shift,
-      role, // comes from req.body; if not provided, model will default to "admin"
+      role,
     } = req.body;
 
-    // Check if admin already exists
     const existingAdmin = await Admin.findOne({ email });
     if (existingAdmin) {
       return res.status(400).json({ message: "Admin already exists" });
@@ -94,7 +92,6 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
   }
 });
 
-// Admin Login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -106,7 +103,6 @@ router.post("/login", async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    // Save admin info in session
     req.session.user = {
       id: admin._id,
       firstName: admin.firstName,
@@ -125,7 +121,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Admin Logout
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -136,7 +131,6 @@ router.post("/logout", (req, res) => {
   });
 });
 
-// Check Admin Session
 router.get("/session", (req, res) => {
   if (req.session.user) {
     res.status(200).json({ user: req.session.user });
@@ -145,7 +139,6 @@ router.get("/session", (req, res) => {
   }
 });
 
-// Get All Admins
 router.get("/", async (req, res) => {
   try {
     const admins = await Admin.find();
@@ -155,7 +148,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get Admin by ID
 router.get("/:id", async (req, res) => {
   try {
     const admin = await Admin.findById(req.params.id);
@@ -168,7 +160,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Update Admin
 router.put("/:id", upload.single("profilePicture"), async (req, res) => {
   const { id } = req.params;
   const {
@@ -211,7 +202,6 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     admin.shift = shift || admin.shift;
     admin.role = role || admin.role;
 
-    // If front-end sends an empty profilePicture field, remove the file
     if (req.body.profilePicture === "") {
       const oldFilePath = path.join(
         __dirname,
@@ -223,7 +213,6 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
       admin.profilePicture = "";
     }
 
-    // If a new file is uploaded, update the profile picture
     if (req.file) {
       const oldFilePath = path.join(
         __dirname,
@@ -253,7 +242,6 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
   }
 });
 
-// Delete Admin
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -275,7 +263,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Check if Email Exists for Admin
 router.post("/check-email", async (req, res) => {
   const { email } = req.body;
   try {

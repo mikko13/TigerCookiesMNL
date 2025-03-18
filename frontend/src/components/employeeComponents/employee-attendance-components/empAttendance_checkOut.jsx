@@ -18,13 +18,11 @@ export default function EmpAttendanceCheckOut() {
       }
 
       try {
-        // Fetch check-in status
         const checkInResponse = await axios.get(
           `${backendURL}/api/checkin/status/${employeeID}`
         );
         setHasCheckedIn(checkInResponse.data.checkedIn);
 
-        // Fetch check-out status only if checked in
         if (checkInResponse.data.checkedIn) {
           const checkOutResponse = await axios.get(
             `${backendURL}/api/checkout/status/${employeeID}`
@@ -38,7 +36,6 @@ export default function EmpAttendanceCheckOut() {
 
     fetchAttendanceStatus();
 
-    // Update current time every second
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);

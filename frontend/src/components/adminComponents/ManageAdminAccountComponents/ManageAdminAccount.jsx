@@ -20,7 +20,7 @@ export default function ManageAdminAccount() {
       if (mobile) {
         setSidebarState({
           isVisible: false,
-          isExpanded: true, // Keep it fully expanded when it is opened on mobile
+          isExpanded: true,
         });
       } else {
         setSidebarState({
@@ -69,7 +69,6 @@ export default function ManageAdminAccount() {
         />
       )}
 
-      {/* Key change: Sidebar is now fixed on desktop and properly styled */}
       <div
         className={`transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
@@ -88,7 +87,6 @@ export default function ManageAdminAccount() {
         )}
       </div>
 
-      {/* Main content area now has padding-left to accommodate fixed sidebar */}
       <main
         className={`flex-1 transition-all duration-300 ease-in-out overflow-y-auto ${
           isMobile ? "w-full" : sidebarState.isVisible ? "pl-[250px]" : ""

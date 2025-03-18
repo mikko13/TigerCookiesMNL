@@ -47,7 +47,6 @@ export default function ManagePayroll() {
 
   return (
     <div className="flex min-h-screen bg-gray-50 overflow-hidden relative">
-      {/* Fixed background for the entire page */}
       <div
         className="fixed inset-0 z-0"
         style={{
@@ -58,7 +57,6 @@ export default function ManagePayroll() {
         }}
       />
 
-      {/* Mobile menu button */}
       {isMobile && !sidebarState.isVisible && (
         <button
           onClick={toggleSidebarVisibility}
@@ -69,7 +67,6 @@ export default function ManagePayroll() {
         </button>
       )}
 
-      {/* Mobile overlay */}
       {isMobile && sidebarState.isVisible && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
@@ -77,7 +74,6 @@ export default function ManagePayroll() {
         />
       )}
 
-      {/* Fixed sidebar container */}
       <div
         className={`fixed top-0 left-0 h-screen z-40 transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
@@ -89,14 +85,13 @@ export default function ManagePayroll() {
       >
         {sidebarState.isVisible && (
           <AdminSidebar
-            isExpanded={true} // Always keep it expanded when visible
+            isExpanded={true}
             isMobile={isMobile}
             toggleVisibility={toggleSidebarVisibility}
           />
         )}
       </div>
 
-      {/* Main content with padding to account for fixed sidebar */}
       <main
         className={`relative z-10 min-h-screen w-full transition-all duration-300 ease-in-out ${
           !isMobile && sidebarState.isVisible ? "ml-[250px]" : "ml-0"
@@ -159,7 +154,7 @@ export default function ManagePayroll() {
                 >
                   <option value="">All Statuses</option>
                   <option value="Published">Published</option>
-                  <option value="Draft">Draft</option>
+                  <option value="Pending">Pending</option>
                 </select>
               </div>
 

@@ -48,7 +48,6 @@ export default function EmpAttendanceOpenCamCheckOut() {
 
   const checkAttendanceStatus = async (id) => {
     try {
-      // Check if user has checked in
       const checkInResponse = await axios.get(
         `${backendURL}/api/checkin/status/${id}`
       );
@@ -58,7 +57,6 @@ export default function EmpAttendanceOpenCamCheckOut() {
         return;
       }
 
-      // Check if user has already checked out
       const checkOutResponse = await axios.get(
         `${backendURL}/api/checkout/status/${id}`
       );
@@ -199,7 +197,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
           confirmButtonText: "Proceed",
         });
 
-        navigate("/CheckIn"); // Navigate only AFTER alert
+        navigate("/CheckIn");
       } else {
         await Swal.fire({
           title: "Check-Out Failed",
@@ -299,7 +297,6 @@ export default function EmpAttendanceOpenCamCheckOut() {
               )}
             </div>
 
-            {/* Status indicator */}
             <div
               className={`absolute top-4 right-4 flex items-center px-3 py-1 rounded-full ${
                 faceDetected ? "bg-green-500" : "bg-yellow-500"

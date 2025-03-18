@@ -12,7 +12,6 @@ export default function CreateAccount() {
   const [isMobile, setIsMobile] = useState(false);
   const [currentRole, setCurrentRole] = useState("Employee");
 
-  // Function to handle role change from the form component
   const handleRoleChange = (role) => {
     setCurrentRole(role);
   };

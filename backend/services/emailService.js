@@ -17,7 +17,6 @@ class EmailService {
 
   async createTransporter() {
     try {
-      // Try OAuth2 first
       const accessTokenResponse = await this.oauth2Client.getAccessToken();
       if (!accessTokenResponse || !accessTokenResponse.token) {
         throw new Error("Failed to obtain access token");
@@ -39,12 +38,11 @@ class EmailService {
       });
     } catch (error) {
       
-      // Fallback to password authentication
       return nodemailer.createTransport({
         service: "gmail",
         auth: {
           user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_APP_PASSWORD, // App Password from Google Account
+          pass: process.env.EMAIL_APP_PASSWORD,
         },
         tls: {
           rejectUnauthorized: false,
@@ -57,7 +55,6 @@ class EmailService {
     try {
       const transporter = await this.createTransporter();
       
-      // Verify connection configuration
       await transporter.verify();
       
       const mailOptions = {

@@ -152,7 +152,6 @@ export default function EmployeeManageAttendanceOT({
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
-  // Helper function to check if record is still pending
   const isPending = (status) => {
     return !status || status === "Pending";
   };

@@ -283,7 +283,6 @@ export default function EmpAttendanceOpenCam() {
               )}
             </div>
 
-            {/* Status indicator */}
             <div className={`absolute top-4 right-4 flex items-center px-3 py-1 rounded-full ${
               faceDetected ? "bg-green-500" : "bg-yellow-500"
             } text-white text-xs font-medium`}>

@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { User, Clock, ClockAlert, PhilippinePeso, LogOut, X } from "lucide-react";
+import {
+  User,
+  Clock,
+  ClockAlert,
+  PhilippinePeso,
+  LogOut,
+  X,
+  UserCircle,
+} from "lucide-react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
 
@@ -13,13 +21,44 @@ export default function EmpAttendanceSideBar({
   const location = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [profilePicUrl, setProfilePicUrl] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+
+      checkProfilePicture(parsedUser.id);
     }
   }, []);
+
+  const checkProfilePicture = async (userId) => {
+    const fileExtensions = ["jpg", "jpeg", "png", "gif", "webp", "bmp"];
+
+    for (const ext of fileExtensions) {
+      const imgUrl = `/employee-profile-pics/${userId}_profilepic.${ext}`;
+
+      try {
+        const img = new Image();
+        img.src = imgUrl;
+
+        await new Promise((resolve, reject) => {
+          img.onload = () => {
+            setProfilePicUrl(imgUrl);
+            resolve();
+          };
+          img.onerror = () => reject();
+
+          setTimeout(reject, 1000);
+        });
+
+        break;
+      } catch (error) {
+        continue;
+      }
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -43,8 +82,6 @@ export default function EmpAttendanceSideBar({
   const isActiveRoute = (route) => {
     return location.pathname === route;
   };
-
-  const profilePicPath = `/employee-profile-pics/${user?.id}_profilepic.jpg`;
 
   const sidebarLinks = [
     {
@@ -71,7 +108,6 @@ export default function EmpAttendanceSideBar({
 
   return (
     <div className="h-full overflow-hidden relative">
-      {/* Close button for mobile */}
       {isMobile && (
         <button
           onClick={toggleVisibility}
@@ -87,17 +123,27 @@ export default function EmpAttendanceSideBar({
           isExpanded ? "w-[250px]" : "w-[70px]"
         }`}
       >
-
         <div
           className={`flex items-center gap-3 px-2 py-3 bg-yellow-200/50 rounded-lg mb-6 ${
             !isExpanded && "justify-center"
           }`}
         >
-          <img
-            src={profilePicPath}
-            alt="Profile"
-            className="w-10 h-10 rounded-full object-cover border-2 border-yellow-600"
-          />
+          {profilePicUrl ? (
+            <img
+              src={profilePicUrl}
+              alt="Profile"
+              className="w-10 h-10 rounded-full object-cover border-2 border-yellow-600"
+              onError={(e) => {
+                // If image fails to load, replace with user icon
+                e.target.style.display = "none";
+                e.target.nextSibling.style.display = "flex";
+              }}
+            />
+          ) : (
+            <div className="w-10 h-10 flex items-center justify-center bg-yellow-600 text-white rounded-full border-2 border-yellow-600">
+              <UserCircle size={24} />
+            </div>
+          )}
           {isExpanded && (
             <div className="overflow-hidden">
               <p className="text-sm font-medium text-gray-800 truncate">
