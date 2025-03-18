@@ -22,8 +22,11 @@ export default function PayrollSummaryCards({ payrolls }) {
     }
 
     const uniqueEmployees = new Set(
-      payrolls.map(p => p.employeeID._id)
+      payrolls
+        .filter(p => p?.employeeID?._id) // ✅ Filter out null or undefined values
+        .map(p => p.employeeID._id)
     ).size;
+    
 
     const totalPaid = payrolls.reduce(
       (sum, record) => sum + record.netPay, 

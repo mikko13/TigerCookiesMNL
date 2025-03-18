@@ -190,7 +190,7 @@ export default function PayrollTable({
               >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="font-medium text-gray-900">
-                    {`${record.employeeID.firstName} ${record.employeeID.lastName}`}
+                    {`${record.employeeID?.firstName} ${record.employeeID?.lastName}`}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
