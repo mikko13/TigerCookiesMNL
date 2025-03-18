@@ -10,13 +10,11 @@ export default function PayrollTable({
 }) {
   const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
 
     handleResize();
     window.addEventListener("resize", handleResize);
