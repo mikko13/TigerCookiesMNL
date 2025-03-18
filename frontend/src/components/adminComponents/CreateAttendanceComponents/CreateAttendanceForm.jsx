@@ -32,7 +32,11 @@ export default function AdminCreateAttendanceForm() {
     const fetchEmployees = async () => {
       try {
         const response = await axios.get(`${backendURL}/api/employees`);
-        setEmployees(response.data);
+        // Filter only active employees (isActive = 1)
+        const activeEmployees = response.data.filter(
+          (emp) => emp.isActive === 1
+        );
+        setEmployees(activeEmployees);
       } catch (error) {
         showToast("error", "Failed to load employees data.");
       }

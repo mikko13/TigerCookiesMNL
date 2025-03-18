@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import useAttendance from "./fetchAttendance";
-import handleDelete from "./handleDelete";
 import { Link } from "react-router-dom";
 import { getStatusClass } from "./getStatusClass";
 import { Edit, Trash2, Image, AlertTriangle, ChevronRight } from "lucide-react";
@@ -40,33 +39,28 @@ export default function ManageAttendanceMain({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-const filteredAttendance = attendance.filter((record) => {
-  const nameMatch = record.employeeName
-    .toLowerCase()
-    .includes((searchTerm || "").toLowerCase());
-  
-  let dateMatch = true;
-  if (filterDate) {
+  const filteredAttendance = attendance.filter((record) => {
+    const nameMatch = record.employeeName
+      .toLowerCase()
+      .includes((searchTerm || "").toLowerCase());
 
-    try {
-      const recordDate = new Date(record.attendanceDate);
-      const filterDateObj = new Date(filterDate);
-      
-      dateMatch = 
-        recordDate.getFullYear() === filterDateObj.getFullYear() &&
-        recordDate.getMonth() === filterDateObj.getMonth() &&
-        recordDate.getDate() === filterDateObj.getDate();
-    } catch (error) {
-      dateMatch = record.attendanceDate === filterDate;
+    let dateMatch = true;
+    if (filterDate) {
+      try {
+        const recordDate = new Date(record.attendanceDate);
+        const filterDateObj = new Date(filterDate);
+
+        dateMatch =
+          recordDate.getFullYear() === filterDateObj.getFullYear() &&
+          recordDate.getMonth() === filterDateObj.getMonth() &&
+          recordDate.getDate() === filterDateObj.getDate();
+      } catch (error) {
+        dateMatch = record.attendanceDate === filterDate;
+      }
     }
-  }
-  
-  return nameMatch && dateMatch;
-});
 
-  const confirmDelete = (id) => {
-    handleDelete(id, setAttendance);
-  };
+    return nameMatch && dateMatch;
+  });
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
@@ -103,7 +97,7 @@ const filteredAttendance = attendance.filter((record) => {
         imageUrl={photoModal.imageUrl}
         onClose={closePhotoModal}
       />
-      
+
       <AttendanceSummaryCards attendance={attendance} />
 
       {loading ? (
@@ -225,21 +219,11 @@ const filteredAttendance = attendance.filter((record) => {
                         <Link
                           to={`/UpdateEmployeeAttendance/${record._id}`}
                           state={{ record }}
-                          className="flex items-center text-blue-600 hover:text-blue-800"
+                          className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
                         >
                           <Edit size={16} className="mr-1" />
                           <span>Edit</span>
                         </Link>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            confirmDelete(record._id);
-                          }}
-                          className="flex items-center text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 size={16} className="mr-1" />
-                          <span>Delete</span>
-                        </button>
                       </div>
                     </div>
                   )}
@@ -338,18 +322,12 @@ const filteredAttendance = attendance.filter((record) => {
                           <Link
                             to={`/UpdateEmployeeAttendance/${record._id}`}
                             state={{ record }}
-                            className="text-blue-600 hover:text-blue-800 transition-colors"
+                            className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
                             title="Edit"
                           >
-                            <Edit size={18} />
+                            <Edit size={16} className="mr-1" />
+                            <span>Edit</span>
                           </Link>
-                          <button
-                            onClick={() => confirmDelete(record._id)}
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={18} />
-                          </button>
                         </div>
                       </td>
                     </tr>

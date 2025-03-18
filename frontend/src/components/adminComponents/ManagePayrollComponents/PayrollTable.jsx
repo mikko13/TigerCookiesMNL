@@ -1,21 +1,22 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Edit, Trash2, Download, Send, ChevronRight } from "lucide-react";
+import { Edit, Download, Send, ChevronRight } from "lucide-react";
 
 export default function PayrollTable({
   filteredPayrolls,
   formatCurrency,
   getStatusClass,
-  handleDelete,
   handlePublish,
 }) {
   const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
+    
 
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -110,28 +111,18 @@ export default function PayrollTable({
                     <Link
                       to={`/UpdateEmployeePayroll/${record._id}`}
                       state={{ record }}
-                      className="flex items-center text-blue-600 hover:text-blue-800"
+                      className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
                     >
                       <Edit size={16} className="mr-1" />
                       <span>Edit</span>
                     </Link>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(record._id);
-                      }}
-                      className="flex items-center text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 size={16} className="mr-1" />
-                      <span>Delete</span>
-                    </button>
                     {!record.isPublished && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handlePublish(record._id);
                         }}
-                        className="flex items-center text-green-600 hover:text-green-800"
+                        className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-green-500 hover:bg-green-600"
                       >
                         <Send size={16} className="mr-1" />
                         <span>Publish</span>
@@ -231,25 +222,20 @@ export default function PayrollTable({
                     <Link
                       to={`/UpdateEmployeePayroll/${record._id}`}
                       state={{ record }}
-                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                      className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
                       title="Edit"
                     >
-                      <Edit size={18} />
+                      <Edit size={16} className="mr-1" />
+                      <span>Edit</span>
                     </Link>
-                    <button
-                      onClick={() => handleDelete(record._id)}
-                      className="text-red-600 hover:text-red-800 transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 size={18} />
-                    </button>
                     {!record.isPublished && (
                       <button
                         onClick={() => handlePublish(record._id)}
-                        className="text-green-600 hover:text-green-800 transition-colors"
+                        className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-green-500 hover:bg-green-600"
                         title="Publish"
                       >
-                        <Send size={18} />
+                        <Send size={16} className="mr-1" />
+                        <span>Publish</span>
                       </button>
                     )}
                   </div>

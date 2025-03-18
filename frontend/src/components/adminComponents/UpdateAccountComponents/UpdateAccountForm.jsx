@@ -39,6 +39,7 @@ export default function UpdateAccountForm() {
     status: "",
     ratePerHour: "",
     shift: "",
+    isActive: 1,
   });
 
   const [profilePicture, setProfilePicture] = useState(null);
@@ -380,9 +381,7 @@ export default function UpdateAccountForm() {
                 <input
                   type="password"
                   name="password"
-                  value={formData.password}
                   onChange={handleInputChange}
-                  placeholder="••••••••"
                   disabled={!changePassword}
                   className={`w-full px-4 py-3 pl-10 rounded-lg border ${
                     formErrors.password
@@ -565,23 +564,21 @@ export default function UpdateAccountForm() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
+              Status <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <select
-                name="status"
-                value={formData.status}
+                name="isActive"
+                value={formData.isActive}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
+                className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                  formErrors.isActive
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 bg-gray-50"
+                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
               >
-                <option value="" disabled>
-                  Select Status
-                </option>
-                <option value="N/A">N/A</option>
-                <option value="Present">Present</option>
-                <option value="Late">Late</option>
-                <option value="Absent">Absent</option>
-                <option value="On-Leave">On-Leave</option>
+                <option value={1}>Active</option>
+                <option value={0}>Inactive</option>
               </select>
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <User className="w-4 h-4 text-gray-500" />
@@ -601,6 +598,12 @@ export default function UpdateAccountForm() {
                   />
                 </svg>
               </div>
+              {formErrors.isActive && (
+                <p className="mt-1 text-xs text-red-500 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                  {formErrors.isActive}
+                </p>
+              )}
             </div>
           </div>
 

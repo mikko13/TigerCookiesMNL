@@ -35,21 +35,7 @@ const upload = multer({
 
 router.post("/", upload.single("profilePicture"), async (req, res) => {
   try {
-    const {
-      firstName,
-      lastName,
-      email,
-      phone,
-      password,
-      address,
-      gender,
-      dateOfBirth,
-      hiredDate,
-      position,
-      ratePerHour,
-      shift,
-      role,
-    } = req.body;
+    const { firstName, lastName, email, password, role } = req.body;
 
     const existingAdmin = await Admin.findOne({ email });
     if (existingAdmin) {
@@ -62,16 +48,9 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       firstName,
       lastName,
       email,
-      phone,
       password: hashedPassword,
-      address,
-      gender,
-      dateOfBirth,
-      hiredDate,
-      position,
-      ratePerHour,
-      shift,
       role: role || "admin",
+      isActive: 1,
     });
 
     if (req.file) {
@@ -108,7 +87,6 @@ router.post("/login", async (req, res) => {
       firstName: admin.firstName,
       lastName: admin.lastName,
       email: admin.email,
-      phone: admin.phone,
       role: admin.role,
     };
     res
@@ -162,21 +140,7 @@ router.get("/:id", async (req, res) => {
 
 router.put("/:id", upload.single("profilePicture"), async (req, res) => {
   const { id } = req.params;
-  const {
-    firstName,
-    lastName,
-    email,
-    phone,
-    password,
-    address,
-    gender,
-    dateOfBirth,
-    hiredDate,
-    position,
-    ratePerHour,
-    shift,
-    role,
-  } = req.body;
+  const { firstName, lastName, email, password, role, isActive } = req.body;
 
   try {
     const admin = await Admin.findById(id);
@@ -192,15 +156,8 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     admin.firstName = firstName || admin.firstName;
     admin.lastName = lastName || admin.lastName;
     admin.email = email || admin.email;
-    admin.phone = phone || admin.phone;
-    admin.address = address || admin.address;
-    admin.gender = gender || admin.gender;
-    admin.dateOfBirth = dateOfBirth || admin.dateOfBirth;
-    admin.hiredDate = hiredDate || admin.hiredDate;
-    admin.position = position || admin.position;
-    admin.ratePerHour = ratePerHour || admin.ratePerHour;
-    admin.shift = shift || admin.shift;
     admin.role = role || admin.role;
+    admin.isActive = isActive !== undefined ? isActive : admin.isActive;
 
     if (req.body.profilePicture === "") {
       const oldFilePath = path.join(
@@ -234,7 +191,9 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
       message: "Admin updated successfully",
       admin: {
         ...admin.toObject(),
-        profilePicture: `/admin-profile-pics/${admin.profilePicture}`,
+        profilePicture: admin.profilePicture
+          ? `/admin-profile-pics/${admin.profilePicture}`
+          : null,
       },
     });
   } catch (error) {
@@ -249,13 +208,17 @@ router.delete("/:id", async (req, res) => {
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }
-    const filePath = path.join(
-      __dirname,
-      `../../frontend/public/admin-profile-pics/${admin.profilePicture}`
-    );
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+
+    if (admin.profilePicture) {
+      const filePath = path.join(
+        __dirname,
+        `../../frontend/public/admin-profile-pics/${admin.profilePicture}`
+      );
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
+
     await Admin.deleteOne({ _id: id });
     res.status(200).json({ message: "Admin deleted successfully" });
   } catch (error) {

@@ -18,10 +18,9 @@ export default function LoginForm({ showToast }) {
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [fadeEffect, setFadeEffect] = useState(false);
 
-  // Add effect to show toast when error or success states change
   useEffect(() => {
     if (error) {
-      showToast("error", "Invalid Email or Password");
+      showToast("error", error);
     }
   }, [error, showToast]);
 
@@ -45,18 +44,36 @@ export default function LoginForm({ showToast }) {
     <div className="bg-white mt-0 md:mt-20 p-6 max-w-md shadow-lg rounded-lg border-t-4 border-yellow-400 transition-all duration-300 hover:shadow-2xl">
       <form className="space-y-6" onSubmit={handleLogin}>
         <div className="text-center mb-8">
-          <h3 className="text-yellow-800 text-3xl font-bold tracking-wide">Welcome Back!</h3>
-          <p className="text-yellow-600 text-sm mt-4 font-medium">Sign in to your Tiger Cookies account</p>
+          <h3 className="text-yellow-800 text-3xl font-bold tracking-wide">
+            Welcome Back!
+          </h3>
+          <p className="text-yellow-600 text-sm mt-4 font-medium">
+            Sign in to your Tiger Cookies account
+          </p>
         </div>
 
         <div className="transform transition-all duration-300 hover:scale-102">
-          <label htmlFor="email" className="text-yellow-700 text-sm mb-2 block font-semibold">
+          <label
+            htmlFor="email"
+            className="text-yellow-700 text-sm mb-2 block font-semibold"
+          >
             Email Address
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-yellow-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                />
               </svg>
             </div>
             <input
@@ -80,8 +97,19 @@ export default function LoginForm({ showToast }) {
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-yellow-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
               </svg>
             </div>
             <input
@@ -165,7 +193,6 @@ export default function LoginForm({ showToast }) {
         >
           Sign in
         </button>
-      
       </form>
 
       <PrivacyPolicyModal

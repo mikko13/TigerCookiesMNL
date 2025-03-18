@@ -30,8 +30,7 @@ async function notifyAdmins(employeeID, overtimeTime, overtimeNote) {
         )
       );
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 router.post("/", async (req, res) => {
@@ -77,10 +76,47 @@ router.put("/update/:id", async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const updatedOvertime = await Overtime.findByIdAndUpdate(id, { status }, { new: true });
-    if (!updatedOvertime) {
+    // Get admin info from session
+    const adminId = req.session.user?.id;
+    if (!adminId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    // Find the admin who is approving/rejecting
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    // Update overtime record
+    const overtimeRecord = await Overtime.findById(id);
+    if (!overtimeRecord) {
       return res.status(404).json({ message: "Overtime record not found." });
     }
+
+    // Store admin info in the record
+    overtimeRecord.status = status;
+    overtimeRecord.reviewedBy = {
+      adminId: admin._id,
+      adminName: `${admin.firstName} ${admin.lastName}`,
+    };
+    overtimeRecord.reviewedAt = new Date();
+
+    const updatedOvertime = await overtimeRecord.save();
+
+    // Send email notification to employee
+    const employee = await Employee.findById(overtimeRecord.employeeID);
+    if (employee && employee.email) {
+      await emailNotification.sendOvertimeStatusEmail(
+        employee.email,
+        `${employee.firstName} ${employee.lastName}`,
+        `${admin.firstName} ${admin.lastName}`,
+        overtimeRecord.overtimeTime,
+        overtimeRecord.overtimeNote,
+        status
+      );
+    }
+
     res.status(200).json(updatedOvertime);
   } catch (error) {
     res.status(500).json({ message: error.message });

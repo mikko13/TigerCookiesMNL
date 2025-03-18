@@ -75,14 +75,6 @@ const payrollSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    isPublished: {
-      type: Boolean,
-      default: false,
-    },
-    dateCreated: {
-      type: Date,
-      default: Date.now,
-    },
   },
   { timestamps: true, collection: "empPayrolls" }
 );

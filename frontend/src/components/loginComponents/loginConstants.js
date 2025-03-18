@@ -15,14 +15,28 @@ export function useLoginState() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await axios.get(`${backendURL}/api/login/session`, { withCredentials: true });
-        setUser(res.data.user);
-        if (res.data.user.role === "admin") {
-          navigate("/ManageEmployeeAccounts");
-        } else {
-          navigate("/checkin");
+        const res = await axios.get(`${backendURL}/api/login/session`, {
+          withCredentials: true,
+        });
+        if (res.data.user) {
+          if (res.data.user.isActive === 0) {
+            await axios.post(
+              `${backendURL}/api/login/logout`,
+              {},
+              { withCredentials: true }
+            );
+            return;
+          }
+
+          setUser(res.data.user);
+          if (res.data.user.role === "admin") {
+            navigate("/ManageEmployeeAccounts");
+          } else {
+            navigate("/checkin");
+          }
         }
       } catch (error) {
+        // Session check failed, do nothing
       }
     };
     checkSession();
@@ -38,10 +52,49 @@ export function useLoginState() {
     setSuccess("");
 
     try {
-      const response = await axios.post(`${backendURL}/api/login`, { email, password }, { withCredentials: true });
+      const checkResponse = await axios.post(
+        `${backendURL}/api/employees/check-email`,
+        { email }
+      );
+      if (checkResponse.data.exists) {
+        const accountResponse = await axios.post(
+          `${backendURL}/api/employees/check-status`,
+          { email },
+          { withCredentials: true }
+        );
+
+        if (accountResponse.data.isActive === 0) {
+          setError(
+            "Access Denied: Your account has been deactivated"
+          );
+          return; 
+        }
+      }
+
+      const response = await axios.post(
+        `${backendURL}/api/login`,
+        { email, password },
+        { withCredentials: true }
+      );
+
+      // Double-check isActive status from login response
+      if (response.data.user && response.data.user.isActive === 0) {
+        setError(
+          "Access Denied: Your account has been deactivated"
+        );
+
+        await axios.post(
+          `${backendURL}/api/login/logout`,
+          {},
+          { withCredentials: true }
+        );
+        return;
+      }
+
       setSuccess(response.data.message);
       setUser(response.data.user);
       localStorage.setItem("user", JSON.stringify(response.data.user));
+
       if (response.data.user.role === "admin") {
         setTimeout(() => navigate("/ManageEmployeeAccounts"), 2000);
       } else {

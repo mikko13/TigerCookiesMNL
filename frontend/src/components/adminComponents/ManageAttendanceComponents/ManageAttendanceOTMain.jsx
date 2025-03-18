@@ -17,7 +17,6 @@ const useEmployeeOvertime = () => {
         const response = await axios.get(`${backendURL}/api/overtime/all`);
         setOvertime(response.data);
       } catch (error) {
-
       } finally {
         setLoading(false);
       }
@@ -91,45 +90,21 @@ export default function EmployeeManageAttendanceOT({
 
     if (confirmResult.isConfirmed) {
       try {
-        await axios.put(`${backendURL}/api/overtime/update/${id}`, { status });
+        await axios.put(
+          `${backendURL}/api/overtime/update/${id}`,
+          { status },
+          { withCredentials: true } // This ensures the session cookie is sent
+        );
+
         setOvertime((prev) =>
           prev.map((record) =>
             record._id === id ? { ...record, status } : record
           )
         );
+
         Swal.fire(
           "Updated!",
-          `Overtime request has been marked as ${status}.`,
-          "success"
-        );
-      } catch (error) {
-        Swal.fire("Error", error.response?.data || error.message, "error");
-      }
-    }
-  };
-
-  const deleteOvertimeRecord = async (id, e) => {
-    if (e) {
-      e.stopPropagation();
-    }
-
-    const confirmResult = await Swal.fire({
-      title: "Confirm Deletion?",
-      text: "Are you sure you want to delete this overtime request record? This action cannot be undone!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#6c757d",
-      confirmButtonText: "Delete",
-    });
-
-    if (confirmResult.isConfirmed) {
-      try {
-        await axios.delete(`${backendURL}/api/overtime/delete/${id}`);
-        setOvertime((prev) => prev.filter((record) => record._id !== id));
-        Swal.fire(
-          "Deleted!",
-          "The overtime record has been deleted.",
+          `Overtime request has been marked as ${status} and employee has been notified.`,
           "success"
         );
       } catch (error) {
@@ -260,13 +235,6 @@ export default function EmployeeManageAttendanceOT({
                             </button>
                           </>
                         )}
-                        <button
-                          onClick={(e) => deleteOvertimeRecord(record._id, e)}
-                          className="flex items-center text-blue-600 hover:text-blue-700"
-                        >
-                          <Trash2 size={16} className="mr-1" />
-                          <span>Delete</span>
-                        </button>
                       </div>
                     </div>
                   )}
@@ -348,13 +316,6 @@ export default function EmployeeManageAttendanceOT({
                             </button>
                           </>
                         )}
-                        <button
-                          onClick={() => deleteOvertimeRecord(record._id)}
-                          className="text-blue-600 hover:text-blue-700 flex justify-center items-center"
-                          title="Delete"
-                        >
-                          <Trash2 size={18} />
-                        </button>
                       </td>
                     </tr>
                   ))}

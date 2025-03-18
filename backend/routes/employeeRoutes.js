@@ -4,6 +4,7 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const Account = require("../models/Employees");
 const router = express.Router();
+const fs = require("fs");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -34,6 +35,7 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+// Create a new employee account
 router.post("/", upload.single("profilePicture"), async (req, res) => {
   try {
     const {
@@ -50,6 +52,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       ratePerHour,
       shift,
       role,
+      isActive = 1, // Default to 1 (Active)
     } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -68,6 +71,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       ratePerHour,
       shift,
       role: role || "employee",
+      isActive, // Include isActive field
     });
 
     if (req.file) {
@@ -86,6 +90,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
   }
 });
 
+// Get all employees
 router.get("/", async (req, res) => {
   try {
     const employees = await Account.find();
@@ -100,12 +105,23 @@ router.post("/login", async (req, res) => {
   try {
     const account = await Account.findOne({ email });
     if (!account) {
-      return res.status(404).json({ message: "Account not found" });
+      return res.status(404).json({ message: "Invalid Email or Password" });
     }
+
     const isPasswordValid = await bcrypt.compare(password, account.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: "Invalid Email or Password" });
     }
+
+    if (account.isActive === 0) {
+      return res
+        .status(403)
+        .json({
+          message:
+            "Access Denied: Your account has been deactivated. Please contact your administrator for assistance.",
+        });
+    }
+
     req.session.user = {
       id: account._id,
       firstName: account.firstName,
@@ -113,7 +129,9 @@ router.post("/login", async (req, res) => {
       email: account.email,
       phone: account.phone,
       role: account.role,
+      isActive: account.isActive,
     };
+
     res.status(200).json({
       message: "Login successful",
       user: req.session.user,
@@ -125,6 +143,24 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/check-status", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const account = await Account.findOne({ email });
+    if (account) {
+      return res.status(200).json({
+        isActive: account.isActive,
+        exists: true,
+      });
+    } else {
+      return res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Logout route
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -137,12 +173,25 @@ router.post("/logout", (req, res) => {
 
 router.get("/session", (req, res) => {
   if (req.session.user) {
-    return res.status(200).json({ user: req.session.user });
+    if (req.session.user.isActive === 0) {
+      req.session.destroy((err) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ message: "Session destruction failed" });
+        }
+        res.clearCookie("connect.sid");
+        return res.status(403).json({ message: "Account is deactivated" });
+      });
+    } else {
+      return res.status(200).json({ user: req.session.user });
+    }
   } else {
     return res.status(401).json({ message: "Not authenticated" });
   }
 });
 
+// Delete an employee
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -180,6 +229,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     ratePerHour,
     shift,
     role,
+    isActive,
   } = req.body;
 
   try {
@@ -205,6 +255,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     employee.ratePerHour = ratePerHour || employee.ratePerHour;
     employee.shift = shift || employee.shift;
     employee.role = role || employee.role;
+    employee.isActive = isActive !== undefined ? isActive : employee.isActive; // Update isActive if provided
 
     if (req.body.profilePicture === "") {
       const oldFilePath = path.join(
@@ -246,6 +297,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
   }
 });
 
+// Get a single employee by ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -259,6 +311,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Check if email exists
 router.post("/check-email", async (req, res) => {
   const { email } = req.body;
   try {
