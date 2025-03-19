@@ -38,7 +38,6 @@ export default function UpdateAccountForm() {
     position: "",
     status: "",
     ratePerHour: "",
-    shift: "",
     isActive: 1,
   });
 
@@ -622,45 +621,6 @@ export default function UpdateAccountForm() {
               />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <DollarSign className="w-4 h-4 text-gray-500" />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Shift
-            </label>
-            <div className="relative">
-              <select
-                name="shift"
-                value={formData.shift}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
-              >
-                <option value="" disabled>
-                  Select Shift
-                </option>
-                <option value="Morning">Morning</option>
-                <option value="Afternoon">Afternoon</option>
-                <option value="Night">Night</option>
-              </select>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Clock className="w-4 h-4 text-gray-500" />
-              </div>
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
               </div>
             </div>
           </div>

@@ -21,6 +21,7 @@ export default function UpdateAttendanceForm() {
     attendanceDate: "",
     checkInTime: "",
     checkOutTime: "",
+    shift: "",
   });
 
   const [checkInPhoto, setCheckInPhoto] = useState(null);
@@ -56,6 +57,7 @@ export default function UpdateAttendanceForm() {
         attendanceDate: record.attendanceDate || "",
         checkInTime: record.checkinTime || "",
         checkOutTime: record.checkoutTime || "",
+        shift: record.shift || "",
       });
       setExistingPhotos({
         checkInPhoto: record.checkInPhoto || "",
@@ -107,6 +109,7 @@ export default function UpdateAttendanceForm() {
 
     if (!formData.employeeID) errors.employeeID = "Employee is required";
     if (!formData.attendanceDate) errors.attendanceDate = "Date is required";
+    if (!formData.shift) errors.shift = "Shift is required";
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -127,11 +130,16 @@ export default function UpdateAttendanceForm() {
       if (value) formDataToSend.append(key, value);
     });
 
-    if (checkInPhoto) formDataToSend.append("checkInPhoto", checkInPhoto);
-    if (checkOutPhoto) formDataToSend.append("checkOutPhoto", checkOutPhoto);
+    if (checkInPhoto) {
+      formDataToSend.append("checkInPhoto", checkInPhoto);
+    }
+
+    if (checkOutPhoto) {
+      formDataToSend.append("checkOutPhoto", checkOutPhoto);
+    }
 
     try {
-      await axios.put(
+      const response = await axios.put(
         `${backendURL}/api/attendance/update/${location.state.record._id}`,
         formDataToSend,
         { headers: { "Content-Type": "multipart/form-data" } }
@@ -143,6 +151,7 @@ export default function UpdateAttendanceForm() {
         navigate("/ManageEmployeeAttendance");
       }, 2000);
     } catch (error) {
+      console.error("Update error:", error);
       showToast(
         "error",
         error.response?.data?.message || "Failed to update attendance."
@@ -237,6 +246,49 @@ export default function UpdateAttendanceForm() {
                 <p className="mt-1 text-xs text-red-500 flex items-center">
                   <AlertTriangle className="w-3 h-3 mr-1" />{" "}
                   {formErrors.attendanceDate}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Added Shift Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Shift <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <select
+                name="shift"
+                value={formData.shift}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  formErrors.shift
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 bg-gray-50"
+                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
+              >
+                <option disabled>Select Shift</option>
+                <option value="Morning">Morning</option>
+                <option value="Afternoon">Afternoon</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+              {formErrors.shift && (
+                <p className="mt-1 text-xs text-red-500 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.shift}
                 </p>
               )}
             </div>

@@ -152,9 +152,10 @@ export default function UpdatePayrollForm({ onUpdateSuccess }) {
       }
     };
 
-    const generatePayPeriods = () => {
-      const periods = [];
-      const months = [
+    const getFilteredPeriods = () => {
+      const today = new Date();
+      const year = today.getFullYear();
+      const monthNames = [
         "January",
         "February",
         "March",
@@ -168,26 +169,24 @@ export default function UpdatePayrollForm({ onUpdateSuccess }) {
         "November",
         "December",
       ];
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
 
-      months.forEach((month) => {
-        periods.push(`${month} 1-15, ${currentYear}`);
-        periods.push(
-          `${month} 16-${new Date(
-            currentYear,
-            months.indexOf(month) + 1,
-            0
-          ).getDate()}, ${currentYear}`
-        );
-      });
+      // Generate periods for current month and previous months
+      const periods = [];
+      for (let i = 0; i < 12; i++) {
+        const monthIndex = today.getMonth() - i;
+        const adjustedMonth = monthIndex < 0 ? 12 + monthIndex : monthIndex;
+        const adjustedYear = monthIndex < 0 ? year - 1 : year;
+
+        periods.push(`${monthNames[adjustedMonth]} 5, ${adjustedYear}`);
+        periods.push(`${monthNames[adjustedMonth]} 20, ${adjustedYear}`);
+      }
 
       return periods;
     };
 
     fetchPayrollData();
     fetchEmployees();
-    setPayPeriods(generatePayPeriods());
+    setPayPeriods(getFilteredPeriods());
   }, [effectivePayrollId, location.state, onUpdateSuccess, navigate]);
 
   useEffect(() => {

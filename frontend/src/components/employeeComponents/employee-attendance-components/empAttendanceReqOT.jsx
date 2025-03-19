@@ -16,8 +16,8 @@ export default function EmpAttendanceReqOT() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="hidden md:block h-full">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      <div className="hidden md:block h-full fixed top-0 left-0 z-30">
         <Sidebar isExpanded={isSidebarExpanded} toggleExpand={toggleSidebar} />
       </div>
 
@@ -34,11 +34,11 @@ export default function EmpAttendanceReqOT() {
       )}
 
       <div
-        className={`flex-grow transition-all duration-300 ${
-          isSidebarExpanded ? "md:pl-[0px]" : "md:pl-[70px]"
+        className={`flex-grow transition-all duration-300 h-screen overflow-y-auto ${
+          isSidebarExpanded ? "md:ml-[250px]" : "md:ml-[70px]"
         }`}
       >
-        <div className="md:hidden bg-yellow-400 p-4 flex items-center">
+        <div className="md:hidden bg-yellow-400 p-4 flex items-center sticky top-0 z-20">
           <button
             onClick={toggleMobileSidebar}
             className="text-white p-1 rounded-md hover:bg-yellow-500"

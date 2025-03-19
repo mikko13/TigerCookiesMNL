@@ -19,6 +19,10 @@ const CheckinSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    shift: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true, collection: "empCheckIn" }
 );

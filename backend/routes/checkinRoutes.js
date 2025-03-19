@@ -35,15 +35,13 @@ const upload = multer({ storage });
 
 router.post("/", upload.single("checkInPhoto"), async (req, res) => {
   try {
-    const { employeeID } = req.body;
+    const { employeeID, shift } = req.body;
 
-    if (!employeeID || !req.file) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Employee ID and photo are required.",
-        });
+    if (!employeeID || !req.file || !shift) {
+      return res.status(400).json({
+        success: false,
+        message: "Employee ID, shift, and photo are required.",
+      });
     }
 
     const philippineTime = DateTime.now().setZone("Asia/Manila");
@@ -57,6 +55,7 @@ router.post("/", upload.single("checkInPhoto"), async (req, res) => {
       checkInTime,
       checkInDate,
       checkInPhoto: req.file.filename,
+      shift,
     });
 
     await newCheckin.save();

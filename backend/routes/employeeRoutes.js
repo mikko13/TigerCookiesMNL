@@ -35,7 +35,6 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Create a new employee account
 router.post("/", upload.single("profilePicture"), async (req, res) => {
   try {
     const {
@@ -50,9 +49,8 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       hiredDate,
       position,
       ratePerHour,
-      shift,
       role,
-      isActive = 1, // Default to 1 (Active)
+      isActive = 1,
     } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -69,9 +67,8 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       hiredDate,
       position,
       ratePerHour,
-      shift,
       role: role || "employee",
-      isActive, // Include isActive field
+      isActive,
     });
 
     if (req.file) {
@@ -90,7 +87,6 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
   }
 });
 
-// Get all employees
 router.get("/", async (req, res) => {
   try {
     const employees = await Account.find();
@@ -160,7 +156,6 @@ router.post("/check-status", async (req, res) => {
   }
 });
 
-// Logout route
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -191,7 +186,6 @@ router.get("/session", (req, res) => {
   }
 });
 
-// Delete an employee
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -227,7 +221,6 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     position,
     hiredDate,
     ratePerHour,
-    shift,
     role,
     isActive,
   } = req.body;
@@ -253,9 +246,8 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     employee.position = position || employee.position;
     employee.hiredDate = hiredDate || employee.hiredDate;
     employee.ratePerHour = ratePerHour || employee.ratePerHour;
-    employee.shift = shift || employee.shift;
     employee.role = role || employee.role;
-    employee.isActive = isActive !== undefined ? isActive : employee.isActive; // Update isActive if provided
+    employee.isActive = isActive !== undefined ? isActive : employee.isActive;
 
     if (req.body.profilePicture === "") {
       const oldFilePath = path.join(
@@ -297,7 +289,6 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
   }
 });
 
-// Get a single employee by ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -311,7 +302,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Check if email exists
 router.post("/check-email", async (req, res) => {
   const { email } = req.body;
   try {

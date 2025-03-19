@@ -171,6 +171,10 @@ export default function ManageAttendanceMain({
                     <div className="mt-3 pl-2 border-l-2 border-gray-200">
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
+                          <p className="text-gray-500">Shift</p>
+                          <p className="font-medium">{record.shift}</p>
+                        </div>
+                        <div>
                           <p className="text-gray-500">Check In</p>
                           <p className="font-medium">{record.checkinTime}</p>
                         </div>
@@ -243,6 +247,9 @@ export default function ManageAttendanceMain({
                       Date
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Shift
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Check In
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -275,6 +282,9 @@ export default function ManageAttendanceMain({
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {record.attendanceDate}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {record.shift}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {record.checkinTime}

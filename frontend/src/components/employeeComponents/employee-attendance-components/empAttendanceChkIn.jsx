@@ -12,7 +12,7 @@ export default function EmpAttendanceCheckInPage() {
     const handleResize = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      
+
       if (mobile) {
         setIsSidebarVisible(false);
       } else {
@@ -30,8 +30,8 @@ export default function EmpAttendanceCheckInPage() {
   };
 
   return (
-    <div 
-      className="flex min-h-screen bg-gray-50 relative overflow-hidden"
+    <div
+      className="flex min-h-screen bg-gray-50 relative"
       style={{
         backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${Background})`,
         backgroundSize: "cover",
@@ -57,11 +57,11 @@ export default function EmpAttendanceCheckInPage() {
       )}
 
       <div
-        className={`transition-all duration-300 ease-in-out ${
+        className={`transition-all duration-300 ease-in-out h-screen ${
           !isSidebarVisible
             ? "w-0 min-w-0 opacity-0 pointer-events-none"
             : "w-[250px] min-w-[250px]"
-        } ${isMobile ? "fixed h-full z-40" : "relative h-screen"}`}
+        } ${isMobile ? "fixed z-40" : "sticky top-0 left-0"}`}
       >
         {isSidebarVisible && (
           <Sidebar
@@ -73,7 +73,7 @@ export default function EmpAttendanceCheckInPage() {
       </div>
 
       <main
-        className={`flex-1 transition-all duration-300 ease-in-out flex items-center justify-center p-4 ${
+        className={`flex-1 transition-all duration-300 ease-in-out flex items-center justify-center p-4 overflow-y-auto ${
           isMobile ? "w-full" : ""
         }`}
       >

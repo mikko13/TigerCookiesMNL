@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Webcam from "react-webcam";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -9,6 +9,7 @@ import { Camera, RefreshCw, Upload, User, AlertCircle } from "lucide-react";
 
 export default function EmpAttendanceOpenCam() {
   const navigate = useNavigate();
+  const location = useLocation();
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
   const [image, setImage] = useState(null);
@@ -17,8 +18,18 @@ export default function EmpAttendanceOpenCam() {
   const [employeeID, setEmployeeID] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
+  const [shift, setShift] = useState("");
 
   useEffect(() => {
+    // Get the shift from the URL query parameters
+    const queryParams = new URLSearchParams(location.search);
+    const shiftParam = queryParams.get("shift");
+    if (shiftParam) {
+      setShift(shiftParam);
+    } else {
+      navigate("/CheckIn");
+    }
+
     async function loadModels() {
       setMessage("Loading face detection models...");
       await Promise.all([
@@ -55,6 +66,7 @@ export default function EmpAttendanceOpenCam() {
         navigate("/CheckIn");
       }
     } catch (error) {
+      // Handle error silently
     }
     setLoading(false);
   };
@@ -151,8 +163,18 @@ export default function EmpAttendanceOpenCam() {
       return;
     }
 
+    if (!shift) {
+      await Swal.fire({
+        title: "Error",
+        text: "Shift information not found. Please go back and select a shift.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
     setMessage("Processing check-in...");
-    
+
     const currentDateTime = new Date();
     const checkInDate = currentDateTime.toISOString().split("T")[0];
     const checkInTime = currentDateTime.toTimeString().split(" ")[0];
@@ -167,13 +189,12 @@ export default function EmpAttendanceOpenCam() {
     formData.append("checkInDate", checkInDate);
     formData.append("checkInTime", checkInTime);
     formData.append("checkInPhoto", file);
+    formData.append("shift", shift);
 
     try {
-      const response = await axios.post(
-        `${backendURL}/api/checkin`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      const response = await axios.post(`${backendURL}/api/checkin`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       if (response.data.success) {
         await Swal.fire({
@@ -193,7 +214,6 @@ export default function EmpAttendanceOpenCam() {
         });
       }
     } catch (error) {
-
       await Swal.fire({
         title: "Error",
         text: "Failed to check-in. Please try again later.",
@@ -205,21 +225,21 @@ export default function EmpAttendanceOpenCam() {
 
   const getCurrentTime = () => {
     const now = new Date();
-    return now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true 
+    return now.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
     });
   };
 
   const getCurrentDate = () => {
     const now = new Date();
-    return now.toLocaleDateString('en-US', { 
-      weekday: 'long',
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return now.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -252,6 +272,13 @@ export default function EmpAttendanceOpenCam() {
         </div>
 
         <div className="p-6">
+          {shift && (
+            <div className="mb-4 p-3 bg-yellow-50 text-yellow-800 rounded-lg">
+              <p className="font-medium">Selected Shift:</p>
+              <p>{shift}</p>
+            </div>
+          )}
+
           <div className="relative w-full mb-6 bg-gray-100 rounded-lg overflow-hidden">
             <div className="aspect-w-4 aspect-h-3 w-full">
               {image ? (
@@ -283,12 +310,16 @@ export default function EmpAttendanceOpenCam() {
               )}
             </div>
 
-            <div className={`absolute top-4 right-4 flex items-center px-3 py-1 rounded-full ${
-              faceDetected ? "bg-green-500" : "bg-yellow-500"
-            } text-white text-xs font-medium`}>
-              <div className={`w-2 h-2 rounded-full mr-2 ${
-                faceDetected ? "bg-white animate-pulse" : "bg-white"
-              }`}></div>
+            <div
+              className={`absolute top-4 right-4 flex items-center px-3 py-1 rounded-full ${
+                faceDetected ? "bg-green-500" : "bg-yellow-500"
+              } text-white text-xs font-medium`}
+            >
+              <div
+                className={`w-2 h-2 rounded-full mr-2 ${
+                  faceDetected ? "bg-white animate-pulse" : "bg-white"
+                }`}
+              ></div>
               {faceDetected ? "Face Detected" : "Waiting for Face"}
             </div>
           </div>
@@ -328,20 +359,24 @@ export default function EmpAttendanceOpenCam() {
           </div>
 
           {message && (
-            <div className={`mt-4 p-3 rounded-lg flex items-start ${
-              message.includes("successfully") 
-                ? "bg-green-50 text-green-700" 
-                : message.includes("Error") || message.includes("failed")
-                ? "bg-red-50 text-red-700"
-                : "bg-blue-50 text-blue-700"
-            }`}>
+            <div
+              className={`mt-4 p-3 rounded-lg flex items-start ${
+                message.includes("successfully")
+                  ? "bg-green-50 text-green-700"
+                  : message.includes("Error") || message.includes("failed")
+                  ? "bg-red-50 text-red-700"
+                  : "bg-blue-50 text-blue-700"
+              }`}
+            >
               <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
               <p className="text-sm">{message}</p>
             </div>
           )}
 
           <div className="mt-6 border-t border-gray-200 pt-4">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Instructions:</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">
+              Instructions:
+            </h3>
             <ul className="text-xs text-gray-500 space-y-1 list-disc pl-5">
               <li>Position yourself clearly in front of the camera</li>
               <li>Ensure good lighting for best results</li>

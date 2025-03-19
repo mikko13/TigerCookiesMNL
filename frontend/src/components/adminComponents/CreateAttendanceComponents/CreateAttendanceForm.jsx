@@ -8,6 +8,8 @@ import {
   AlertTriangle,
   CheckCircle,
   Loader2,
+  Sun,
+  Sunset,
 } from "lucide-react";
 import { backendURL } from "../../../urls/URL";
 
@@ -17,6 +19,7 @@ export default function AdminCreateAttendanceForm() {
     attendanceDate: "",
     checkInTime: "",
     checkOutTime: "",
+    shift: "",
   });
 
   const [checkInPhoto, setCheckInPhoto] = useState(null);
@@ -32,7 +35,6 @@ export default function AdminCreateAttendanceForm() {
     const fetchEmployees = async () => {
       try {
         const response = await axios.get(`${backendURL}/api/employees`);
-        // Filter only active employees (isActive = 1)
         const activeEmployees = response.data.filter(
           (emp) => emp.isActive === 1
         );
@@ -81,6 +83,7 @@ export default function AdminCreateAttendanceForm() {
     if (!formData.employeeID) errors.employeeID = "Employee is required";
     if (!formData.attendanceDate) errors.attendanceDate = "Date is required";
     if (!formData.checkInTime) errors.checkInTime = "Check-in time is required";
+    if (!formData.shift) errors.shift = "Shift is required";
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -127,6 +130,7 @@ export default function AdminCreateAttendanceForm() {
       attendanceDate: "",
       checkInTime: "",
       checkOutTime: "",
+      shift: "",
     });
     setCheckInPhoto(null);
     setCheckOutPhoto(null);
@@ -220,6 +224,57 @@ export default function AdminCreateAttendanceForm() {
                 <p className="mt-1 text-xs text-red-500 flex items-center">
                   <AlertTriangle className="w-3 h-3 mr-1" />{" "}
                   {formErrors.attendanceDate}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Added Shift Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Shift <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <select
+                name="shift"
+                value={formData.shift}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  formErrors.shift
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 bg-gray-50"
+                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
+              >
+                <option value="" disabled>
+                  Select Shift
+                </option>
+                <option value="Morning">Morning</option>
+                <option value="Afternoon">Afternoon</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                {formData.shift === "Morning" ? (
+                  <Sun className="w-4 h-4 text-yellow-500" />
+                ) : formData.shift === "Afternoon" ? (
+                  <Sunset className="w-4 h-4 text-orange-500" />
+                ) : (
+                  <svg
+                    className="w-4 h-4 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                )}
+              </div>
+              {formErrors.shift && (
+                <p className="mt-1 text-xs text-red-500 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.shift}
                 </p>
               )}
             </div>

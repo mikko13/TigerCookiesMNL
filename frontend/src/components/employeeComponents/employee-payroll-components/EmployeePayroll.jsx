@@ -15,29 +15,30 @@ export default function EmployeePayroll() {
   });
   const [isMobile, setIsMobile] = useState(false);
 
-  const generatePayPeriods = () => {
-    const periods = [];
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
+  const getFilteredPeriods = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
 
-    for (let year = currentYear; year <= currentYear + 2; year++) {
-      const startMonth = year === currentYear ? currentMonth : 0;
-      for (let month = startMonth; month <= 11; month++) {
-        const monthName = new Date(year, month, 1).toLocaleString("default", {
-          month: "long",
-        });
-
-        periods.push(`${monthName} 1-15, ${year}`);
-
-        periods.push(
-          `${monthName} 16-${new Date(year, month + 1, 0).getDate()}, ${year}`
-        );
-
-      }
-    }
-
-    return periods;
+    return [
+      `${monthNames[today.getMonth()]} 5, ${year}`,
+      `${monthNames[today.getMonth()]} 20, ${year}`,
+      `${monthNames[today.getMonth() - 1]} 5, ${year}`,
+      `${monthNames[today.getMonth() - 1]} 20, ${year}`,
+    ];
   };
 
   useEffect(() => {
@@ -70,11 +71,19 @@ export default function EmployeePayroll() {
     }));
   };
 
-  const handleViewAllPayslips = () => {
-    navigate("/all-payslips");
-  };
+  const getNextPayrollDate = () => {
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.getMonth();
+    const year = today.getFullYear();
 
-  const payPeriods = generatePayPeriods();
+    let nextPayroll = new Date(year, month, day < 5 ? 5 : 20);
+    if (day >= 20) {
+      nextPayroll = new Date(year, month + 1, 5);
+    }
+
+    return nextPayroll.toDateString();
+  };
 
   return (
     <div
@@ -145,9 +154,9 @@ export default function EmployeePayroll() {
                   onChange={(e) => setFilterPeriod(e.target.value)}
                   className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
                 >
-                  <option value="">All Future Periods</option>
-                  {payPeriods.map((period, index) => (
-                    <option key={index} value={period}>
+                  <option value="">All Pay Periods</option>
+                  {getFilteredPeriods().map((period) => (
+                    <option key={period} value={period}>
                       {period}
                     </option>
                   ))}
@@ -156,18 +165,10 @@ export default function EmployeePayroll() {
             </div>
           </div>
 
-          <div className="flex items-center my-4">
-            <nav className="flex" aria-label="Breadcrumb">
-              <ol className="inline-flex items-center space-x-1 md:space-x-3">
-                <li aria-current="page">
-                  <div className="flex items-center">
-                    <span className="text-gray-500 text-sm font-medium">
-                      My Payroll
-                    </span>
-                  </div>
-                </li>
-              </ol>
-            </nav>
+          <div className="bg-white p-3 rounded-md shadow-md mb-4">
+            <p className="text-gray-600 text-sm">
+              Next payroll processing: <strong>{getNextPayrollDate()}</strong>
+            </p>
           </div>
 
           <EmployeePayrollMain

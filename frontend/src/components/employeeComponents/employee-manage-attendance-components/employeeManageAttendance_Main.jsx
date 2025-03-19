@@ -58,7 +58,6 @@ export default function EmployeeManageAttendanceMain({
   };
 
   const openPhotoModal = (photoId, type) => {
-    // Construct URL based on photo type
     const url =
       type === "checkin"
         ? `/employee-checkin-photos/${photoId}`

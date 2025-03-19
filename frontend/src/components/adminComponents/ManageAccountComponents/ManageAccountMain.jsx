@@ -64,7 +64,6 @@ export default function ManageAccountMain({ searchTerm }) {
       (employee.position?.toLowerCase() || "").includes(lowerQuery) ||
       (employee.hiredDate?.toLowerCase() || "").includes(lowerQuery) ||
       (employee.ratePerHour?.toString() || "").includes(lowerQuery) ||
-      (employee.shift?.toLowerCase() || "").includes(lowerQuery) ||
       (employee.isActive?.toString() || "").includes(lowerQuery)
     );
   });
@@ -77,7 +76,7 @@ export default function ManageAccountMain({ searchTerm }) {
     const isActivating = currentStatus === 0;
     const actionText = isActivating ? "activate" : "deactivate";
     const statusText = isActivating ? "active" : "inactive";
-    const confirmButtonColor = isActivating ? "#10B981" : "#EF4444"; // Green for activate, red for deactivate
+    const confirmButtonColor = isActivating ? "#10B981" : "#EF4444";
     const confirmButtonText = isActivating
       ? "Yes, Activate"
       : "Yes, Deactivate";
@@ -120,14 +119,12 @@ export default function ManageAccountMain({ searchTerm }) {
       );
 
       if (response.status === 200) {
-        // Update the employee status in the local state
         setEmployees(
           employees.map((emp) =>
             emp._id === employeeId ? { ...emp, isActive: newStatus } : emp
           )
         );
 
-        // Show success message
         Swal.fire({
           title: "Success!",
           text: `${employeeName}'s account has been ${actionText}.`,
@@ -140,7 +137,6 @@ export default function ManageAccountMain({ searchTerm }) {
     } catch (error) {
       console.error("Error toggling employee status:", error);
 
-      // Show error message
       Swal.fire({
         title: "Operation Failed",
         text: "Failed to update employee status. Please try again.",
@@ -152,7 +148,6 @@ export default function ManageAccountMain({ searchTerm }) {
     }
   };
 
-  // Function to render profile image with fallback
   const renderProfileImage = (profilePicture) => {
     if (profilePicture) {
       return (
@@ -175,7 +170,6 @@ export default function ManageAccountMain({ searchTerm }) {
     );
   };
 
-  // Function to render status indicator
   const renderStatusIndicator = (isActive) => {
     return (
       <span
@@ -195,12 +189,11 @@ export default function ManageAccountMain({ searchTerm }) {
     );
   };
 
-  // Function to get button color based on action (activate/deactivate)
   const getButtonColorClass = (isActive) => {
     if (isActive === 1) {
-      return "bg-red-500 hover:bg-red-600"; // Red for deactivate button
+      return "bg-red-500 hover:bg-red-600";
     } else {
-      return "bg-green-500 hover:bg-green-600"; // Green for activate button
+      return "bg-green-500 hover:bg-green-600";
     }
   };
 
@@ -306,10 +299,7 @@ export default function ManageAccountMain({ searchTerm }) {
                           <p className="text-gray-500">Rate per Hour</p>
                           <p className="font-medium">{employee.ratePerHour}</p>
                         </div>
-                        <div>
-                          <p className="text-gray-500">Shift</p>
-                          <p className="font-medium">{employee.shift}</p>
-                        </div>
+  
                         <div>
                           <p className="text-gray-500">Status</p>
                           <p className="font-medium">
@@ -396,9 +386,6 @@ export default function ManageAccountMain({ searchTerm }) {
                       Rate
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Shift
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -448,9 +435,6 @@ export default function ManageAccountMain({ searchTerm }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {employee.ratePerHour}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {employee.shift}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {renderStatusIndicator(employee.isActive)}

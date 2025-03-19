@@ -28,40 +28,49 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const { employeeID, attendanceDate } = req.body;
-    const formattedDate =
-      DateTime.fromISO(attendanceDate).toFormat("MM-dd-yyyy");
-    let filename = "";
+    const formattedDate = attendanceDate
+      ? DateTime.fromISO(attendanceDate).toFormat("MM-dd-yyyy")
+      : DateTime.now().toFormat("MM-dd-yyyy");
 
+    const fileExt = path.extname(file.originalname);
+
+    let filename = "";
     if (file.fieldname === "checkInPhoto") {
-      filename = `checkin_${employeeID}_${formattedDate}.jpg`;
+      filename = `checkin_${employeeID}_${formattedDate}${fileExt}`;
     } else if (file.fieldname === "checkOutPhoto") {
-      filename = `checkout_${employeeID}_${formattedDate}.jpg`;
+      filename = `checkout_${employeeID}_${formattedDate}${fileExt}`;
     }
 
     cb(null, filename);
   },
 });
 
-// **File filter to accept only jpg/jpeg**
 const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = ["image/jpeg", "image/jpg"];
+  const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png"];
   if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Only JPG/JPEG images are allowed"), false);
+    cb(new Error("Only JPG/JPEG/PNG images are allowed"), false);
   }
 };
 
 const upload = multer({ storage, fileFilter });
 
-
-const getAttendanceStatus = (checkInTime) => {
+const getAttendanceStatus = (checkInTime, shift) => {
   if (!checkInTime) return "Absent";
 
   const checkInTimeObj = DateTime.fromFormat(checkInTime, "HH:mm:ss");
-  const lateThreshold = DateTime.fromFormat("08:00:00", "HH:mm:ss");
+  let lateThreshold;
 
-  return checkInTimeObj > lateThreshold ? "Late" : "Present";
+  if (shift === "morning") {
+    lateThreshold = DateTime.fromFormat("09:01:00", "HH:mm:ss");
+  } else if (shift === "afternoon") {
+    lateThreshold = DateTime.fromFormat("13:01:00", "HH:mm:ss");
+  } else {
+    lateThreshold = DateTime.fromFormat("09:01:00", "HH:mm:ss");
+  }
+
+  return checkInTimeObj >= lateThreshold ? "Late" : "Present";
 };
 
 router.post(
@@ -72,28 +81,43 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const { employeeID, attendanceDate, checkInTime, checkOutTime } =
+      const { employeeID, attendanceDate, checkInTime, checkOutTime, shift } =
         req.body;
 
-      if (!employeeID || !attendanceDate || !req.files) {
-        return res
-          .status(400)
-          .json({ success: false, message: "All fields are required." });
+      if (!employeeID || !attendanceDate || !checkInTime || !shift) {
+        return res.status(400).json({
+          success: false,
+          message: "Employee ID, date, check in time, and shift are required.",
+        });
       }
 
-      const formattedCheckInTime = checkInTime
-        ? DateTime.fromISO(checkInTime).toFormat("HH:mm:ss")
-        : null;
-      const formattedCheckOutTime = checkOutTime
-        ? DateTime.fromISO(checkOutTime).toFormat("HH:mm:ss")
-        : null;
+      let formattedCheckInTime = null;
+      let formattedCheckOutTime = null;
 
-      const checkInPhoto = req.files["checkInPhoto"]
-        ? req.files["checkInPhoto"][0].filename
-        : "";
-      const checkOutPhoto = req.files["checkOutPhoto"]
-        ? req.files["checkOutPhoto"][0].filename
-        : "";
+      try {
+        formattedCheckInTime = checkInTime
+          ? DateTime.fromISO(checkInTime).toFormat("HH:mm:ss")
+          : null;
+      } catch (error) {
+        formattedCheckInTime = checkInTime;
+      }
+
+      try {
+        formattedCheckOutTime = checkOutTime
+          ? DateTime.fromISO(checkOutTime).toFormat("HH:mm:ss")
+          : null;
+      } catch (error) {
+        formattedCheckOutTime = checkOutTime;
+      }
+
+      const checkInPhoto =
+        req.files && req.files["checkInPhoto"]
+          ? req.files["checkInPhoto"][0].filename
+          : "";
+      const checkOutPhoto =
+        req.files && req.files["checkOutPhoto"]
+          ? req.files["checkOutPhoto"][0].filename
+          : "";
 
       const attendanceStatus = getAttendanceStatus(formattedCheckInTime);
 
@@ -105,6 +129,7 @@ router.post(
         checkInPhoto,
         checkOutPhoto,
         attendanceStatus,
+        shift,
       });
 
       await newAttendance.save();
@@ -115,6 +140,7 @@ router.post(
         attendance: newAttendance,
       });
     } catch (error) {
+      console.error("Error in attendance post:", error);
       res
         .status(500)
         .json({ success: false, message: "Server error. Try again later." });
@@ -146,6 +172,7 @@ const recordAttendance = async (employeeID) => {
     let checkOutTime = checkoutRecord ? checkoutRecord.checkOutTime : null;
     let checkInPhoto = checkinRecord ? checkinRecord.checkInPhoto : null;
     let checkOutPhoto = checkoutRecord ? checkoutRecord.checkOutPhoto : null;
+    let shift = checkinRecord ? checkinRecord.shift : null;
 
     const attendanceStatus = getAttendanceStatus(checkInTime);
 
@@ -159,6 +186,7 @@ const recordAttendance = async (employeeID) => {
         checkOutPhoto,
         attendanceDate,
         attendanceStatus,
+        shift,
       },
       { upsert: true, new: true }
     );
@@ -217,6 +245,7 @@ router.get("/", async (req, res) => {
       checkoutTime: record.checkOutTime,
       checkoutPhoto: record.checkOutPhoto,
       attendanceStatus: record.attendanceStatus,
+      shift: record.shift,
     }));
 
     res.json(formattedRecords);
@@ -255,7 +284,7 @@ router.put(
   ]),
   async (req, res) => {
     try {
-      const { employeeID, attendanceDate, checkInTime, checkOutTime } =
+      const { employeeID, attendanceDate, checkInTime, checkOutTime, shift } =
         req.body;
       const attendanceRecord = await Attendance.findById(req.params.id);
 
@@ -267,66 +296,68 @@ router.put(
 
       const formattedCheckInTime = checkInTime
         ? DateTime.fromISO(checkInTime).toFormat("HH:mm:ss")
-        : null;
+        : attendanceRecord.checkInTime;
       const formattedCheckOutTime = checkOutTime
         ? DateTime.fromISO(checkOutTime).toFormat("HH:mm:ss")
-        : null;
+        : attendanceRecord.checkOutTime;
 
       const formattedDate =
         DateTime.fromISO(attendanceDate).toFormat("MM-dd-yyyy");
 
-      const oldCheckInPhotoPath = path.join(
-        __dirname,
-        "../../frontend/public/employee-checkin-photos",
-        attendanceRecord.checkInPhoto
-      );
-      const oldCheckOutPhotoPath = path.join(
-        __dirname,
-        "../../frontend/public/employee-checkout-photos",
-        attendanceRecord.checkOutPhoto
-      );
-
       let newCheckInPhoto = attendanceRecord.checkInPhoto;
+      if (req.files && req.files["checkInPhoto"]) {
+        const fileExt = path.extname(req.files["checkInPhoto"][0].originalname);
+        newCheckInPhoto = `checkin_${employeeID}_${formattedDate}${fileExt}`;
+
+        if (
+          attendanceRecord.checkInPhoto &&
+          attendanceRecord.checkInPhoto !== newCheckInPhoto
+        ) {
+          const oldCheckInPhotoPath = path.join(
+            __dirname,
+            "../../frontend/public/employee-checkin-photos",
+            attendanceRecord.checkInPhoto
+          );
+
+          if (fs.existsSync(oldCheckInPhotoPath)) {
+            fs.unlinkSync(oldCheckInPhotoPath);
+          }
+        }
+      }
+
       let newCheckOutPhoto = attendanceRecord.checkOutPhoto;
-
-      if (req.files["checkInPhoto"]) {
-        if (fs.existsSync(oldCheckInPhotoPath)) {
-          fs.unlinkSync(oldCheckInPhotoPath);
-        }
-
-        newCheckInPhoto = `checkin_${employeeID}_${formattedDate}.png`;
-        const checkInPhotoPath = path.join(
-          __dirname,
-          "../../frontend/public/employee-checkin-photos",
-          newCheckInPhoto
+      if (req.files && req.files["checkOutPhoto"]) {
+        const fileExt = path.extname(
+          req.files["checkOutPhoto"][0].originalname
         );
+        newCheckOutPhoto = `checkout_${employeeID}_${formattedDate}${fileExt}`;
 
-        fs.renameSync(req.files["checkInPhoto"][0].path, checkInPhotoPath);
+        if (
+          attendanceRecord.checkOutPhoto &&
+          attendanceRecord.checkOutPhoto !== newCheckOutPhoto
+        ) {
+          const oldCheckOutPhotoPath = path.join(
+            __dirname,
+            "../../frontend/public/employee-checkout-photos",
+            attendanceRecord.checkOutPhoto
+          );
+
+          if (fs.existsSync(oldCheckOutPhotoPath)) {
+            fs.unlinkSync(oldCheckOutPhotoPath);
+          }
+        }
       }
 
-      if (req.files["checkOutPhoto"]) {
-        if (fs.existsSync(oldCheckOutPhotoPath)) {
-          fs.unlinkSync(oldCheckOutPhotoPath);
-        }
+      const attendanceStatus = getAttendanceStatus(formattedCheckInTime, shift);
 
-        newCheckOutPhoto = `checkout_${employeeID}_${formattedDate}.png`;
-        const checkOutPhotoPath = path.join(
-          __dirname,
-          "../../frontend/public/employee-checkout-photos",
-          newCheckOutPhoto
-        );
-
-        fs.renameSync(req.files["checkOutPhoto"][0].path, checkOutPhotoPath);
-      }
-
-      const attendanceStatus = getAttendanceStatus(formattedCheckInTime);
-
+      attendanceRecord.employeeID = employeeID;
       attendanceRecord.attendanceDate = attendanceDate;
       attendanceRecord.checkInTime = formattedCheckInTime;
       attendanceRecord.checkOutTime = formattedCheckOutTime;
       attendanceRecord.checkInPhoto = newCheckInPhoto;
       attendanceRecord.checkOutPhoto = newCheckOutPhoto;
       attendanceRecord.attendanceStatus = attendanceStatus;
+      attendanceRecord.shift = shift;
 
       await attendanceRecord.save();
 
@@ -336,7 +367,11 @@ router.put(
         attendance: attendanceRecord,
       });
     } catch (error) {
-      res.status(500).json({ message: "Server error. Please try again." });
+      console.error("Error updating attendance:", error);
+      res.status(500).json({
+        message: "Server error. Please try again.",
+        error: error.message,
+      });
     }
   }
 );

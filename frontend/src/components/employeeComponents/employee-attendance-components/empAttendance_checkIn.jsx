@@ -1,13 +1,37 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
-import { Clock, CheckCircle, Loader } from "lucide-react";
+import {
+  Clock,
+  CheckCircle,
+  Loader,
+  Calendar,
+  AlertCircle,
+} from "lucide-react";
 
 export default function EmpAttendanceCheckIn() {
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedShift, setSelectedShift] = useState("");
+  const [showShiftSelection, setShowShiftSelection] = useState(false);
+  const [availableShifts, setAvailableShifts] = useState({
+    morning: false,
+    afternoon: false,
+  });
   const employeeID = JSON.parse(localStorage.getItem("user"))?.id;
+
+  // Define shift times (24-hour format)
+  const shiftTimes = {
+    morning: {
+      start: { hour: 9, minute: 0 }, // 9:00 AM
+      available: { hour: 8, minute: 30 }, // 8:30 AM (30 min before)
+    },
+    afternoon: {
+      start: { hour: 13, minute: 0 }, // 1:00 PM
+      available: { hour: 12, minute: 30 }, // 12:30 PM (30 min before)
+    },
+  };
 
   useEffect(() => {
     const checkIfCheckedIn = async () => {
@@ -21,19 +45,44 @@ export default function EmpAttendanceCheckIn() {
           `${backendURL}/api/checkin/status/${employeeID}`
         );
         setAlreadyCheckedIn(response.data.checkedIn);
-      } catch (error) {
-      }
+      } catch (error) {}
       setLoading(false);
     };
 
     checkIfCheckedIn();
 
     const interval = setInterval(() => {
-      setCurrentTime(new Date());
+      const now = new Date();
+      setCurrentTime(now);
+
+      // Check if shifts are available based on current time
+      updateShiftAvailability(now);
     }, 1000);
 
     return () => clearInterval(interval);
   }, [employeeID]);
+
+  const updateShiftAvailability = (now) => {
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    // Check morning shift availability (available from 8:30 AM)
+    const morningAvailable =
+      currentHour > shiftTimes.morning.available.hour ||
+      (currentHour === shiftTimes.morning.available.hour &&
+        currentMinute >= shiftTimes.morning.available.minute);
+
+    // Check afternoon shift availability (available from 12:30 PM)
+    const afternoonAvailable =
+      currentHour > shiftTimes.afternoon.available.hour ||
+      (currentHour === shiftTimes.afternoon.available.hour &&
+        currentMinute >= shiftTimes.afternoon.available.minute);
+
+    setAvailableShifts({
+      morning: morningAvailable,
+      afternoon: afternoonAvailable,
+    });
+  };
 
   const formatTime = (date) => {
     return date.toLocaleTimeString([], {
@@ -51,6 +100,50 @@ export default function EmpAttendanceCheckIn() {
       day: "numeric",
     });
   };
+
+  const handleCheckInClick = () => {
+    // Only show shift selection if at least one shift is available
+    if (availableShifts.morning || availableShifts.afternoon) {
+      setShowShiftSelection(true);
+    }
+  };
+
+  const handleShiftSelect = (shift) => {
+    setSelectedShift(shift);
+    window.location.href = `./opencam?shift=${encodeURIComponent(shift)}`;
+  };
+
+  const getTimeUntilAvailable = (shiftKey) => {
+    const now = new Date();
+    const availableHour = shiftTimes[shiftKey].available.hour;
+    const availableMinute = shiftTimes[shiftKey].available.minute;
+
+    // Create a date object for when the shift becomes available
+    let availableTime = new Date(now);
+    availableTime.setHours(availableHour, availableMinute, 0);
+
+    // If the time has already passed today, it's not available
+    if (now > availableTime) {
+      return null;
+    }
+
+    // Calculate the difference in minutes
+    const diffMs = availableTime - now;
+    const diffMinutes = Math.ceil(diffMs / 60000);
+
+    if (diffMinutes <= 60) {
+      return `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""}`;
+    } else {
+      const hours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
+      return `${hours} hour${hours !== 1 ? "s" : ""} ${
+        minutes > 0 ? `and ${minutes} minute${minutes !== 1 ? "s" : ""}` : ""
+      }`;
+    }
+  };
+
+  const anyShiftAvailable =
+    availableShifts.morning || availableShifts.afternoon;
 
   return (
     <div className="w-full max-w-lg px-6 py-8">
@@ -76,52 +169,138 @@ export default function EmpAttendanceCheckIn() {
             <div className="flex items-center justify-center">
               {loading ? (
                 <div className="flex flex-col items-center">
-                  <Loader className="animate-spin text-yellow-500 mb-2" size={32} />
+                  <Loader
+                    className="animate-spin text-yellow-500 mb-2"
+                    size={32}
+                  />
                   <p className="text-gray-600">Checking status...</p>
                 </div>
               ) : alreadyCheckedIn ? (
                 <div className="flex flex-col items-center">
                   <CheckCircle className="text-green-500 mb-2" size={48} />
-                  <p className="text-xl font-semibold text-green-600">You're already checked in</p>
+                  <p className="text-xl font-semibold text-green-600">
+                    You're already checked in
+                  </p>
                   <p className="text-gray-600 mt-1">Have a productive day!</p>
+                </div>
+              ) : showShiftSelection ? (
+                <div className="text-center w-full">
+                  <div className="flex items-center justify-center mb-4">
+                    <Calendar className="text-yellow-500 mr-2" size={24} />
+                    <h3 className="text-xl font-semibold text-gray-700">
+                      Select Your Shift
+                    </h3>
+                  </div>
+
+                  <div className="space-y-3 mt-4">
+                    <button
+                      onClick={() => handleShiftSelect("Morning")}
+                      disabled={!availableShifts.morning}
+                      className={`w-full py-3 px-4 bg-white border rounded-lg text-left transition-all focus:outline-none ${
+                        availableShifts.morning
+                          ? "border-gray-300 hover:bg-yellow-50 hover:border-yellow-300 focus:ring-2 focus:ring-yellow-500"
+                          : "border-gray-200 bg-gray-50 cursor-not-allowed opacity-70"
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            Morning Shift
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            9:00 AM - 6:00 PM
+                          </p>
+                        </div>
+                        {!availableShifts.morning && (
+                          <div className="flex items-center text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
+                            <Clock size={12} className="mr-1" />
+                            <span>
+                              Available in {getTimeUntilAvailable("morning")}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleShiftSelect("Afternoon")}
+                      disabled={!availableShifts.afternoon}
+                      className={`w-full py-3 px-4 bg-white border rounded-lg text-left transition-all focus:outline-none ${
+                        availableShifts.afternoon
+                          ? "border-gray-300 hover:bg-yellow-50 hover:border-yellow-300 focus:ring-2 focus:ring-yellow-500"
+                          : "border-gray-200 bg-gray-50 cursor-not-allowed opacity-70"
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            Afternoon Shift
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            1:00 PM - 10:00 PM
+                          </p>
+                        </div>
+                        {!availableShifts.afternoon && (
+                          <div className="flex items-center text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
+                            <Clock size={12} className="mr-1" />
+                            <span>
+                              Available in {getTimeUntilAvailable("afternoon")}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => setShowShiftSelection(false)}
+                    className="mt-4 text-gray-600 hover:text-gray-800 text-sm font-medium"
+                  >
+                    Go back
+                  </button>
                 </div>
               ) : (
                 <div className="text-center">
-                  <p className="text-xl font-semibold text-gray-700 mb-2">Ready to start your day?</p>
-                  <p className="text-gray-600 mb-4">Click the button below to check in</p>
+                  <p className="text-xl font-semibold text-gray-700 mb-2">
+                    Ready to start your day?
+                  </p>
+                  <p className="text-gray-600 mb-4">
+                    Click the button below to check in
+                  </p>
+                  {!anyShiftAvailable && (
+                    <div className="flex items-center justify-center text-yellow-600 bg-yellow-50 px-4 py-2 rounded-lg mt-2">
+                      <AlertCircle size={18} className="mr-2" />
+                      <p className="text-sm">
+                        No shifts available yet. Morning shift opens at 8:30 AM
+                        and Afternoon shift at 12:30 PM.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
 
-          <a 
-            href={alreadyCheckedIn ? "#" : "./opencam"} 
-            className={`block w-full ${
-              alreadyCheckedIn || loading
-                ? "opacity-50 cursor-not-allowed"
-                : ""
-            }`}
-          >
+          {!loading && !alreadyCheckedIn && !showShiftSelection && (
             <button
               type="button"
-              disabled={alreadyCheckedIn || loading}
+              onClick={handleCheckInClick}
+              disabled={!anyShiftAvailable}
               className={`px-6 py-4 w-full rounded-lg text-white font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                alreadyCheckedIn || loading
-                  ? "bg-gray-400"
-                  : "bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 focus:ring-yellow-500"
+                anyShiftAvailable
+                  ? "bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 focus:ring-yellow-500"
+                  : "bg-gray-400 cursor-not-allowed"
               }`}
             >
-              {loading
-                ? "Checking..."
-                : alreadyCheckedIn
-                ? "Already Checked In"
-                : "Check In Now"}
+              {anyShiftAvailable ? "Check In Now" : "No Shifts Available Yet"}
             </button>
-          </a>
-          
-          {!loading && !alreadyCheckedIn && (
+          )}
+
+          {!loading && !alreadyCheckedIn && !showShiftSelection && (
             <p className="text-center text-gray-500 text-sm mt-4">
-              Your check-in will be recorded with the current timestamp
+              {anyShiftAvailable
+                ? "Your check-in will be recorded with the current timestamp"
+                : "Shifts become available 30 minutes before their start time"}
             </p>
           )}
         </div>

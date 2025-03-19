@@ -50,7 +50,6 @@ export default function CreatePayrollForm() {
     const fetchEmployees = async () => {
       try {
         const response = await axios.get(`${backendURL}/api/employees`);
-        // Filter out inactive employees (where isActive is 0)
         const activeEmployees = response.data.filter(
           (employee) => employee.isActive !== 0
         );
@@ -60,9 +59,10 @@ export default function CreatePayrollForm() {
       }
     };
 
-    const generatePayPeriods = () => {
-      const periods = [];
-      const months = [
+    const getFilteredPeriods = () => {
+      const today = new Date();
+      const year = today.getFullYear();
+      const monthNames = [
         "January",
         "February",
         "March",
@@ -76,25 +76,22 @@ export default function CreatePayrollForm() {
         "November",
         "December",
       ];
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
 
-      months.forEach((month) => {
-        periods.push(`${month} 1-15, ${currentYear}`);
-        periods.push(
-          `${month} 16-${new Date(
-            currentYear,
-            months.indexOf(month) + 1,
-            0
-          ).getDate()}, ${currentYear}`
-        );
-      });
+      const periods = [];
+      for (let i = 0; i < 12; i++) {
+        const monthIndex = today.getMonth() - i;
+        const adjustedMonth = monthIndex < 0 ? 12 + monthIndex : monthIndex;
+        const adjustedYear = monthIndex < 0 ? year - 1 : year;
+
+        periods.push(`${monthNames[adjustedMonth]} 5, ${adjustedYear}`);
+        periods.push(`${monthNames[adjustedMonth]} 20, ${adjustedYear}`);
+      }
 
       return periods;
     };
 
     fetchEmployees();
-    setPayPeriods(generatePayPeriods());
+    setPayPeriods(getFilteredPeriods());
   }, []);
 
   useEffect(() => {

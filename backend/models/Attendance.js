@@ -13,7 +13,7 @@ const AttendanceSchema = new mongoose.Schema(
     },
     checkOutTime: {
       type: String,
-      required: true,
+      required: false,
     },
     attendanceDate: {
       type: String,
@@ -21,18 +21,22 @@ const AttendanceSchema = new mongoose.Schema(
     },
     checkInPhoto: {
       type: String,
-      required: true,
+      required: false,
     },
     checkOutPhoto: {
       type: String,
-      required: true,
+      required: false,
     },
     attendanceStatus: {
+      type: String,
+      required: true,
+    },
+    shift: {
       type: String,
       required: true,
     },
   },
   { timestamps: true, collection: "empAttendance" }
 );
-
-module.exports = mongoose.models.Attendance || mongoose.model("Attendance", AttendanceSchema);
+module.exports =
+  mongoose.models.Attendance || mongoose.model("Attendance", AttendanceSchema);

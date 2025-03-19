@@ -27,7 +27,6 @@ const accountSchema = new mongoose.Schema(
     hiredDate: { type: String },
     position: { type: String },
     ratePerHour: { type: Number },
-    shift: { type: String },
     otp: { type: String },
     otpExpires: { type: Date },
     role: { type: String, default: "employee" },
