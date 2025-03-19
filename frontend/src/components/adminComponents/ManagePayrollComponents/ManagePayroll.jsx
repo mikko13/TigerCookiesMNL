@@ -52,6 +52,23 @@ export default function ManagePayroll() {
     return nextPayroll.toDateString();
   };
 
+  // Function to generate only payroll periods on the 5th and 20th
+  const getFilteredPeriods = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    return [
+      `${monthNames[today.getMonth()]} 5, ${year}`,
+      `${monthNames[today.getMonth()]} 20, ${year}`,
+      `${monthNames[today.getMonth() - 1]} 5, ${year}`,
+      `${monthNames[today.getMonth() - 1]} 20, ${year}`
+    ];
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50 overflow-hidden relative">
       {/* Background */}
@@ -124,10 +141,11 @@ export default function ManagePayroll() {
                   className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
                 >
                   <option value="">All Pay Periods</option>
-                  <option value="March 1-15, 2025">March 1-15, 2025</option>
-                  <option value="March 16-31, 2025">March 16-31, 2025</option>
-                  <option value="February 16-28, 2025">February 16-28, 2025</option>
-                  <option value="February 1-15, 2025">February 1-15, 2025</option>
+                  {getFilteredPeriods().map((period) => (
+                    <option key={period} value={period}>
+                      {period}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -156,19 +174,6 @@ export default function ManagePayroll() {
                 <span>New Payroll</span>
               </Link>
             </div>
-          </div>
-
-          {/* Breadcrumb */}
-          <div className="flex items-center my-4">
-            <nav className="flex" aria-label="Breadcrumb">
-              <ol className="inline-flex items-center space-x-1 md:space-x-3">
-                <li aria-current="page">
-                  <div className="flex items-center">
-                    <span className="text-gray-500 text-sm font-medium">Payroll Management</span>
-                  </div>
-                </li>
-              </ol>
-            </nav>
           </div>
 
           {/* Next Payroll Date Display */}
