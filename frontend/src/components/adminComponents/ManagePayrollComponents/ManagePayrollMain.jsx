@@ -41,6 +41,8 @@ export default function ManagePayrollMain({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  
+
   const filteredPayrolls = payrolls.filter((record) => {
     const nameMatches =
       (record.employeeID?.firstName?.toLowerCase() || "").includes(
@@ -127,6 +129,8 @@ export default function ManagePayrollMain({
     }
   };
 
+  
+
   const getStatusClass = (isPublished) => {
     return isPublished
       ? "bg-green-100 text-green-800"
@@ -203,3 +207,5 @@ export default function ManagePayrollMain({
     </div>
   );
 }
+
+

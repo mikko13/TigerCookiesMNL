@@ -28,6 +28,22 @@ connectDB();
 
 const app = express();
 
+const processPayroll = async () => {
+  try {
+    console.log("Processing payroll...");
+    await axios.post(`${backendURL}/api/payroll/calculate`);
+    console.log("Payroll calculated successfully.");
+  } catch (error) {
+    console.error("Error processing payroll:", error);
+  }
+};
+
+// Schedule payroll calculation on the 5th and 20th at midnight
+cron.schedule("0 0 5,20 * *", () => {
+  console.log("Running scheduled payroll calculation...");
+  processPayroll();
+});
+
 app.use(
   cors({
     origin: `${frontendURL}`,

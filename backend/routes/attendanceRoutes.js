@@ -33,16 +33,27 @@ const storage = multer.diskStorage({
     let filename = "";
 
     if (file.fieldname === "checkInPhoto") {
-      filename = `checkin_${employeeID}_${formattedDate}.png`;
+      filename = `checkin_${employeeID}_${formattedDate}.jpg`;
     } else if (file.fieldname === "checkOutPhoto") {
-      filename = `checkout_${employeeID}_${formattedDate}.png`;
+      filename = `checkout_${employeeID}_${formattedDate}.jpg`;
     }
 
     cb(null, filename);
   },
 });
 
-const upload = multer({ storage });
+// **File filter to accept only jpg/jpeg**
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = ["image/jpeg", "image/jpg"];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only JPG/JPEG images are allowed"), false);
+  }
+};
+
+const upload = multer({ storage, fileFilter });
+
 
 const getAttendanceStatus = (checkInTime) => {
   if (!checkInTime) return "Absent";

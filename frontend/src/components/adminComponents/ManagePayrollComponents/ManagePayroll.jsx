@@ -20,17 +20,10 @@ export default function ManagePayroll() {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
 
-      if (mobile) {
-        setSidebarState({
-          isVisible: false,
-          isExpanded: true,
-        });
-      } else {
-        setSidebarState({
-          isVisible: true,
-          isExpanded: true,
-        });
-      }
+      setSidebarState((prev) => ({
+        ...prev,
+        isVisible: !mobile,
+      }));
     };
 
     handleResize();
@@ -45,8 +38,23 @@ export default function ManagePayroll() {
     }));
   };
 
+  const getNextPayrollDate = () => {
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.getMonth();
+    const year = today.getFullYear();
+
+    let nextPayroll = new Date(year, month, day < 5 ? 5 : 20);
+    if (day >= 20) {
+      nextPayroll = new Date(year, month + 1, 5);
+    }
+
+    return nextPayroll.toDateString();
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50 overflow-hidden relative">
+      {/* Background */}
       <div
         className="fixed inset-0 z-0"
         style={{
@@ -57,58 +65,41 @@ export default function ManagePayroll() {
         }}
       />
 
+      {/* Mobile Sidebar Toggle */}
       {isMobile && !sidebarState.isVisible && (
         <button
           onClick={toggleSidebarVisibility}
-          className="fixed top-4 left-0 z-50 bg-yellow-500 text-white p-2 rounded-r-md shadow-md transition-all duration-300"
+          className="fixed top-4 left-0 z-50 bg-yellow-500 text-white p-2 rounded-r-md shadow-md"
           aria-label="Open sidebar"
         >
           <Menu size={24} />
         </button>
       )}
 
-      {isMobile && sidebarState.isVisible && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30"
-          onClick={toggleSidebarVisibility}
-        />
-      )}
-
+      {/* Sidebar */}
       <div
         className={`fixed top-0 left-0 h-screen z-40 transition-all duration-300 ease-in-out ${
-          !sidebarState.isVisible
-            ? "w-0 min-w-0 opacity-0 pointer-events-none"
-            : isMobile
-            ? "w-[250px] min-w-[250px]"
-            : "w-[250px] min-w-[250px]"
+          sidebarState.isVisible ? "w-[250px]" : "w-0 opacity-0 pointer-events-none"
         }`}
       >
         {sidebarState.isVisible && (
-          <AdminSidebar
-            isExpanded={true}
-            isMobile={isMobile}
-            toggleVisibility={toggleSidebarVisibility}
-          />
+          <AdminSidebar isExpanded={true} isMobile={isMobile} toggleVisibility={toggleSidebarVisibility} />
         )}
       </div>
 
-      <main
-        className={`relative z-10 min-h-screen w-full transition-all duration-300 ease-in-out ${
-          !isMobile && sidebarState.isVisible ? "ml-[250px]" : "ml-0"
-        }`}
-      >
+      {/* Main Content */}
+      <main className={`relative z-10 min-h-screen w-full transition-all duration-300 ${!isMobile && sidebarState.isVisible ? "ml-[250px]" : "ml-0"}`}>
         <div className="max-w-7xl mx-auto p-4">
+          {/* Page Title */}
           <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:justify-between md:items-center">
             <div className="ml-8 lg:ml-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-                Employee Payroll
-              </h1>
-              <p className="text-gray-600 mt-1">
-                View and manage all employee payroll records
-              </p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Employee Payroll</h1>
+              <p className="text-gray-600 mt-1">View and manage all employee payroll records</p>
             </div>
 
+            {/* Filters & Controls */}
             <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
+              {/* Search Bar */}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search size={18} className="text-gray-400" />
@@ -122,6 +113,7 @@ export default function ManagePayroll() {
                 />
               </div>
 
+              {/* Pay Period Filter */}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Calendar size={18} className="text-gray-400" />
@@ -134,15 +126,12 @@ export default function ManagePayroll() {
                   <option value="">All Pay Periods</option>
                   <option value="March 1-15, 2025">March 1-15, 2025</option>
                   <option value="March 16-31, 2025">March 16-31, 2025</option>
-                  <option value="February 16-28, 2025">
-                    February 16-28, 2025
-                  </option>
-                  <option value="February 1-15, 2025">
-                    February 1-15, 2025
-                  </option>
+                  <option value="February 16-28, 2025">February 16-28, 2025</option>
+                  <option value="February 1-15, 2025">February 1-15, 2025</option>
                 </select>
               </div>
 
+              {/* Payroll Status Filter */}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Filter size={18} className="text-gray-400" />
@@ -158,9 +147,10 @@ export default function ManagePayroll() {
                 </select>
               </div>
 
+              {/* New Payroll Button */}
               <Link
                 to="/CreateEmployeePayroll"
-                className="flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors duration-200 shadow-sm"
+                className="flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md shadow-sm"
               >
                 <Plus size={18} />
                 <span>New Payroll</span>
@@ -168,25 +158,28 @@ export default function ManagePayroll() {
             </div>
           </div>
 
+          {/* Breadcrumb */}
           <div className="flex items-center my-4">
             <nav className="flex" aria-label="Breadcrumb">
               <ol className="inline-flex items-center space-x-1 md:space-x-3">
                 <li aria-current="page">
                   <div className="flex items-center">
-                    <span className="text-gray-500 text-sm font-medium">
-                      Payroll Management
-                    </span>
+                    <span className="text-gray-500 text-sm font-medium">Payroll Management</span>
                   </div>
                 </li>
               </ol>
             </nav>
           </div>
 
-          <ManagePayrollMain
-            searchTerm={searchTerm}
-            filterPeriod={filterPeriod}
-            filterStatus={filterStatus}
-          />
+          {/* Next Payroll Date Display */}
+          <div className="bg-white p-3 rounded-md shadow-md mb-4">
+            <p className="text-gray-600 text-sm">
+              Next payroll processing: <strong>{getNextPayrollDate()}</strong>
+            </p>
+          </div>
+
+          {/* Payroll Management Main Component */}
+          <ManagePayrollMain searchTerm={searchTerm} filterPeriod={filterPeriod} filterStatus={filterStatus} />
         </div>
       </main>
     </div>
