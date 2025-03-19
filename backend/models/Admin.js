@@ -11,18 +11,9 @@ const adminSchema = new mongoose.Schema(
       unique: true,
       match: [/\S+@\S+\.\S+/, "Please provide a valid email"],
     },
-    phone: {
-      type: String,
-      required: true,
-      unique: true,
-      match: [
-        /^(\+63|0)9\d{9}$/,
-        "Please provide a valid Philippine phone number",
-      ],
-    },
     password: { type: String, required: true },
-    position: { type: String, required: true },
     role: { type: String, default: "admin" },
+    isActive: { type: Number, default: 1 },
   },
   { timestamps: true, collection: "adminAccounts" }
 );

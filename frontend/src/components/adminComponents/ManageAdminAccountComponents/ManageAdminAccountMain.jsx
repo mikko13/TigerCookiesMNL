@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import useAdmins from "./fetchAdmins";
-import handleAdminDelete from "./handleAdminDelete";
 import { Link } from "react-router-dom";
 import {
   Edit,
@@ -39,11 +38,9 @@ export default function ManageAdminAccountMain({ searchTerm }) {
 
     const lowerQuery = searchTerm.toLowerCase();
     return (
-      admin.firstName?.toLowerCase().includes(lowerQuery) ||
-      admin.lastName?.toLowerCase().includes(lowerQuery) ||
-      admin.email?.toLowerCase().includes(lowerQuery) ||
-      admin.phone?.toLowerCase().includes(lowerQuery) ||
-      admin.position?.toLowerCase().includes(lowerQuery)
+      (admin.firstName?.toLowerCase() || "").includes(lowerQuery) ||
+      (admin.lastName?.toLowerCase() || "").includes(lowerQuery) ||
+      (admin.email?.toLowerCase() || "").includes(lowerQuery)
     );
   });
 
@@ -51,11 +48,27 @@ export default function ManageAdminAccountMain({ searchTerm }) {
     setExpandedRow(expandedRow === id ? null : id);
   };
 
-  const getProfilePicture = (admin) => {
-    if (admin.profilePicture) {
-      return `/admin-profile-pics/${admin.profilePicture}`;
+  // Function to render profile image with fallback
+  const renderProfileImage = (profilePicture) => {
+    if (profilePicture) {
+      return (
+        <img
+          src={`/admin-profile-pics/${profilePicture}`}
+          alt="Admin Profile"
+          className="h-10 w-10 rounded-full object-cover"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.style.display = "none";
+            e.target.nextSibling.style.display = "flex";
+          }}
+        />
+      );
     }
-    return null;
+    return (
+      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+        <UserCircle className="h-8 w-8 text-gray-500" />
+      </div>
+    );
   };
 
   return (
@@ -103,23 +116,13 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                     onClick={() => toggleRow(admin._id)}
                   >
                     <div className="flex items-center gap-3">
-                      {admin.profilePicture ? (
-                        <img
-                          src={getProfilePicture(admin)}
-                          alt="Admin Profile"
-                          className="h-10 w-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <UserCircle className="h-6 w-6 text-gray-500" />
-                        </div>
-                      )}
+                      {renderProfileImage(admin.profilePicture)}
+                      <div className="hidden">
+                        <UserCircle className="h-10 w-10 text-gray-500" />
+                      </div>
                       <div>
                         <div className="font-medium text-gray-900">
                           {admin.firstName} {admin.lastName}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {admin.position || "Admin"}
                         </div>
                       </div>
                     </div>
@@ -138,34 +141,17 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                           <p className="text-gray-500">Email</p>
                           <p className="font-medium">{admin.email}</p>
                         </div>
-                        <div>
-                          <p className="text-gray-500">Phone Number</p>
-                          <p className="font-medium">{admin.phone}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Position</p>
-                          <p className="font-medium">{admin.position}</p>
-                        </div>
                       </div>
 
                       <div className="mt-3 flex gap-3">
                         <Link
-                          to={`/UpdateAdminAccount/${admin._id}`}
-                          className="flex items-center text-blue-600 hover:text-blue-800"
+                          to={`/ModifyAdminAccount/${admin._id}`}
+                          state={{ admin }}
+                          className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
                         >
                           <Edit size={16} className="mr-1" />
                           <span>Edit</span>
                         </Link>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAdminDelete(admin._id);
-                          }}
-                          className="flex items-center text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 size={16} className="mr-1" />
-                          <span>Delete</span>
-                        </button>
                       </div>
                     </div>
                   )}
@@ -188,12 +174,6 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                       Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Phone
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Position
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -205,17 +185,12 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                       className="hover:bg-gray-50 transition-colors duration-150"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {admin.profilePicture ? (
-                          <img
-                            src={getProfilePicture(admin)}
-                            alt="Admin Profile"
-                            className="h-10 w-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            <UserCircle className="h-6 w-6 text-gray-500" />
+                        <div className="flex items-center">
+                          {renderProfileImage(admin.profilePicture)}
+                          <div className="hidden">
+                            <UserCircle className="h-10 w-10 text-gray-500" />
                           </div>
-                        )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">
@@ -226,28 +201,16 @@ export default function ManageAdminAccountMain({ searchTerm }) {
                         {admin.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {admin.phone}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {admin.position}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 items-center">
                           <Link
                             to={`/ModifyAdminAccount/${admin._id}`}
                             state={{ admin }}
-                            className="text-blue-600 hover:text-blue-800 transition-colors"
+                            className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
                             title="Edit"
                           >
-                            <Edit size={18} />
+                            <Edit size={16} className="mr-1" />
+                            <span>Edit</span>
                           </Link>
-                          <button
-                            onClick={() => handleAdminDelete(admin._id)}
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={18} />
-                          </button>
                         </div>
                       </td>
                     </tr>

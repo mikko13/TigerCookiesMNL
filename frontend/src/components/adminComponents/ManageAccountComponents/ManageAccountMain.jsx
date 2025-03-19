@@ -1,14 +1,19 @@
 import { useState, useEffect } from "react";
 import useEmployees from "./fetchEmployees";
-import handleDelete from "./handleDelete";
 import { Link } from "react-router-dom";
 import {
   Edit,
-  Trash2,
+  Power,
   AlertTriangle,
   ChevronRight,
   UserCircle,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
+import axios from "axios";
+import { backendURL } from "../../../urls/URL";
+import Swal from "sweetalert2";
+import EmployeeSummaryCards from "./EmployeeSummaryCards";
 
 export default function ManageAccountMain({ searchTerm }) {
   const fetchedEmployees = useEmployees();
@@ -16,15 +21,19 @@ export default function ManageAccountMain({ searchTerm }) {
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [toggleLoading, setToggleLoading] = useState(null);
 
   useEffect(() => {
     if (fetchedEmployees.length > 0) {
       fetchedEmployees.forEach((employee, index) => {
         if (!employee.firstName || !employee.lastName) {
-          console.warn(`Employee at index ${index} is missing required fields:`, employee);
+          console.warn(
+            `Employee at index ${index} is missing required fields:`,
+            employee
+          );
         }
       });
-      
+
       setEmployees(fetchedEmployees);
       setLoading(false);
     }
@@ -55,12 +64,92 @@ export default function ManageAccountMain({ searchTerm }) {
       (employee.position?.toLowerCase() || "").includes(lowerQuery) ||
       (employee.hiredDate?.toLowerCase() || "").includes(lowerQuery) ||
       (employee.ratePerHour?.toString() || "").includes(lowerQuery) ||
-      (employee.shift?.toLowerCase() || "").includes(lowerQuery)
+      (employee.shift?.toLowerCase() || "").includes(lowerQuery) ||
+      (employee.isActive?.toString() || "").includes(lowerQuery)
     );
   });
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
+  };
+
+  const confirmToggleStatus = (employeeId, currentStatus, employeeName) => {
+    const isActivating = currentStatus === 0;
+    const actionText = isActivating ? "activate" : "deactivate";
+    const statusText = isActivating ? "active" : "inactive";
+    const confirmButtonColor = isActivating ? "#10B981" : "#EF4444"; // Green for activate, red for deactivate
+    const confirmButtonText = isActivating
+      ? "Yes, Activate"
+      : "Yes, Deactivate";
+    const icon = isActivating ? "success" : "warning";
+
+    Swal.fire({
+      title: `${isActivating ? "Activate" : "Deactivate"} Account?`,
+      html: `Are you sure you want to ${actionText} <strong>${employeeName}</strong>'s account?<br>
+             This will change their status to <strong>${statusText}</strong>.`,
+      icon: icon,
+      showCancelButton: true,
+      confirmButtonColor: confirmButtonColor,
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: confirmButtonText,
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      focusCancel: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        toggleEmployeeStatus(employeeId, currentStatus, employeeName);
+      }
+    });
+  };
+
+  const toggleEmployeeStatus = async (
+    employeeId,
+    currentStatus,
+    employeeName
+  ) => {
+    try {
+      setToggleLoading(employeeId);
+      const newStatus = currentStatus === 1 ? 0 : 1;
+      const actionText = newStatus === 1 ? "activated" : "deactivated";
+
+      const response = await axios.put(
+        `${backendURL}/api/employees/${employeeId}`,
+        {
+          isActive: newStatus,
+        }
+      );
+
+      if (response.status === 200) {
+        // Update the employee status in the local state
+        setEmployees(
+          employees.map((emp) =>
+            emp._id === employeeId ? { ...emp, isActive: newStatus } : emp
+          )
+        );
+
+        // Show success message
+        Swal.fire({
+          title: "Success!",
+          text: `${employeeName}'s account has been ${actionText}.`,
+          icon: "success",
+          confirmButtonColor: "#EAB308",
+          timer: 2000,
+          timerProgressBar: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling employee status:", error);
+
+      // Show error message
+      Swal.fire({
+        title: "Operation Failed",
+        text: "Failed to update employee status. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#EAB308",
+      });
+    } finally {
+      setToggleLoading(null);
+    }
   };
 
   // Function to render profile image with fallback
@@ -86,8 +175,39 @@ export default function ManageAccountMain({ searchTerm }) {
     );
   };
 
+  // Function to render status indicator
+  const renderStatusIndicator = (isActive) => {
+    return (
+      <span
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          isActive === 1
+            ? "bg-green-100 text-green-800"
+            : "bg-gray-100 text-gray-800"
+        }`}
+      >
+        {isActive === 1 ? (
+          <CheckCircle2 size={14} className="mr-1" />
+        ) : (
+          <XCircle size={14} className="mr-1" />
+        )}
+        {isActive === 1 ? "Active" : "Inactive"}
+      </span>
+    );
+  };
+
+  // Function to get button color based on action (activate/deactivate)
+  const getButtonColorClass = (isActive) => {
+    if (isActive === 1) {
+      return "bg-red-500 hover:bg-red-600"; // Red for deactivate button
+    } else {
+      return "bg-green-500 hover:bg-green-600"; // Green for activate button
+    }
+  };
+
   return (
     <div className="flex flex-col space-y-6">
+      <EmployeeSummaryCards employees={employees} />
+
       {loading ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto"></div>
@@ -144,12 +264,15 @@ export default function ManageAccountMain({ searchTerm }) {
                         </div>
                       </div>
                     </div>
-                    <ChevronRight
-                      size={20}
-                      className={`text-gray-400 transition-transform ${
-                        expandedRow === employee._id ? "rotate-90" : ""
-                      }`}
-                    />
+                    <div className="flex items-center gap-2">
+                      {renderStatusIndicator(employee.isActive)}
+                      <ChevronRight
+                        size={20}
+                        className={`text-gray-400 transition-transform ${
+                          expandedRow === employee._id ? "rotate-90" : ""
+                        }`}
+                      />
+                    </div>
                   </div>
 
                   {expandedRow === employee._id && (
@@ -187,13 +310,19 @@ export default function ManageAccountMain({ searchTerm }) {
                           <p className="text-gray-500">Shift</p>
                           <p className="font-medium">{employee.shift}</p>
                         </div>
+                        <div>
+                          <p className="text-gray-500">Status</p>
+                          <p className="font-medium">
+                            {employee.isActive === 1 ? "Active" : "Inactive"}
+                          </p>
+                        </div>
                       </div>
 
                       <div className="mt-3 flex gap-3">
                         <Link
                           to={`/ModifyEmployeeAccount/${employee._id}`}
                           state={{ employee }}
-                          className="flex items-center text-blue-600 hover:text-blue-800"
+                          className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
                         >
                           <Edit size={16} className="mr-1" />
                           <span>Edit</span>
@@ -201,12 +330,31 @@ export default function ManageAccountMain({ searchTerm }) {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(employee._id);
+                            confirmToggleStatus(
+                              employee._id,
+                              employee.isActive,
+                              `${employee.firstName} ${employee.lastName}`
+                            );
                           }}
-                          className="flex items-center text-red-600 hover:text-red-800"
+                          disabled={toggleLoading === employee._id}
+                          className={`flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all ${
+                            toggleLoading === employee._id
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : getButtonColorClass(employee.isActive)
+                          }`}
                         >
-                          <Trash2 size={16} className="mr-1" />
-                          <span>Delete</span>
+                          {toggleLoading === employee._id ? (
+                            <div className="animate-spin h-4 w-4 border-2 border-t-transparent border-white rounded-full mr-1"></div>
+                          ) : (
+                            <Power size={16} className="mr-1" />
+                          )}
+                          <span>
+                            {toggleLoading === employee._id
+                              ? "Updating..."
+                              : employee.isActive === 1
+                              ? "Deactivate"
+                              : "Activate"}
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -249,6 +397,9 @@ export default function ManageAccountMain({ searchTerm }) {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Shift
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -301,22 +452,50 @@ export default function ManageAccountMain({ searchTerm }) {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {employee.shift}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {renderStatusIndicator(employee.isActive)}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 items-center">
                           <Link
                             to={`/ModifyEmployeeAccount/${employee._id}`}
                             state={{ employee }}
-                            className="text-blue-600 hover:text-blue-800 transition-colors"
+                            className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
                             title="Edit"
                           >
-                            <Edit size={18} />
+                            <Edit size={16} className="mr-1" />
+                            <span>Edit</span>
                           </Link>
                           <button
-                            onClick={() => handleDelete(employee._id)}
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                            title="Delete"
+                            onClick={() =>
+                              confirmToggleStatus(
+                                employee._id,
+                                employee.isActive,
+                                `${employee.firstName} ${employee.lastName}`
+                              )
+                            }
+                            disabled={toggleLoading === employee._id}
+                            className={`flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all ${
+                              toggleLoading === employee._id
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : getButtonColorClass(employee.isActive)
+                            }`}
+                            title={
+                              employee.isActive === 1
+                                ? "Deactivate"
+                                : "Activate"
+                            }
                           >
-                            <Trash2 size={18} />
+                            {toggleLoading === employee._id ? (
+                              <div className="animate-spin h-4 w-4 border-2 border-t-transparent border-white rounded-full mr-1"></div>
+                            ) : (
+                              <Power size={16} className="mr-1" />
+                            )}
+                            <span>
+                              {employee.isActive === 1
+                                ? "Deactivate"
+                                : "Activate"}
+                            </span>
                           </button>
                         </div>
                       </td>

@@ -31,6 +31,7 @@ const accountSchema = new mongoose.Schema(
     otp: { type: String },
     otpExpires: { type: Date },
     role: { type: String, default: "employee" },
+    isActive: { type: Number, default: 1 },
   },
   { timestamps: true, collection: "empAccounts" }
 );

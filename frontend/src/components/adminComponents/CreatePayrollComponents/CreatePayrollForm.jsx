@@ -50,7 +50,11 @@ export default function CreatePayrollForm() {
     const fetchEmployees = async () => {
       try {
         const response = await axios.get(`${backendURL}/api/employees`);
-        setEmployees(response.data);
+        // Filter out inactive employees (where isActive is 0)
+        const activeEmployees = response.data.filter(
+          (employee) => employee.isActive !== 0
+        );
+        setEmployees(activeEmployees);
       } catch (error) {
         showToast("error", "Failed to load employees data.");
       }
@@ -410,7 +414,7 @@ export default function CreatePayrollForm() {
                   className={`w-full pl-8 pr-4 py-3 rounded-lg border ${
                     formErrors.baseSalary
                       ? "border-red-500 bg-red-50"
-                      : "border-gray-300 bg-gray-50"
+                      : "border-gray-300 bg-gray-100"
                   } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all bg-gray-100`}
                   readOnly
                 />

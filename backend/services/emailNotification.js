@@ -37,7 +37,6 @@ class emailNotification {
         },
       });
     } catch (error) {
-      
       return nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -62,11 +61,16 @@ class emailNotification {
       };
 
       await transporter.sendMail(mailOptions);
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
-  async sendOvertimeRequestEmail(adminEmail, adminName, employeeName, overtimeTime, overtimeNote) {
+  async sendOvertimeRequestEmail(
+    adminEmail,
+    adminName,
+    employeeName,
+    overtimeTime,
+    overtimeNote
+  ) {
     const htmlContent = `
       <div style="max-width: 600px; margin: auto; padding: 20px; font-family: Arial, sans-serif; background-color: #f9f9f9; border-radius: 10px; text-align: center; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);">
         <div style="background-color: #ffcc00; padding: 15px; border-radius: 10px 10px 0 0;">
@@ -90,7 +94,63 @@ class emailNotification {
       </div>
     `;
 
-    return this.sendEmail(adminEmail, "Overtime Request Notification", htmlContent);
+    return this.sendEmail(
+      adminEmail,
+      "Overtime Request Notification",
+      htmlContent
+    );
+  }
+
+  async sendOvertimeStatusEmail(
+    employeeEmail,
+    employeeName,
+    adminName,
+    overtimeTime,
+    overtimeNote,
+    status
+  ) {
+    const statusColor = status === "Approved" ? "#28a745" : "#dc3545";
+    const statusEmoji = status === "Approved" ? "✅" : "❌";
+
+    const htmlContent = `
+      <div style="max-width: 600px; margin: auto; padding: 20px; font-family: Arial, sans-serif; background-color: #f9f9f9; border-radius: 10px; text-align: center; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);">
+        <div style="background-color: ${statusColor}; padding: 15px; border-radius: 10px 10px 0 0;">
+          <h1 style="margin: 0; font-size: 24px; color: #ffffff;">Overtime Request ${status} ${statusEmoji}</h1>
+        </div>
+        <div style="padding: 20px; background-color: #ffffff;">
+          <p style="font-size: 18px; color: #555;">Hello ${employeeName},</p>
+          <p style="font-size: 16px; color: #777;">
+            Your overtime request has been <strong style="color: ${statusColor}">${status}</strong> by ${adminName}.
+          </p>
+          <div style="background-color: #f0f0f0; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: left;">
+            <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #333;">Request Details</h2>
+            <p style="margin: 5px 0; font-size: 16px; color: #555;">
+              <strong>Hours:</strong> ${overtimeTime} hours<br>
+              <strong>Note:</strong> ${overtimeNote || "No note provided"}<br>
+              <strong>Status:</strong> <span style="color: ${statusColor}; font-weight: bold;">${status}</span><br>
+              <strong>Reviewed by:</strong> ${adminName}<br>
+              <strong>Review date:</strong> ${new Date().toLocaleDateString()}
+            </p>
+          </div>
+          ${
+            status === "Approved"
+              ? `<p style="font-size: 16px; color: #28a745;">Your overtime hours will be included in your next payroll calculation.</p>`
+              : `<p style="font-size: 16px; color: #777;">If you have any questions regarding this decision, please contact your supervisor.</p>`
+          }
+          <p style="font-size: 14px; color: #777; margin-top: 30px;">Thank you for your hard work and dedication.</p>
+          <p style="font-size: 14px; color: #ff0000; font-weight: bold;">This is an automated notification. No reply is needed.</p>
+        </div>
+        <div style="padding: 15px; background-color: #f0f0f0; border-radius: 0 0 10px 10px;">
+          <p style="margin: 0; font-size: 14px; color: #777;">© ${new Date().getFullYear()} Tiger Cookies MNL</p>
+        </div>
+      </div>
+    `;
+
+    return this.sendEmail(
+      employeeEmail,
+      `Overtime Request ${status}`,
+      htmlContent
+    );
   }
 }
 

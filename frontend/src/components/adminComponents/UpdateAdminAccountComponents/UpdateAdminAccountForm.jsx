@@ -6,9 +6,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Loader2,
-  Briefcase,
   Mail,
-  Phone,
   Lock,
   User,
 } from "lucide-react";
@@ -24,9 +22,8 @@ export default function UpdateAdminAccountForm() {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
     password: "",
-    position: "",
+    role: "admin",
   });
 
   const [profilePicture, setProfilePicture] = useState(null);
@@ -48,9 +45,8 @@ export default function UpdateAdminAccountForm() {
           firstName: adminData.firstName || "",
           lastName: adminData.lastName || "",
           email: adminData.email || "",
-          phone: adminData.phone || "",
           password: "",
-          position: adminData.position || "",
+          role: adminData.role || "admin",
         });
 
         if (adminData.profilePicture) {
@@ -113,12 +109,10 @@ export default function UpdateAdminAccountForm() {
     if (!formData.firstName) errors.firstName = "First name is required";
     if (!formData.lastName) errors.lastName = "Last name is required";
     if (!formData.email) errors.email = "Email is required";
-    if (!formData.phone) errors.phone = "Phone number is required";
-    else if (!/^(\+63|0)9\d{9}$/.test(formData.phone))
-      errors.phone = "Phone number is invalid";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      errors.email = "Please provide a valid email";
     if (changePassword && !formData.password)
       errors.password = "Password is required";
-    if (!formData.position) errors.position = "Position is required";
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -307,64 +301,6 @@ export default function UpdateAdminAccountForm() {
                   <p className="mt-1 text-xs text-red-500 flex items-center">
                     <AlertTriangle className="w-3 h-3 mr-1" />{" "}
                     {formErrors.email}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+639123456789"
-                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                    formErrors.phone
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
-                />
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Phone className="w-4 h-4 text-gray-500" />
-                </div>
-                {formErrors.phone && (
-                  <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                    {formErrors.phone}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Position <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  name="position"
-                  value={formData.position}
-                  onChange={handleInputChange}
-                  placeholder="Enter position"
-                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                    formErrors.position
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 bg-gray-50"
-                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
-                />
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Briefcase className="w-4 h-4 text-gray-500" />
-                </div>
-                {formErrors.position && (
-                  <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                    {formErrors.position}
                   </p>
                 )}
               </div>

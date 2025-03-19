@@ -20,7 +20,7 @@ export default function ManageAccount() {
       if (mobile) {
         setSidebarState({
           isVisible: false,
-          isExpanded: true, // Keep it fully expanded when it is opened on mobile
+          isExpanded: true,
         });
       } else {
         setSidebarState({
@@ -63,7 +63,7 @@ export default function ManageAccount() {
       )}
 
       {isMobile && sidebarState.isVisible && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30"
           onClick={toggleSidebarVisibility}
         />
@@ -73,9 +73,9 @@ export default function ManageAccount() {
         className={`transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
             ? "w-0 min-w-0 opacity-0 pointer-events-none"
-            : isMobile 
-              ? "w-[250px] min-w-[250px]" 
-              : "w-[250px] min-w-[250px]"
+            : isMobile
+            ? "w-[250px] min-w-[250px]"
+            : "w-[250px] min-w-[250px]"
         } ${isMobile ? "fixed h-full z-40" : "fixed h-screen z-30"}`}
       >
         {sidebarState.isVisible && (
@@ -87,11 +87,9 @@ export default function ManageAccount() {
         )}
       </div>
 
-      <main 
+      <main
         className={`flex-1 transition-all duration-300 ease-in-out overflow-y-auto ${
-          isMobile 
-            ? "w-full" 
-            : sidebarState.isVisible ? "pl-[250px]" : ""
+          isMobile ? "w-full" : sidebarState.isVisible ? "pl-[250px]" : ""
         }`}
       >
         <div className="max-w-7xl mx-auto p-4">
@@ -142,7 +140,6 @@ export default function ManageAccount() {
               </ol>
             </nav>
           </div>
-
           <ManageAccountMain searchTerm={searchTerm} />
         </div>
       </main>
