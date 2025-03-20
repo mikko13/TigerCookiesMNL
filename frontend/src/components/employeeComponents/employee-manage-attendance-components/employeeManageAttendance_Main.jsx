@@ -14,6 +14,7 @@ export default function EmployeeManageAttendanceMain({
   const fetchedAttendance = useAttendance();
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [photoModal, setPhotoModal] = useState({
@@ -22,6 +23,13 @@ export default function EmployeeManageAttendanceMain({
   });
 
   useEffect(() => {
+    // Set a timeout to stop loading after a reasonable time
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+      }
+    }, 10000); // 10 seconds timeout
+
     if (fetchedAttendance.length > 0) {
       const user = JSON.parse(localStorage.getItem("user"));
       const loggedInEmployeeID = user ? user.id : null;
@@ -32,8 +40,13 @@ export default function EmployeeManageAttendanceMain({
 
       setAttendance(filteredAttendance);
       setLoading(false);
+    } else if (fetchedAttendance.length === 0 && !loading) {
+      // If no attendance was fetched and loading is done
+      setAttendance([]);
     }
-  }, [fetchedAttendance]);
+
+    return () => clearTimeout(timeoutId);
+  }, [fetchedAttendance, loading]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -88,6 +101,20 @@ export default function EmployeeManageAttendanceMain({
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading attendance records...</p>
+        </div>
+      ) : error ? (
+        <div className="bg-white rounded-lg shadow-md p-8 text-center flex flex-col items-center">
+          <AlertTriangle size={48} className="text-red-500 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-800">
+            Error Loading Data
+          </h3>
+          <p className="text-gray-600 mt-2">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 text-yellow-600 hover:text-yellow-700 font-medium"
+          >
+            Try Again
+          </button>
         </div>
       ) : filteredAttendance.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center flex flex-col items-center">

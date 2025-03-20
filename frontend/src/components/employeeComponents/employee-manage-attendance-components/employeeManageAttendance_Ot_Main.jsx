@@ -1,21 +1,21 @@
 import { useState, useEffect } from "react";
 import useOvertime from "./fetchOvertime";
-import useAttendance from "./fetchAttendance";
+import useEmployees from "./fetchEmployees";
 import { getStatusClass } from "./getStatusClass";
 import { AlertTriangle, ChevronRight } from "lucide-react";
 
 export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }) {
   const overtimeRecords = useOvertime();
-  const attendanceRecords = useAttendance(); 
+  const employeeRecords = useEmployees();
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (overtimeRecords.length > 0 && attendanceRecords.length > 0) {
+    if (overtimeRecords.length > 0) {
       setLoading(false);
     }
-  }, [overtimeRecords, attendanceRecords]);
+  }, [overtimeRecords]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -36,8 +36,8 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
   };
 
   const getEmployeeName = (employeeID) => {
-    const attendance = attendanceRecords.find(record => record.employeeID === employeeID);
-    return attendance ? attendance.employeeName : "Unknown";
+    const employee = employeeRecords.find((record) => record._id === employeeID);
+    return employee ? `${employee.firstName} ${employee.lastName}` : "Unknown";
   };
 
   const filteredRecords = overtimeRecords.filter(record => 
