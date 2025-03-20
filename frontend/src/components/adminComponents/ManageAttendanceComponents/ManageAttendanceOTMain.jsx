@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
-import useAttendance from "./fetchAttendance";
+import useEmployees from "./fetchEmployees";
 import { getStatusClass } from "./getStatusClass";
 import { AlertTriangle, Check, X, Trash2, ChevronRight } from "lucide-react";
 import Swal from "sweetalert2";
@@ -17,6 +17,7 @@ const useEmployeeOvertime = () => {
         const response = await axios.get(`${backendURL}/api/overtime/all`);
         setOvertime(response.data);
       } catch (error) {
+        console.error("Error fetching overtime records:", error);
       } finally {
         setLoading(false);
       }
@@ -37,7 +38,7 @@ export default function EmployeeManageAttendanceOT({
     loading,
     setOvertime,
   } = useEmployeeOvertime();
-  const attendanceRecords = useAttendance();
+  const employeeRecords = useEmployees();
   const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -67,10 +68,8 @@ export default function EmployeeManageAttendanceOT({
   };
 
   const getEmployeeName = (employeeID) => {
-    const attendance = attendanceRecords.find(
-      (record) => record.employeeID === employeeID
-    );
-    return attendance ? attendance.employeeName : "Unknown";
+    const employee = employeeRecords.find((record) => record._id === employeeID);
+    return employee ? `${employee.firstName} ${employee.lastName}` : "Unknown";
   };
 
   const updateOvertimeStatus = async (id, status, e) => {
@@ -93,7 +92,7 @@ export default function EmployeeManageAttendanceOT({
         await axios.put(
           `${backendURL}/api/overtime/update/${id}`,
           { status },
-          { withCredentials: true } // This ensures the session cookie is sent
+          { withCredentials: true }
         );
 
         setOvertime((prev) =>

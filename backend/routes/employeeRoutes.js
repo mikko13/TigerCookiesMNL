@@ -316,4 +316,43 @@ router.post("/check-email", async (req, res) => {
   }
 });
 
+
+router.get("/", async (req, res) => {
+  try {
+    const { checkedIn, isAdmin } = req.query;
+
+    let employees;
+
+    if (checkedIn === "true") {
+      employees = await Attendance.find({ checkInTime: { $ne: null }, checkOutTime: null })
+        .populate("employeeID", "firstName lastName email")
+        .lean();
+    } else if (isAdmin === "true") {
+      employees = await Account.find();
+    } else {
+      return res.status(400).json({ error: "Invalid request parameters" });
+    }
+
+    const formattedRecords = attendanceRecords.map((record) => ({
+      _id: record._id,
+      employeeID: record.employeeID._id.toString(),
+      employeeName: record.employeeID
+        ? `${record.employeeID.firstName} ${record.employeeID.lastName}`
+        : "Unknown Employee",
+      attendanceDate: record.attendanceDate,
+      checkinTime: record.checkInTime,
+      checkinPhoto: record.checkInPhoto,
+      checkoutTime: record.checkOutTime,
+      checkoutPhoto: record.checkOutPhoto,
+      attendanceStatus: record.attendanceStatus,
+      shift: record.shift,
+    }));
+
+    res.json(formattedRecords);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch attendance records" });
+  }
+});
+
+
 module.exports = router;
