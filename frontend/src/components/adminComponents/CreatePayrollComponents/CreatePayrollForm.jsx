@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -45,6 +46,7 @@ export default function CreatePayrollForm() {
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [payPeriods, setPayPeriods] = useState([]);
+  const [employeesData, setEmployeesData] = useState({});
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -54,6 +56,11 @@ export default function CreatePayrollForm() {
           (employee) => employee.isActive !== 0
         );
         setEmployees(activeEmployees);
+        const employeesLookup = {};
+        activeEmployees.forEach((employee) => {
+          employeesLookup[employee._id] = employee;
+        });
+        setEmployeesData(employeesLookup);
       } catch (error) {
         showToast("error", "Failed to load employees data.");
       }
@@ -132,6 +139,80 @@ export default function CreatePayrollForm() {
     });
   }, [formData]);
 
+  const fetchAndCalculateHours = async (employeeID, payPeriodDate) => {
+    if (!employeeID || !payPeriodDate) return;
+
+    try {
+      const payPeriodDateObj = new Date(payPeriodDate);
+
+      const startDate = new Date(payPeriodDateObj);
+      startDate.setDate(startDate.getDate() - 15);
+
+      const formattedStartDate = startDate.toISOString().split("T")[0];
+      const formattedEndDate = payPeriodDateObj.toISOString().split("T")[0];
+
+      const response = await axios.get(`${backendURL}/api/attendance`, {
+        params: {
+          employeeID,
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
+        },
+      });
+
+      let totalHours = 0;
+      if (response.data && response.data.length > 0) {
+        totalHours = response.data.reduce(
+          (sum, record) => sum + (record.totalHours || 0),
+          0
+        );
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        regularHours: totalHours.toString(),
+      }));
+
+      if (formErrors.regularHours) {
+        setFormErrors({ ...formErrors, regularHours: null });
+      }
+    } catch (error) {
+      console.error("Error fetching attendance data:", error);
+      showToast("error", "Failed to calculate hours from attendance.");
+    }
+  };
+
+  const handleEmployeeChange = (e) => {
+    const selectedEmployeeId = e.target.value;
+
+    setFormData((prevData) => ({
+      ...prevData,
+      employeeID: selectedEmployeeId,
+    }));
+
+    if (formErrors.employeeID) {
+      setFormErrors({ ...formErrors, employeeID: null });
+    }
+
+    if (selectedEmployeeId && employeesData[selectedEmployeeId]) {
+      const employee = employeesData[selectedEmployeeId];
+
+      if (employee.ratePerHour) {
+        setFormData((prevData) => ({
+          ...prevData,
+          hourlyRate: employee.ratePerHour.toString(),
+        }));
+
+        if (formErrors.hourlyRate) {
+          setFormErrors({ ...formErrors, hourlyRate: null });
+        }
+      }
+
+      if (formData.payPeriod) {
+        fetchAndCalculateHours(selectedEmployeeId, formData.payPeriod);
+      }
+    }
+  };
+
   const showToast = (type, message) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 5000);
@@ -143,6 +224,11 @@ export default function CreatePayrollForm() {
 
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: null });
+    }
+
+    // This is the fixed part - moved inside the function
+    if (name === "payPeriod" && formData.employeeID) {
+      fetchAndCalculateHours(formData.employeeID, value);
     }
   };
 
@@ -254,7 +340,7 @@ export default function CreatePayrollForm() {
               <select
                 name="employeeID"
                 value={formData.employeeID}
-                onChange={handleInputChange}
+                onChange={handleEmployeeChange}
                 className={`w-full px-4 py-3 rounded-lg border ${
                   formErrors.employeeID
                     ? "border-red-500 bg-red-50"

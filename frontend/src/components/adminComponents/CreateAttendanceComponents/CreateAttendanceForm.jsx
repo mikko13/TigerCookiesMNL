@@ -10,6 +10,7 @@ import {
   Loader2,
   Sun,
   Sunset,
+  Watch,
 } from "lucide-react";
 import { backendURL } from "../../../urls/URL";
 
@@ -30,6 +31,7 @@ export default function AdminCreateAttendanceForm() {
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [estimatedTotalHours, setEstimatedTotalHours] = useState(0);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -45,6 +47,29 @@ export default function AdminCreateAttendanceForm() {
     };
     fetchEmployees();
   }, []);
+
+  useEffect(() => {
+    if (formData.checkInTime && formData.checkOutTime) {
+      try {
+        const checkInTime = new Date(`2000-01-01T${formData.checkInTime}`);
+        const checkOutTime = new Date(`2000-01-01T${formData.checkOutTime}`);
+
+        let diff = checkOutTime - checkInTime;
+
+        if (diff < 0) {
+          checkOutTime.setDate(checkOutTime.getDate() + 1);
+          diff = checkOutTime - checkInTime;
+        }
+
+        const hours = Math.round((diff / (1000 * 60 * 60)) * 100) / 100;
+        setEstimatedTotalHours(hours);
+      } catch (error) {
+        setEstimatedTotalHours(0);
+      }
+    } else {
+      setEstimatedTotalHours(0);
+    }
+  }, [formData.checkInTime, formData.checkOutTime]);
 
   const showToast = (type, message) => {
     setToast({ type, message });
@@ -137,6 +162,7 @@ export default function AdminCreateAttendanceForm() {
     setCheckInPreview(null);
     setCheckOutPreview(null);
     setFormErrors({});
+    setEstimatedTotalHours(0);
   };
 
   return (

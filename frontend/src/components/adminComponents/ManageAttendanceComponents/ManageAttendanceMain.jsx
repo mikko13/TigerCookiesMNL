@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import useAttendance from "./fetchAttendance";
 import { Link } from "react-router-dom";
 import { getStatusClass } from "./getStatusClass";
-import { Edit, Trash2, Image, AlertTriangle, ChevronRight } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  Image,
+  AlertTriangle,
+  ChevronRight,
+  Clock,
+} from "lucide-react";
 import AttendanceSummaryCards from "./AttendanceSummaryCards";
 import PhotoModal from "./PhotoModal";
 
@@ -186,16 +193,20 @@ export default function ManageAttendanceMain({
                         </div>
                         <div>
                           <p className="text-gray-500">Check In Photo</p>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openPhotoModal(record.checkinPhoto, "checkin");
-                            }}
-                            className="inline-flex items-center text-blue-600"
-                          >
-                            <Image size={16} className="mr-1" />
-                            <span>View</span>
-                          </button>
+                          {record.checkinPhoto ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openPhotoModal(record.checkinPhoto, "checkin");
+                              }}
+                              className="inline-flex items-center text-blue-600"
+                            >
+                              <Image size={16} className="mr-1" />
+                              <span>View</span>
+                            </button>
+                          ) : (
+                            <span className="text-gray-500">No photo</span>
+                          )}
                         </div>
                         <div>
                           <p className="text-gray-500">Check Out Photo</p>
@@ -216,6 +227,14 @@ export default function ManageAttendanceMain({
                           ) : (
                             <span className="text-gray-500">No photo</span>
                           )}
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Total Hours</p>
+                          <p className="font-medium">
+                            {record.totalHours
+                              ? `${record.totalHours} hrs`
+                              : "N/A"}
+                          </p>
                         </div>
                       </div>
 
@@ -262,6 +281,9 @@ export default function ManageAttendanceMain({
                       Check Out Photo
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Hours
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -289,16 +311,28 @@ export default function ManageAttendanceMain({
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {record.checkinTime}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        <div className="flex items-center">
+                          <Clock size={16} className="mr-1 text-gray-500" />
+                          {record.totalHours
+                            ? `${record.totalHours} hrs`
+                            : "N/A"}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() =>
-                            openPhotoModal(record.checkinPhoto, "checkin")
-                          }
-                          className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-                        >
-                          <Image size={16} className="mr-1" />
-                          <span>View</span>
-                        </button>
+                        {record.checkinPhoto ? (
+                          <button
+                            onClick={() =>
+                              openPhotoModal(record.checkinPhoto, "checkin")
+                            }
+                            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+                          >
+                            <Image size={16} className="mr-1" />
+                            <span>View</span>
+                          </button>
+                        ) : (
+                          <span className="text-gray-500">No photo</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {record.checkoutTime || "Not checked out"}

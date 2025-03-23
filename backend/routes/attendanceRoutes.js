@@ -73,6 +73,52 @@ const getAttendanceStatus = (checkInTime, shift) => {
   return checkInTimeObj >= lateThreshold ? "Late" : "Present";
 };
 
+const calculateTotalHours = (checkInTime, checkOutTime, shift) => {
+  if (!checkInTime || !checkOutTime) return 0;
+
+  try {
+    let checkIn = DateTime.fromFormat(checkInTime, "HH:mm:ss");
+    const checkOut = DateTime.fromFormat(checkOutTime, "HH:mm:ss");
+
+    const morningShiftStart = DateTime.fromFormat("09:00:00", "HH:mm:ss");
+    const afternoonShiftStart = DateTime.fromFormat("13:00:00", "HH:mm:ss");
+
+    let shiftStart;
+    if (shift === "morning" || shift === "Morning") {
+      shiftStart = morningShiftStart;
+    } else if (shift === "afternoon" || shift === "Afternoon") {
+      shiftStart = afternoonShiftStart;
+    } else {
+      shiftStart = morningShiftStart;
+    }
+
+    if (checkIn < shiftStart) {
+      checkIn = shiftStart;
+    }
+
+    let latenessHours = 0;
+    if (checkIn > shiftStart) {
+      const minutesLate = checkIn.diff(shiftStart, "minutes").minutes;
+      if (minutesLate > 0) {
+        latenessHours = Math.ceil(minutesLate / 60);
+      }
+    }
+
+    let diff = checkOut.diff(checkIn, "hours").hours;
+
+    if (diff < 0) {
+      diff = checkOut.plus({ days: 1 }).diff(checkIn, "hours").hours;
+    }
+
+    const totalHours = Math.max(0, diff - latenessHours);
+
+    return Math.round(totalHours * 100) / 100;
+  } catch (error) {
+    console.error("Error calculating total hours:", error);
+    return 0;
+  }
+};
+
 router.post(
   "/post",
   upload.fields([
@@ -121,6 +167,12 @@ router.post(
 
       const attendanceStatus = getAttendanceStatus(formattedCheckInTime);
 
+      const totalHours = calculateTotalHours(
+        formattedCheckInTime,
+        formattedCheckOutTime,
+        shift
+      );
+
       const newAttendance = new Attendance({
         employeeID,
         checkInTime: formattedCheckInTime,
@@ -130,6 +182,7 @@ router.post(
         checkOutPhoto,
         attendanceStatus,
         shift,
+        totalHours,
       });
 
       await newAttendance.save();
@@ -175,6 +228,7 @@ const recordAttendance = async (employeeID) => {
     let shift = checkinRecord ? checkinRecord.shift : null;
 
     const attendanceStatus = getAttendanceStatus(checkInTime);
+    const totalHours = calculateTotalHours(checkInTime, checkOutTime, shift);
 
     const attendance = await Attendance.findOneAndUpdate(
       { employeeID: employeeObjectId, attendanceDate },
@@ -187,6 +241,7 @@ const recordAttendance = async (employeeID) => {
         attendanceDate,
         attendanceStatus,
         shift,
+        totalHours,
       },
       { upsert: true, new: true }
     );
@@ -211,20 +266,26 @@ router.post("/record", async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const { employeeID, isAdmin } = req.query;
-
+    const { employeeID, isAdmin, startDate, endDate } = req.query;
     let attendanceRecords;
+    let query = {};
+
+    if (startDate && endDate) {
+      query.attendanceDate = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
 
     if (isAdmin === "true") {
-      attendanceRecords = await Attendance.find()
+      attendanceRecords = await Attendance.find(query)
         .populate("employeeID", "firstName lastName _id")
         .lean();
     } else if (employeeID) {
       const employeeObjectId = new mongoose.Types.ObjectId(employeeID);
+      query.employeeID = employeeObjectId;
 
-      attendanceRecords = await Attendance.find({
-        employeeID: employeeObjectId,
-      })
+      attendanceRecords = await Attendance.find(query)
         .populate("employeeID", "firstName lastName _id")
         .lean();
     } else {
@@ -246,6 +307,7 @@ router.get("/", async (req, res) => {
       checkoutPhoto: record.checkOutPhoto,
       attendanceStatus: record.attendanceStatus,
       shift: record.shift,
+      totalHours: record.totalHours || 0,
     }));
 
     res.json(formattedRecords);
@@ -349,6 +411,11 @@ router.put(
       }
 
       const attendanceStatus = getAttendanceStatus(formattedCheckInTime, shift);
+      const totalHours = calculateTotalHours(
+        formattedCheckInTime,
+        formattedCheckOutTime,
+        shift
+      );
 
       attendanceRecord.employeeID = employeeID;
       attendanceRecord.attendanceDate = attendanceDate;
@@ -358,6 +425,7 @@ router.put(
       attendanceRecord.checkOutPhoto = newCheckOutPhoto;
       attendanceRecord.attendanceStatus = attendanceStatus;
       attendanceRecord.shift = shift;
+      attendanceRecord.totalHours = totalHours;
 
       await attendanceRecord.save();
 

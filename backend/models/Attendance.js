@@ -35,6 +35,10 @@ const AttendanceSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    totalHours: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true, collection: "empAttendance" }
 );
