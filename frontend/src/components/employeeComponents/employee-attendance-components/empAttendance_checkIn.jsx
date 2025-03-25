@@ -31,6 +31,7 @@ export default function EmpAttendanceCheckIn() {
     afternoon: {
       start: { hour: 13, minute: 0 }, // 1:00 PM
       available: { hour: 12, minute: 30 }, // 12:30 PM (30 min before)
+      cutoff: { hour: 22, minute: 1 }, // 10:01 PM (cutoff time)
     },
   };
 
@@ -73,6 +74,12 @@ export default function EmpAttendanceCheckIn() {
       (currentHour === shiftTimes.morning.cutoff.hour &&
         currentMinute >= shiftTimes.morning.cutoff.minute);
 
+    // Check if current time is after the afternoon shift cutoff (10:01 PM)
+    const afternoonCutoffPassed =
+      currentHour > shiftTimes.afternoon.cutoff.hour ||
+      (currentHour === shiftTimes.afternoon.cutoff.hour &&
+        currentMinute >= shiftTimes.afternoon.cutoff.minute);
+
     // Check morning shift availability (available from 8:30 AM until 6:01 PM)
     const morningAvailable =
       !morningCutoffPassed &&
@@ -80,11 +87,12 @@ export default function EmpAttendanceCheckIn() {
         (currentHour === shiftTimes.morning.available.hour &&
           currentMinute >= shiftTimes.morning.available.minute));
 
-    // Check afternoon shift availability (available from 12:30 PM)
+    // Check afternoon shift availability (available from 12:30 PM until 10:01 PM)
     const afternoonAvailable =
-      currentHour > shiftTimes.afternoon.available.hour ||
-      (currentHour === shiftTimes.afternoon.available.hour &&
-        currentMinute >= shiftTimes.afternoon.available.minute);
+      !afternoonCutoffPassed &&
+      (currentHour > shiftTimes.afternoon.available.hour ||
+        (currentHour === shiftTimes.afternoon.available.hour &&
+          currentMinute >= shiftTimes.afternoon.available.minute));
 
     setAvailableShifts({
       morning: morningAvailable,
@@ -157,7 +165,6 @@ export default function EmpAttendanceCheckIn() {
     const cutoffHour = shiftTimes.morning.cutoff.hour;
     const cutoffMinute = shiftTimes.morning.cutoff.minute;
 
-    // Check if current time is after the morning shift cutoff (6:01 PM)
     const morningCutoffPassed =
       currentHour > cutoffHour ||
       (currentHour === cutoffHour && currentMinute >= cutoffMinute);
@@ -166,6 +173,24 @@ export default function EmpAttendanceCheckIn() {
       return "Morning shift is no longer available after 6:01 PM";
     } else {
       return `Available in ${getTimeUntilAvailable("morning")}`;
+    }
+  };
+
+  const getAfternoonShiftMessage = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const cutoffHour = shiftTimes.afternoon.cutoff.hour;
+    const cutoffMinute = shiftTimes.afternoon.cutoff.minute;
+
+    const afternoonCutoffPassed =
+      currentHour > cutoffHour ||
+      (currentHour === cutoffHour && currentMinute >= cutoffMinute);
+
+    if (afternoonCutoffPassed) {
+      return "Afternoon shift is no longer available after 10:01 PM";
+    } else {
+      return `Available in ${getTimeUntilAvailable("afternoon")}`;
     }
   };
 
@@ -268,9 +293,7 @@ export default function EmpAttendanceCheckIn() {
                         {!availableShifts.afternoon && (
                           <div className="flex items-center text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
                             <Clock size={12} className="mr-1" />
-                            <span>
-                              Available in {getTimeUntilAvailable("afternoon")}
-                            </span>
+                            <span>{getAfternoonShiftMessage()}</span>
                           </div>
                         )}
                       </div>
@@ -297,7 +320,8 @@ export default function EmpAttendanceCheckIn() {
                       <AlertCircle size={18} className="mr-2" />
                       <p className="text-sm">
                         No shifts available yet. Morning shift opens at 8:30 AM
-                        until 6:01 PM and Afternoon shift at 12:30 PM.
+                        until 6:01 PM and Afternoon shift at 12:30 PM until
+                        10:01 PM.
                       </p>
                     </div>
                   )}
@@ -325,7 +349,7 @@ export default function EmpAttendanceCheckIn() {
             <p className="text-center text-gray-500 text-sm mt-4">
               {anyShiftAvailable
                 ? "Your check-in will be recorded with the current timestamp"
-                : "Morning shift is available from 8:30 AM to 6:01 PM. Afternoon shift from 12:30 PM onwards."}
+                : "Morning shift is available from 8:30 AM to 6:01 PM. Afternoon shift from 12:30 PM to 10:01 PM."}
             </p>
           )}
         </div>
