@@ -176,7 +176,8 @@ export default function UpdateAccountForm() {
       const response = await axios.get(`${backendURL}/api/employees/${id}`);
 
       const employeeData = response.data;
-      setUser(employeeData);
+      const { password, ...userData } = employeeData;
+      setUser(userData);
 
       if (employeeData.profilePicture) {
         setProfilePicture(employeeData.profilePicture);
@@ -252,7 +253,10 @@ export default function UpdateAccountForm() {
     const formDataToSend = new FormData();
 
     Object.entries(user).forEach(([key, value]) => {
-      if (key !== "password" || (key === "password" && changePassword)) {
+      if (
+        key !== "password" ||
+        (key === "password" && changePassword && value)
+      ) {
         formDataToSend.append(key, value);
       }
     });
@@ -484,7 +488,12 @@ export default function UpdateAccountForm() {
                     type="checkbox"
                     id="changePassword"
                     checked={changePassword}
-                    onChange={() => setChangePassword(!changePassword)}
+                    onChange={() => {
+                      setChangePassword(!changePassword);
+                      if (!changePassword) {
+                        setUser({ ...user, password: "" });
+                      }
+                    }}
                     className="mr-2"
                   />
                   <label
@@ -499,6 +508,7 @@ export default function UpdateAccountForm() {
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
+                  value={user.password || ""}
                   onChange={(e) => {
                     setUser({ ...user, password: e.target.value });
                     if (formErrors.password) {
@@ -506,7 +516,9 @@ export default function UpdateAccountForm() {
                     }
                   }}
                   disabled={!changePassword}
-                  placeholder="Enter new password"
+                  placeholder={
+                    changePassword ? "Enter new password" : "••••••••"
+                  }
                   className={`w-full px-4 py-3 pl-10 pr-12 rounded-lg border ${
                     formErrors.password
                       ? "border-red-500 bg-red-50"
