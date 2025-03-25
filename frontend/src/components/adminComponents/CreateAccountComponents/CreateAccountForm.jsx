@@ -32,6 +32,7 @@ export default function CreateAccountForm({ onRoleChange }) {
     hiredDate: "",
     position: "",
     ratePerHour: "",
+    overtimeRate: "",
   });
 
   const [profilePicture, setProfilePicture] = useState(null);
@@ -215,6 +216,7 @@ export default function CreateAccountForm({ onRoleChange }) {
       hiredDate: "",
       position: "",
       ratePerHour: "",
+      overtimeRate: "",
     });
 
     if (onRoleChange) {
@@ -632,6 +634,24 @@ export default function CreateAccountForm({ onRoleChange }) {
                   type="number"
                   name="ratePerHour"
                   value={formData.ratePerHour}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
+                  className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <PhilippinePeso className="w-4 h-4 text-gray-500" />
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Overtime Rate
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  name="overtimeRate"
+                  value={formData.overtimeRate}
                   onChange={handleInputChange}
                   placeholder="0.00"
                   className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"

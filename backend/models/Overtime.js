@@ -7,7 +7,17 @@ const OvertimeSchema = new mongoose.Schema(
       ref: "Account",
       required: true,
     },
-
+    dateRequested: {
+      type: String,
+      default: () =>
+        new Date().toLocaleDateString("en-PH", {
+          timeZone: "Asia/Manila",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
+      required: true,
+    },
     overtimeTime: {
       type: Number,
       required: true,

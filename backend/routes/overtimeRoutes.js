@@ -37,14 +37,28 @@ router.post("/", async (req, res) => {
   try {
     const { employeeID, overtimeTime, overtimeNote } = req.body;
 
-    const overtimeRequest = new Overtime(req.body);
+    // Set default status if not provided
+    const status = req.body.status || "Pending";
+
+    // Create overtime request with all body data and explicitly set status
+    const overtimeRequest = new Overtime({
+      ...req.body,
+      status,
+      // dateRequested will be automatically set by the schema default
+    });
+
     const newOvertime = await overtimeRequest.save();
 
     notifyAdmins(employeeID, overtimeTime, overtimeNote);
 
     res.status(201).json(newOvertime);
   } catch (error) {
-    res.status(500).json({ message: "Failed to submit overtime request." });
+    res
+      .status(500)
+      .json({
+        message: "Failed to submit overtime request.",
+        error: error.message,
+      });
   }
 });
 

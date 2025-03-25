@@ -49,6 +49,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       hiredDate,
       position,
       ratePerHour,
+      overtimeRate,
       role,
       isActive = 1,
     } = req.body;
@@ -67,6 +68,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       hiredDate,
       position,
       ratePerHour,
+      overtimeRate,
       role: role || "employee",
       isActive,
     });
@@ -221,6 +223,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     position,
     hiredDate,
     ratePerHour,
+    overtimeRate,
     role,
     isActive,
   } = req.body;
@@ -246,6 +249,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     employee.position = position || employee.position;
     employee.hiredDate = hiredDate || employee.hiredDate;
     employee.ratePerHour = ratePerHour || employee.ratePerHour;
+    employee.overtimeRate = overtimeRate || employee.overtimeRate;
     employee.role = role || employee.role;
     employee.isActive = isActive !== undefined ? isActive : employee.isActive;
 

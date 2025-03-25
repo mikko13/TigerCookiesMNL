@@ -64,6 +64,7 @@ export default function ManageAccountMain({ searchTerm }) {
       (employee.position?.toLowerCase() || "").includes(lowerQuery) ||
       (employee.hiredDate?.toLowerCase() || "").includes(lowerQuery) ||
       (employee.ratePerHour?.toString() || "").includes(lowerQuery) ||
+      (employee.overtimeRate?.toString() || "").includes(lowerQuery) ||
       (employee.isActive?.toString() || "").includes(lowerQuery)
     );
   });
@@ -299,7 +300,11 @@ export default function ManageAccountMain({ searchTerm }) {
                           <p className="text-gray-500">Rate per Hour</p>
                           <p className="font-medium">{employee.ratePerHour}</p>
                         </div>
-  
+                        <div>
+                          <p className="text-gray-500">Overtime Rate</p>
+                          <p className="font-medium">{employee.overtimeRate}</p>
+                        </div>
+
                         <div>
                           <p className="text-gray-500">Status</p>
                           <p className="font-medium">
@@ -386,6 +391,9 @@ export default function ManageAccountMain({ searchTerm }) {
                       Rate
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Overtime Rate
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -435,6 +443,9 @@ export default function ManageAccountMain({ searchTerm }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {employee.ratePerHour}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {employee.overtimeRate}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {renderStatusIndicator(employee.isActive)}

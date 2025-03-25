@@ -57,18 +57,17 @@ export default function EmployeeManageAttendanceOT({
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date
-      .toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })
-      .replace(/\//g, "-");
+    if (!dateString) return "N/A";
+    return dateString
+      .split("/")
+      .map((part) => part.padStart(2, "0"))
+      .join("-");
   };
 
   const getEmployeeName = (employeeID) => {
-    const employee = employeeRecords.find((record) => record._id === employeeID);
+    const employee = employeeRecords.find(
+      (record) => record._id === employeeID
+    );
     return employee ? `${employee.firstName} ${employee.lastName}` : "Unknown";
   };
 
@@ -113,7 +112,7 @@ export default function EmployeeManageAttendanceOT({
   };
 
   const filteredRecords = overtimeRecords.filter((record) =>
-    formatDate(record.createdAt).includes(searchTerm || "")
+    formatDate(record.dateRequested).includes(searchTerm || "")
   );
 
   const sortedRecords = [...filteredRecords].sort((a, b) => {
@@ -123,7 +122,7 @@ export default function EmployeeManageAttendanceOT({
     if (aIsPending && !bIsPending) return -1;
     if (!aIsPending && bIsPending) return 1;
 
-    return new Date(b.createdAt) - new Date(a.createdAt);
+    return new Date(b.dateRequested) - new Date(a.dateRequested);
   });
 
   const isPending = (status) => {
@@ -174,7 +173,7 @@ export default function EmployeeManageAttendanceOT({
                         {getEmployeeName(record.employeeID)}
                       </div>
                       <div className="text-sm text-gray-600">
-                        {formatDate(record.createdAt)}
+                        {formatDate(record.dateRequested)}
                       </div>
                     </div>
                     <div className="flex items-center">
@@ -275,7 +274,7 @@ export default function EmployeeManageAttendanceOT({
                         {getEmployeeName(record.employeeID)}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700">
-                        {formatDate(record.createdAt)}
+                        {formatDate(record.dateRequested)}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700">
                         {record.overtimeTime} hrs

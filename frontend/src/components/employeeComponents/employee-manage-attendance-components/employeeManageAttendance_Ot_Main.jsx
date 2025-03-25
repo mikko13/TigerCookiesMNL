@@ -41,7 +41,7 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
   };
 
   const filteredRecords = overtimeRecords.filter(record => 
-    formatDate(record.createdAt).includes(searchTerm || "")
+    formatDate(record.dateRequested).includes(searchTerm || "")
   );
 
   const toggleRow = (id) => {
@@ -80,7 +80,7 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
                   <div className="flex justify-between items-center cursor-pointer" onClick={() => toggleRow(record._id)}>
                     <div>
                       <div className="font-medium text-gray-900">{getEmployeeName(record.employeeID)}</div>
-                      <div className="text-sm text-gray-600">{formatDate(record.createdAt)}</div>
+                      <div className="text-sm text-gray-600">{formatDate(record.dateRequested)}</div>
                     </div>
                     <div className="flex items-center">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getStatusClass(record.status || "Pending")}`}>
@@ -114,7 +114,7 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
                   {filteredRecords.map((record) => (
                     <tr key={record._id} className="hover:bg-gray-50 transition-colors duration-150">
                       <td className="px-6 py-4 text-gray-900 font-medium">{getEmployeeName(record.employeeID)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{formatDate(record.createdAt)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{formatDate(record.dateRequested)}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{record.overtimeTime} hrs</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{record.overtimeNote || "No note provided"}</td>
                       <td className="px-6 py-4 text-sm">

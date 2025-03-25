@@ -38,6 +38,7 @@ export default function UpdateAccountForm() {
     position: "",
     status: "",
     ratePerHour: "",
+    overtimeRate: "",
     isActive: 1,
   });
 
@@ -615,6 +616,24 @@ export default function UpdateAccountForm() {
                 type="tel"
                 name="ratePerHour"
                 value={formData.ratePerHour}
+                onChange={handleInputChange}
+                placeholder="0.00"
+                className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+              />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <DollarSign className="w-4 h-4 text-gray-500" />
+              </div>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Overtime Rate
+            </label>
+            <div className="relative">
+              <input
+                type="tel"
+                name="overtimeRate"
+                value={formData.overtimeRate}
                 onChange={handleInputChange}
                 placeholder="0.00"
                 className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"

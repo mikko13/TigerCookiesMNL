@@ -27,6 +27,7 @@ const accountSchema = new mongoose.Schema(
     hiredDate: { type: String },
     position: { type: String },
     ratePerHour: { type: Number },
+    overtimeRate: { type: Number },
     otp: { type: String },
     otpExpires: { type: Date },
     role: { type: String, default: "employee" },

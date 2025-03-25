@@ -90,13 +90,22 @@ export default function CreatePayrollForm() {
         const adjustedMonth = monthIndex < 0 ? 12 + monthIndex : monthIndex;
         const adjustedYear = monthIndex < 0 ? year - 1 : year;
 
-        periods.push(`${monthNames[adjustedMonth]} 5, ${adjustedYear}`);
-        periods.push(`${monthNames[adjustedMonth]} 20, ${adjustedYear}`);
+        // First pay period (5th to 20th)
+        const firstPeriodStart = `${monthNames[adjustedMonth]} 5, ${adjustedYear}`;
+        const firstPeriodEnd = `${monthNames[adjustedMonth]} 20, ${adjustedYear}`;
+        periods.push(`${firstPeriodStart} - ${firstPeriodEnd}`);
+
+        // Second pay period (20th to 5th of next month)
+        const secondPeriodStart = `${monthNames[adjustedMonth]} 20, ${adjustedYear}`;
+        const nextMonthIndex = (adjustedMonth + 1) % 12;
+        const nextMonthYear =
+          nextMonthIndex === 0 ? adjustedYear + 1 : adjustedYear;
+        const secondPeriodEnd = `${monthNames[nextMonthIndex]} 5, ${nextMonthYear}`;
+        periods.push(`${secondPeriodStart} - ${secondPeriodEnd}`);
       }
 
       return periods;
     };
-
     fetchEmployees();
     setPayPeriods(getFilteredPeriods());
   }, []);
@@ -139,47 +148,108 @@ export default function CreatePayrollForm() {
     });
   }, [formData]);
 
-  const fetchAndCalculateHours = async (employeeID, payPeriodDate) => {
+  async function fetchAndCalculateHours(employeeID, payPeriodDate) {
     if (!employeeID || !payPeriodDate) return;
 
     try {
-      const payPeriodDateObj = new Date(payPeriodDate);
+      // Parse the pay period date range
+      const [startDateStr, endDateStr] = payPeriodDate.split(" - ");
+      const startDate = new Date(startDateStr);
+      const endDate = new Date(endDateStr);
 
-      const startDate = new Date(payPeriodDateObj);
-      startDate.setDate(startDate.getDate() - 15);
+      // Format dates for API calls (YYYY-MM-DD)
+      const formatDateForAPI = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
 
-      const formattedStartDate = startDate.toISOString().split("T")[0];
-      const formattedEndDate = payPeriodDateObj.toISOString().split("T")[0];
+      const formattedStartDate = formatDateForAPI(startDate);
+      const formattedEndDate = formatDateForAPI(endDate);
 
-      const response = await axios.get(`${backendURL}/api/attendance`, {
+      // Fetch attendance hours
+      const attendanceResponse = await axios.get(
+        `${backendURL}/api/attendance`,
+        {
+          params: {
+            employeeID,
+            startDate: formattedStartDate,
+            endDate: formattedEndDate,
+          },
+        }
+      );
+
+      // Fetch ONLY APPROVED overtime hours
+      const overtimeResponse = await axios.get(`${backendURL}/api/overtime`, {
         params: {
           employeeID,
+          status: "Approved", // Ensure only approved requests are fetched
           startDate: formattedStartDate,
           endDate: formattedEndDate,
         },
       });
 
-      let totalHours = 0;
-      if (response.data && response.data.length > 0) {
-        totalHours = response.data.reduce(
-          (sum, record) => sum + (record.totalHours || 0),
+      const employee = employeesData[employeeID];
+      if (!employee) {
+        console.error("Employee not found");
+        return;
+      }
+
+      const hourlyRate = employee.ratePerHour || 0;
+      const overtimeRate = employee.overtimeRate || hourlyRate;
+
+      let totalRegularHours = 0;
+      if (attendanceResponse.data && attendanceResponse.data.length > 0) {
+        totalRegularHours = attendanceResponse.data.reduce((sum, record) => {
+          const recordHours = record.totalHours || 0;
+          return sum + Math.min(recordHours);
+        }, 0);
+      }
+
+      let totalOvertimeHours = 0;
+      if (overtimeResponse.data && overtimeResponse.data.length > 0) {
+        const approvedOvertimeRequests = overtimeResponse.data.filter(
+          (overtime) => overtime.status === "Approved"
+        );
+
+        totalOvertimeHours = approvedOvertimeRequests.reduce(
+          (total, overtime) => {
+            // Ensure the overtime date falls within the pay period
+            const overtimeDate = new Date(overtime.dateRequested);
+            if (overtimeDate >= startDate && overtimeDate <= endDate) {
+              return total + (overtime.overtimeTime || 0);
+            }
+            return total;
+          },
           0
         );
       }
 
+      // Calculate base salary and overtime pay
+      const calculatedBaseSalary = (totalRegularHours * hourlyRate).toFixed(2);
+      const calculatedOvertimePay = (totalOvertimeHours * overtimeRate).toFixed(
+        2
+      );
+
+      // Update form data
       setFormData((prev) => ({
         ...prev,
-        regularHours: totalHours.toString(),
+        regularHours: totalRegularHours.toString(),
+        hourlyRate: hourlyRate.toString(),
+        baseSalary: calculatedBaseSalary,
+        overtimePay: calculatedOvertimePay,
       }));
 
+      // Clear any existing form errors
       if (formErrors.regularHours) {
         setFormErrors({ ...formErrors, regularHours: null });
       }
     } catch (error) {
-      console.error("Error fetching attendance data:", error);
-      showToast("error", "Failed to calculate hours from attendance.");
+      console.error("Error fetching attendance/overtime data:", error);
+      showToast("error", "Failed to calculate hours and overtime.");
     }
-  };
+  }
 
   const handleEmployeeChange = (e) => {
     const selectedEmployeeId = e.target.value;
