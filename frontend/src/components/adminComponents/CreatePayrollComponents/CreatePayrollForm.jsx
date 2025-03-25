@@ -90,12 +90,10 @@ export default function CreatePayrollForm() {
         const adjustedMonth = monthIndex < 0 ? 12 + monthIndex : monthIndex;
         const adjustedYear = monthIndex < 0 ? year - 1 : year;
 
-        // First pay period (5th to 20th)
         const firstPeriodStart = `${monthNames[adjustedMonth]} 5, ${adjustedYear}`;
         const firstPeriodEnd = `${monthNames[adjustedMonth]} 20, ${adjustedYear}`;
         periods.push(`${firstPeriodStart} - ${firstPeriodEnd}`);
 
-        // Second pay period (20th to 5th of next month)
         const secondPeriodStart = `${monthNames[adjustedMonth]} 20, ${adjustedYear}`;
         const nextMonthIndex = (adjustedMonth + 1) % 12;
         const nextMonthYear =
@@ -152,12 +150,10 @@ export default function CreatePayrollForm() {
     if (!employeeID || !payPeriodDate) return;
 
     try {
-      // Parse the pay period date range
       const [startDateStr, endDateStr] = payPeriodDate.split(" - ");
       const startDate = new Date(startDateStr);
       const endDate = new Date(endDateStr);
 
-      // Format dates for API calls (YYYY-MM-DD)
       const formatDateForAPI = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -168,7 +164,6 @@ export default function CreatePayrollForm() {
       const formattedStartDate = formatDateForAPI(startDate);
       const formattedEndDate = formatDateForAPI(endDate);
 
-      // Fetch attendance hours
       const attendanceResponse = await axios.get(
         `${backendURL}/api/attendance`,
         {
@@ -180,11 +175,10 @@ export default function CreatePayrollForm() {
         }
       );
 
-      // Fetch ONLY APPROVED overtime hours
       const overtimeResponse = await axios.get(`${backendURL}/api/overtime`, {
         params: {
           employeeID,
-          status: "Approved", // Ensure only approved requests are fetched
+          status: "Approved",
           startDate: formattedStartDate,
           endDate: formattedEndDate,
         },
@@ -215,7 +209,6 @@ export default function CreatePayrollForm() {
 
         totalOvertimeHours = approvedOvertimeRequests.reduce(
           (total, overtime) => {
-            // Ensure the overtime date falls within the pay period
             const overtimeDate = new Date(overtime.dateRequested);
             if (overtimeDate >= startDate && overtimeDate <= endDate) {
               return total + (overtime.overtimeTime || 0);
@@ -226,13 +219,11 @@ export default function CreatePayrollForm() {
         );
       }
 
-      // Calculate base salary and overtime pay
       const calculatedBaseSalary = (totalRegularHours * hourlyRate).toFixed(2);
       const calculatedOvertimePay = (totalOvertimeHours * overtimeRate).toFixed(
         2
       );
 
-      // Update form data
       setFormData((prev) => ({
         ...prev,
         regularHours: totalRegularHours.toString(),
@@ -241,7 +232,6 @@ export default function CreatePayrollForm() {
         overtimePay: calculatedOvertimePay,
       }));
 
-      // Clear any existing form errors
       if (formErrors.regularHours) {
         setFormErrors({ ...formErrors, regularHours: null });
       }
@@ -296,7 +286,6 @@ export default function CreatePayrollForm() {
       setFormErrors({ ...formErrors, [name]: null });
     }
 
-    // This is the fixed part - moved inside the function
     if (name === "payPeriod" && formData.employeeID) {
       fetchAndCalculateHours(formData.employeeID, value);
     }
