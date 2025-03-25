@@ -5,7 +5,14 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import * as faceapi from "face-api.js/dist/face-api.min.js";
 import { backendURL } from "../../../urls/URL";
-import { Camera, RefreshCw, Upload, User, AlertCircle } from "lucide-react";
+import {
+  Camera,
+  RefreshCw,
+  Upload,
+  User,
+  AlertCircle,
+  Clock,
+} from "lucide-react";
 
 export default function EmpAttendanceOpenCam() {
   const navigate = useNavigate();
@@ -20,6 +27,65 @@ export default function EmpAttendanceOpenCam() {
   const [userName, setUserName] = useState("");
   const [shift, setShift] = useState("");
   const [detectionInterval, setDetectionInterval] = useState(null);
+  const [shiftAvailable, setShiftAvailable] = useState(true);
+
+  // Define shift times (24-hour format)
+  const shiftTimes = {
+    morning: {
+      start: { hour: 9, minute: 0 }, // 9:00 AM
+      available: { hour: 8, minute: 30 }, // 8:30 AM (30 min before)
+      cutoff: { hour: 18, minute: 1 }, // 6:01 PM (cutoff time)
+    },
+    afternoon: {
+      start: { hour: 13, minute: 0 }, // 1:00 PM
+      available: { hour: 12, minute: 30 }, // 12:30 PM (30 min before)
+      cutoff: { hour: 22, minute: 1 }, // 10:01 PM (cutoff time)
+    },
+  };
+
+  useEffect(() => {
+    // Check shift availability continuously
+    const interval = setInterval(() => {
+      checkShiftAvailability();
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [shift]);
+
+  const checkShiftAvailability = () => {
+    if (!shift) return;
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    const shiftKey = shift.toLowerCase();
+    const shiftConfig = shiftTimes[shiftKey];
+
+    if (!shiftConfig) {
+      setShiftAvailable(false);
+      return;
+    }
+
+    // Check if current time is after the shift cutoff
+    const cutoffPassed =
+      currentHour > shiftConfig.cutoff.hour ||
+      (currentHour === shiftConfig.cutoff.hour &&
+        currentMinute >= shiftConfig.cutoff.minute);
+
+    // Check if current time is within the available window
+    const isAvailable =
+      !cutoffPassed &&
+      (currentHour > shiftConfig.available.hour ||
+        (currentHour === shiftConfig.available.hour &&
+          currentMinute >= shiftConfig.available.minute));
+
+    setShiftAvailable(isAvailable);
+
+    if (!isAvailable) {
+      setMessage(`The ${shift} shift is no longer available for check-in`);
+    }
+  };
 
   useEffect(() => {
     // Get the shift from the URL query parameters
@@ -98,9 +164,12 @@ export default function EmpAttendanceOpenCam() {
               .withFaceExpressions();
 
             // Filter out invalid detections
-            const validDetections = detections.filter(det => 
-              det.detection?.box && 
-              !Object.values(det.detection.box).some(val => val === null || val === undefined)
+            const validDetections = detections.filter(
+              (det) =>
+                det.detection?.box &&
+                !Object.values(det.detection.box).some(
+                  (val) => val === null || val === undefined
+                )
             );
 
             if (validDetections.length === 1) {
@@ -134,7 +203,8 @@ export default function EmpAttendanceOpenCam() {
   };
 
   const drawDetections = (detections) => {
-    if (!detections || detections.length === 0 || !webcamRef.current?.video) return;
+    if (!detections || detections.length === 0 || !webcamRef.current?.video)
+      return;
 
     const video = webcamRef.current.video;
     const canvas = canvasRef.current;
@@ -148,9 +218,12 @@ export default function EmpAttendanceOpenCam() {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     // Only proceed if we have valid detections
-    const validDetections = detections.filter(det => 
-      det.detection?.box && 
-      !Object.values(det.detection.box).some(val => val === null || val === undefined)
+    const validDetections = detections.filter(
+      (det) =>
+        det.detection?.box &&
+        !Object.values(det.detection.box).some(
+          (val) => val === null || val === undefined
+        )
     );
 
     if (validDetections.length === 0) return;
@@ -158,7 +231,7 @@ export default function EmpAttendanceOpenCam() {
     // Resize detections to match video dimensions
     const resizedDetections = faceapi.resizeResults(validDetections, {
       width: video.videoWidth,
-      height: video.videoHeight
+      height: video.videoHeight,
     });
 
     // Draw with mirror effect
@@ -166,7 +239,7 @@ export default function EmpAttendanceOpenCam() {
     context.scale(-1, 1);
     context.translate(-canvas.width, 0);
 
-    resizedDetections.forEach(detection => {
+    resizedDetections.forEach((detection) => {
       faceapi.draw.drawDetections(context, [detection]);
       faceapi.draw.drawFaceLandmarks(context, [detection]);
       faceapi.draw.drawFaceExpressions(context, [detection]);
@@ -174,9 +247,13 @@ export default function EmpAttendanceOpenCam() {
 
     context.restore();
   };
-  
 
   const capture = () => {
+    if (!shiftAvailable) {
+      setMessage("This shift is no longer available for check-in");
+      return;
+    }
+
     if (faceDetected) {
       const imgSrc = webcamRef.current.getScreenshot();
       setImage(imgSrc);
@@ -188,6 +265,17 @@ export default function EmpAttendanceOpenCam() {
 
   const uploadAttendance = async (e) => {
     e.preventDefault();
+
+    if (!shiftAvailable) {
+      await Swal.fire({
+        title: "Shift Unavailable",
+        text: `The ${shift} shift is no longer available for check-in.`,
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      navigate("/CheckIn");
+      return;
+    }
 
     if (!image) {
       await Swal.fire({
@@ -298,6 +386,33 @@ export default function EmpAttendanceOpenCam() {
     );
   }
 
+  if (!shiftAvailable) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+        <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-red-500 to-red-600 py-6 px-6 text-center">
+            <Clock className="mx-auto mb-3 text-white" size={48} />
+            <h1 className="text-2xl font-bold text-white">Shift Unavailable</h1>
+          </div>
+          <div className="p-6 text-center">
+            <p className="text-gray-700 mb-4">
+              The {shift} shift is no longer available for check-in.
+            </p>
+            <p className="text-gray-500 text-sm mb-6">
+              Please return to the check-in page and select an available shift.
+            </p>
+            <button
+              onClick={() => navigate("/CheckIn")}
+              className="w-full py-3 px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition-all"
+            >
+              Return to Check-In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="w-full max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden">
@@ -374,9 +489,9 @@ export default function EmpAttendanceOpenCam() {
             {!image ? (
               <button
                 onClick={capture}
-                disabled={!faceDetected}
+                disabled={!faceDetected || !shiftAvailable}
                 className={`flex items-center justify-center w-full py-3 px-4 rounded-lg text-white font-medium transition-all ${
-                  faceDetected
+                  faceDetected && shiftAvailable
                     ? "bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700"
                     : "bg-gray-400 cursor-not-allowed"
                 }`}
@@ -395,7 +510,12 @@ export default function EmpAttendanceOpenCam() {
                 </button>
                 <button
                   onClick={uploadAttendance}
-                  className="flex items-center justify-center py-3 px-4 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium transition-all"
+                  disabled={!shiftAvailable}
+                  className={`flex items-center justify-center py-3 px-4 rounded-lg font-medium transition-all ${
+                    shiftAvailable
+                      ? "bg-green-500 hover:bg-green-600 text-white"
+                      : "bg-gray-400 text-gray-700 cursor-not-allowed"
+                  }`}
                 >
                   <Upload size={18} className="mr-2" />
                   Check In
@@ -409,7 +529,9 @@ export default function EmpAttendanceOpenCam() {
               className={`mt-4 p-3 rounded-lg flex items-start ${
                 message.includes("successfully")
                   ? "bg-green-50 text-green-700"
-                  : message.includes("Error") || message.includes("failed")
+                  : message.includes("Error") ||
+                    message.includes("failed") ||
+                    message.includes("no longer available")
                   ? "bg-red-50 text-red-700"
                   : "bg-blue-50 text-blue-700"
               }`}
