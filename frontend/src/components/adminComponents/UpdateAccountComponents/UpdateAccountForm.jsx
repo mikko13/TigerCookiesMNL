@@ -16,6 +16,8 @@ import {
   Lock,
   Home,
   User,
+  EyeIcon,
+  EyeOff,
 } from "lucide-react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -49,6 +51,79 @@ export default function UpdateAccountForm() {
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+
+  const getPasswordStrength = () => {
+    const password = formData.password;
+    if (!password) return { strength: 0, text: "", color: "bg-gray-200" };
+
+    const validations = [
+      password.length >= 8,
+      /[A-Z]/.test(password),
+      /[a-z]/.test(password),
+      /[0-9]/.test(password),
+      /[^A-Za-z0-9]/.test(password),
+    ];
+
+    const strength = validations.filter(Boolean).length;
+
+    const strengthMap = {
+      1: { text: "Very Weak", color: "bg-red-500" },
+      2: { text: "Weak", color: "bg-red-400" },
+      3: { text: "Fair", color: "bg-yellow-500" },
+      4: { text: "Good", color: "bg-blue-500" },
+      5: { text: "Strong", color: "bg-green-500" },
+    };
+
+    return {
+      strength,
+      text: strengthMap[strength]?.text || "",
+      color: strengthMap[strength]?.color || "",
+    };
+  };
+
+  const validatePassword = () => {
+    const password = formData.password;
+    if (!changePassword) return true;
+
+    if (!password) {
+      setFormErrors((prev) => ({ ...prev, password: "Password is required" }));
+      return false;
+    }
+
+    const validationRules = {
+      length: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecialChar: /[^A-Za-z0-9]/.test(password),
+    };
+
+    const errorMessages = [];
+    if (!validationRules.length)
+      errorMessages.push("Must be at least 8 characters long");
+    if (!validationRules.hasUppercase)
+      errorMessages.push("Must include an uppercase letter");
+    if (!validationRules.hasLowercase)
+      errorMessages.push("Must include a lowercase letter");
+    if (!validationRules.hasNumber) errorMessages.push("Must include a number");
+    if (!validationRules.hasSpecialChar)
+      errorMessages.push("Must include a special character");
+
+    if (errorMessages.length > 0) {
+      setFormErrors((prev) => ({
+        ...prev,
+        password: errorMessages.join(". "),
+      }));
+      return false;
+    }
+
+    return true;
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   useEffect(() => {
     const fetchEmployeeData = async () => {
@@ -126,8 +201,11 @@ export default function UpdateAccountForm() {
     if (!formData.phone) errors.phone = "Phone number is required";
     else if (!/^(\+63|0)9\d{9}$/.test(formData.phone))
       errors.phone = "Phone number is invalid";
-    if (changePassword && !formData.password)
-      errors.password = "Password is required";
+
+    if (changePassword && !validatePassword()) {
+      return false;
+    }
+
     if (!formData.position) errors.position = "Position is required";
     if (!formData.hiredDate) errors.hiredDate = "Hired date is required";
 
@@ -177,6 +255,8 @@ export default function UpdateAccountForm() {
       setLoading(false);
     }
   };
+
+  const passwordStrength = getPasswordStrength();
 
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
@@ -366,7 +446,12 @@ export default function UpdateAccountForm() {
                     type="checkbox"
                     id="changePassword"
                     checked={changePassword}
-                    onChange={() => setChangePassword(!changePassword)}
+                    onChange={() => {
+                      setChangePassword(!changePassword);
+                      if (!changePassword) {
+                        setFormData({ ...formData, password: "" });
+                      }
+                    }}
                     className="mr-2"
                   />
                   <label
@@ -379,11 +464,20 @@ export default function UpdateAccountForm() {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
-                  onChange={handleInputChange}
+                  value={formData.password || ""}
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                    if (formErrors.password) {
+                      setFormErrors({ ...formErrors, password: null });
+                    }
+                  }}
                   disabled={!changePassword}
-                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                  placeholder={
+                    changePassword ? "Enter new password" : "••••••••"
+                  }
+                  className={`w-full px-4 py-3 pl-10 pr-12 rounded-lg border ${
                     formErrors.password
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
@@ -394,13 +488,47 @@ export default function UpdateAccountForm() {
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Lock className="w-4 h-4 text-gray-500" />
                 </div>
-                {formErrors.password && changePassword && (
-                  <p className="mt-1 text-xs text-red-500 flex items-center">
-                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                    {formErrors.password}
-                  </p>
+                {changePassword && (
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" aria-hidden="true" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5" aria-hidden="true" />
+                    )}
+                  </button>
                 )}
               </div>
+
+              {changePassword && formData.password && (
+                <div className="space-y-1 mt-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full ${passwordStrength.color}`}
+                      style={{ width: `${passwordStrength.strength * 20}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-500">
+                      {passwordStrength.text}
+                    </span>
+                    <span className="text-gray-500">
+                      {passwordStrength.strength < 5 &&
+                        "Use 8+ chars, uppercase, lowercase, numbers & symbols"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {formErrors.password && (
+                <p className="mt-1 text-xs text-red-500 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                  {formErrors.password}
+                </p>
+              )}
             </div>
 
             <div>

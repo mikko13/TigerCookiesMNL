@@ -51,7 +51,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       ratePerHour,
       overtimeRate,
       role,
-      isActive = 1,
+      isActive = 0,
     } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
