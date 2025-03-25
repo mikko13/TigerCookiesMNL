@@ -19,6 +19,7 @@ export default function EmpAttendanceOpenCam() {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
   const [shift, setShift] = useState("");
+  const [detectionInterval, setDetectionInterval] = useState(null);
 
   useEffect(() => {
     // Get the shift from the URL query parameters
@@ -32,30 +33,39 @@ export default function EmpAttendanceOpenCam() {
 
     async function loadModels() {
       setMessage("Loading face detection models...");
-      await Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
-        faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
-        faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
-        faceapi.nets.faceExpressionNet.loadFromUri("/models"),
-      ]);
-
-      setMessage("Face detection ready. Please position yourself.");
-
-      setTimeout(() => startFaceDetection(), 500);
+      try {
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
+          faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+          faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+          faceapi.nets.faceExpressionNet.loadFromUri("/models"),
+        ]);
+        setMessage("Face detection ready. Please position yourself.");
+        startFaceDetection();
+      } catch (error) {
+        setMessage("Failed to load face detection models");
+        console.error("Model loading error:", error);
+      }
     }
 
-    loadModels();
-
+    // Check user and load models
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setEmployeeID(user.id);
       setUserName(`${user.firstName} ${user.lastName}`);
       checkIfCheckedIn(user.id);
+      loadModels();
     } else {
       navigate("/CheckIn");
     }
-  }, []);
+
+    return () => {
+      if (detectionInterval) {
+        clearInterval(detectionInterval);
+      }
+    };
+  }, [navigate, location.search]);
 
   const checkIfCheckedIn = async (id) => {
     try {
@@ -66,69 +76,105 @@ export default function EmpAttendanceOpenCam() {
         navigate("/CheckIn");
       }
     } catch (error) {
-      // Handle error silently
+      console.error("Check-in status error:", error);
     }
     setLoading(false);
   };
 
   const startFaceDetection = () => {
-    setInterval(async () => {
+    // Clear any existing interval
+    if (detectionInterval) {
+      clearInterval(detectionInterval);
+    }
+
+    const interval = setInterval(async () => {
       if (webcamRef.current && webcamRef.current.video) {
         const video = webcamRef.current.video;
         if (video.readyState === 4) {
-          const detections = await faceapi
-            .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-            .withFaceLandmarks()
-            .withFaceExpressions();
+          try {
+            const detections = await faceapi
+              .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+              .withFaceLandmarks()
+              .withFaceExpressions();
 
-          if (detections.length === 1) {
-            setFaceDetected(true);
-            setMessage("Face detected, you can capture now.");
-            drawDetections(detections);
-          } else {
-            setFaceDetected(false);
-            setMessage(
-              detections.length > 1
-                ? "Multiple faces detected. Please position only one person."
-                : "No face detected. Please position yourself."
+            // Filter out invalid detections
+            const validDetections = detections.filter(det => 
+              det.detection?.box && 
+              !Object.values(det.detection.box).some(val => val === null || val === undefined)
             );
+
+            if (validDetections.length === 1) {
+              setFaceDetected(true);
+              setMessage("Face detected, you can capture now.");
+              drawDetections(validDetections);
+            } else {
+              setFaceDetected(false);
+              setMessage(
+                validDetections.length > 1
+                  ? "Multiple faces detected. Please position only one person."
+                  : "No face detected. Please position yourself."
+              );
+              // Clear canvas if no valid detections
+              const canvas = canvasRef.current;
+              if (canvas) {
+                const context = canvas.getContext("2d");
+                context.clearRect(0, 0, canvas.width, canvas.height);
+              }
+            }
+          } catch (error) {
+            console.error("Face detection error:", error);
+            setFaceDetected(false);
+            setMessage("Face detection error. Please try again.");
           }
         }
       }
     }, 1000);
+
+    setDetectionInterval(interval);
   };
 
   const drawDetections = (detections) => {
-    if (!detections || detections.length === 0) return;
+    if (!detections || detections.length === 0 || !webcamRef.current?.video) return;
 
     const video = webcamRef.current.video;
-    if (!video) return;
-
     const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
     const context = canvas.getContext("2d");
-
-    faceapi.matchDimensions(canvas, {
-      width: video.videoWidth,
-      height: video.videoHeight,
-    });
-
-    const resized = faceapi.resizeResults(detections, {
-      width: video.videoWidth,
-      height: video.videoHeight,
-    });
-
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Only proceed if we have valid detections
+    const validDetections = detections.filter(det => 
+      det.detection?.box && 
+      !Object.values(det.detection.box).some(val => val === null || val === undefined)
+    );
+
+    if (validDetections.length === 0) return;
+
+    // Resize detections to match video dimensions
+    const resizedDetections = faceapi.resizeResults(validDetections, {
+      width: video.videoWidth,
+      height: video.videoHeight
+    });
+
+    // Draw with mirror effect
     context.save();
     context.scale(-1, 1);
     context.translate(-canvas.width, 0);
 
-    faceapi.draw.drawDetections(context, resized);
-    faceapi.draw.drawFaceLandmarks(context, resized);
-    faceapi.draw.drawFaceExpressions(context, resized);
+    resizedDetections.forEach(detection => {
+      faceapi.draw.drawDetections(context, [detection]);
+      faceapi.draw.drawFaceLandmarks(context, [detection]);
+      faceapi.draw.drawFaceExpressions(context, [detection]);
+    });
 
     context.restore();
   };
+  
 
   const capture = () => {
     if (faceDetected) {
@@ -292,7 +338,7 @@ export default function EmpAttendanceOpenCam() {
                   <Webcam
                     ref={webcamRef}
                     screenshotFormat="image/png"
-                    className="w-full h-full object-cover"
+                    className="w-640px h-580px object-cover"
                     mirrored={true}
                   />
                   <canvas
