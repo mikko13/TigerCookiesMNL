@@ -24,17 +24,22 @@ export default function FpConfBody({ showToast }) {
   const getPasswordStrength = () => {
     if (!password) return { strength: 0, text: "", color: "bg-gray-200" };
 
-    let strength = 0;
-    if (password.length >= 8) strength += 1;
-    if (/[A-Z]/.test(password)) strength += 1;
-    if (/[0-9]/.test(password)) strength += 1;
-    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    const validations = [
+      password.length >= 8,
+      /[A-Z]/.test(password),
+      /[a-z]/.test(password),
+      /[0-9]/.test(password),
+      /[^A-Za-z0-9]/.test(password),
+    ];
+
+    const strength = validations.filter(Boolean).length;
 
     const strengthMap = {
-      1: { text: "Weak", color: "bg-red-500" },
-      2: { text: "Fair", color: "bg-yellow-500" },
-      3: { text: "Good", color: "bg-blue-500" },
-      4: { text: "Strong", color: "bg-green-500" },
+      1: { text: "Very Weak", color: "bg-red-500" },
+      2: { text: "Weak", color: "bg-red-400" },
+      3: { text: "Fair", color: "bg-yellow-500" },
+      4: { text: "Good", color: "bg-blue-500" },
+      5: { text: "Strong", color: "bg-green-500" },
     };
 
     return {
@@ -44,21 +49,37 @@ export default function FpConfBody({ showToast }) {
     };
   };
 
-  const passwordStrength = getPasswordStrength();
-
   const validatePassword = () => {
     if (!password) {
       setError("Password is required");
       return false;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      return false;
-    }
+    const validationRules = {
+      length: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecialChar: /[^A-Za-z0-9]/.test(password),
+    };
+
+    const errorMessages = [];
+    if (!validationRules.length)
+      errorMessages.push("Must be at least 8 characters long");
+    if (!validationRules.hasUppercase)
+      errorMessages.push("Must include an uppercase letter");
+    if (!validationRules.hasLowercase)
+      errorMessages.push("Must include a lowercase letter");
+    if (!validationRules.hasNumber) errorMessages.push("Must include a number");
+    if (!validationRules.hasSpecialChar)
+      errorMessages.push("Must include a special character");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      errorMessages.push("Passwords do not match");
+    }
+
+    if (errorMessages.length > 0) {
+      setError(errorMessages.join(". "));
       return false;
     }
 
@@ -112,6 +133,8 @@ export default function FpConfBody({ showToast }) {
     }
   };
 
+  const passwordStrength = getPasswordStrength();
+
   return (
     <div className="p-6">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -158,14 +181,14 @@ export default function FpConfBody({ showToast }) {
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full ${passwordStrength.color}`}
-                style={{ width: `${passwordStrength.strength * 25}%` }}
+                style={{ width: `${passwordStrength.strength * 20}%` }}
               ></div>
             </div>
             <div className="flex justify-between items-center text-xs">
               <span className="text-gray-500">{passwordStrength.text}</span>
               <span className="text-gray-500">
-                {passwordStrength.strength < 4 &&
-                  "Use 8+ chars, uppercase, numbers & symbols"}
+                {passwordStrength.strength < 5 &&
+                  "Use 8+ chars, uppercase, lowercase, numbers & symbols"}
               </span>
             </div>
           </div>
