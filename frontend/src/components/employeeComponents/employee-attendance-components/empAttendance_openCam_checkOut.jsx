@@ -17,23 +17,54 @@ export default function EmpAttendanceOpenCamCheckOut() {
   const [employeeID, setEmployeeID] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
+  const [detectionInterval, setDetectionInterval] = useState(null);
 
   useEffect(() => {
     async function loadModels() {
       setMessage("Loading face detection models...");
-      await Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
-        faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
-        faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
-        faceapi.nets.faceExpressionNet.loadFromUri("/models"),
-      ]);
+      try {
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
+          faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+          faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+          faceapi.nets.faceExpressionNet.loadFromUri("/models"),
+        ]);
 
-      setMessage("Face detection ready. Please position yourself.");
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Face detection models loaded successfully',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+          }
+        });
 
-      setTimeout(() => startFaceDetection(), 500);
+        setMessage("Face detection ready. Please position yourself.");
+        startFaceDetection();
+      } catch (error) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to load face detection models',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+          }
+        });
+
+        setMessage("Failed to load face detection models");
+        console.error("Model loading error:", error);
+      }
     }
-
-    loadModels();
 
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -41,9 +72,16 @@ export default function EmpAttendanceOpenCamCheckOut() {
       setEmployeeID(user.id);
       setUserName(`${user.firstName} ${user.lastName}`);
       checkAttendanceStatus(user.id);
+      loadModels();
     } else {
       navigate("/CheckOut");
     }
+
+    return () => {
+      if (detectionInterval) {
+        clearInterval(detectionInterval);
+      }
+    };
   }, []);
 
   const checkAttendanceStatus = async (id) => {
@@ -53,6 +91,15 @@ export default function EmpAttendanceOpenCamCheckOut() {
       );
 
       if (!checkInResponse.data.checkedIn) {
+        await Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'warning',
+          title: 'You need to check in first',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        });
         navigate("/CheckOut");
         return;
       }
@@ -62,40 +109,89 @@ export default function EmpAttendanceOpenCamCheckOut() {
       );
 
       if (checkOutResponse.data.checkedOut) {
+        await Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'info',
+          title: 'You have already checked out',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        });
         navigate("/CheckOut");
         return;
       }
     } catch (error) {
+      await Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Error checking attendance status',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
       navigate("/CheckOut");
     }
     setLoading(false);
   };
 
   const startFaceDetection = () => {
-    setInterval(async () => {
+    // Clear any existing interval
+    if (detectionInterval) {
+      clearInterval(detectionInterval);
+    }
+  
+    const interval = setInterval(async () => {
       if (webcamRef.current && webcamRef.current.video) {
         const video = webcamRef.current.video;
         if (video.readyState === 4) {
-          const detections = await faceapi
-            .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-            .withFaceLandmarks()
-            .withFaceExpressions();
-
-          if (detections.length === 1) {
-            setFaceDetected(true);
-            setMessage("Face detected, you can capture now.");
-            drawDetections(detections);
-          } else {
+          try {
+            const detections = await faceapi
+              .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+              .withFaceLandmarks()
+              .withFaceExpressions();
+  
+            // Enhanced validation - check for valid bounding boxes
+            const validDetections = detections.filter(det => {
+              const box = det.detection?.box;
+              return box && 
+                     typeof box.x === 'number' && 
+                     typeof box.y === 'number' &&
+                     typeof box.width === 'number' && 
+                     typeof box.height === 'number' &&
+                     box.width > 0 && 
+                     box.height > 0;
+            });
+  
+            if (validDetections.length === 1) {
+              setFaceDetected(true);
+              setMessage("Face detected, you can capture now.");
+              drawDetections(validDetections);
+            } else {
+              setFaceDetected(false);
+              setMessage(
+                validDetections.length > 1
+                  ? "Multiple faces detected. Please position only one person."
+                  : "No face detected. Please position yourself."
+              );
+              // Clear canvas if no valid detections
+              const canvas = canvasRef.current;
+              if (canvas) {
+                const context = canvas.getContext("2d");
+                context.clearRect(0, 0, canvas.width, canvas.height);
+              }
+            }
+          } catch (error) {
+            console.error("Face detection error:", error);
             setFaceDetected(false);
-            setMessage(
-              detections.length > 1
-                ? "Multiple faces detected. Please position only one person."
-                : "No face detected. Please position yourself."
-            );
+            setMessage("Face detection error. Please try again.");
           }
         }
       }
     }, 1000);
+  
+    setDetectionInterval(interval);
   };
 
   const drawDetections = (detections) => {
@@ -135,8 +231,29 @@ export default function EmpAttendanceOpenCamCheckOut() {
       const imgSrc = webcamRef.current.getScreenshot();
       setImage(imgSrc);
       setMessage("Image captured successfully!");
+      
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Photo captured successfully',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
     } else {
       setMessage("No face detected! Please try again.");
+      
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'warning',
+        title: 'No face detected',
+        text: 'Please position your face properly',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
     }
   };
 
@@ -165,22 +282,31 @@ export default function EmpAttendanceOpenCamCheckOut() {
 
     setMessage("Processing check-out...");
 
+    const processingToast = Swal.fire({
+      title: 'Processing Check-Out',
+      html: 'Please wait while we process your check-out...',
+      timerProgressBar: true,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     const currentDateTime = new Date();
     const checkOutDate = currentDateTime.toISOString().split("T")[0];
     const checkOutTime = currentDateTime.toTimeString().split(" ")[0];
 
-    const blob = await fetch(image).then((res) => res.blob());
-    const file = new File([blob], `checkout_${employeeID}.png`, {
-      type: "image/png",
-    });
-
-    const formData = new FormData();
-    formData.append("employeeID", employeeID);
-    formData.append("checkOutDate", checkOutDate);
-    formData.append("checkOutTime", checkOutTime);
-    formData.append("checkOutPhoto", file);
-
     try {
+      const blob = await fetch(image).then((res) => res.blob());
+      const file = new File([blob], `checkout_${employeeID}.png`, {
+        type: "image/png",
+      });
+
+      const formData = new FormData();
+      formData.append("employeeID", employeeID);
+      formData.append("checkOutDate", checkOutDate);
+      formData.append("checkOutTime", checkOutTime);
+      formData.append("checkOutPhoto", file);
+
       const response = await axios.post(
         `${backendURL}/api/checkout`,
         formData,
@@ -189,7 +315,19 @@ export default function EmpAttendanceOpenCamCheckOut() {
         }
       );
 
+      await processingToast.close();
+
       if (response.data.success) {
+        await Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Check-out successful!',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        });
+
         await Swal.fire({
           title: "Check Out Successful!",
           text: "You have successfully checked out.",
@@ -207,7 +345,8 @@ export default function EmpAttendanceOpenCamCheckOut() {
         });
       }
     } catch (error) {
-
+      await processingToast.close();
+      
       await Swal.fire({
         title: "Error",
         text: "Error checking out. Please try again later.",

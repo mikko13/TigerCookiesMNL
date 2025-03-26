@@ -9,7 +9,6 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
-    "face-api.js": "^0.20.0",
     "fs-extra": "^11.3.0",
     "googleapis": "^144.0.0",
     "jsonwebtoken": "^9.0.2",

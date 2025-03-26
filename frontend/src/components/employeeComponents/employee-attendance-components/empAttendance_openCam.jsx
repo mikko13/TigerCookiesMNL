@@ -98,21 +98,50 @@ export default function EmpAttendanceOpenCam() {
     }
 
     async function loadModels() {
-      setMessage("Loading face detection models...");
-      try {
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
-          faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
-          faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
-          faceapi.nets.faceExpressionNet.loadFromUri("/models"),
-        ]);
-        setMessage("Face detection ready. Please position yourself.");
-        startFaceDetection();
-      } catch (error) {
-        setMessage("Failed to load face detection models");
-        console.error("Model loading error:", error);
-      }
-    }
+          setMessage("Loading face detection models...");
+          try {
+            await Promise.all([
+              faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
+              faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+              faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+              faceapi.nets.faceExpressionNet.loadFromUri("/models"),
+            ]);
+    
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Face detection models loaded successfully',
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true,
+              didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+              }
+            });
+    
+            setMessage("Face detection ready. Please position yourself.");
+            startFaceDetection();
+          } catch (error) {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'error',
+              title: 'Failed to load face detection models',
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true,
+              didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+              }
+            });
+    
+            setMessage("Failed to load face detection models");
+            console.error("Model loading error:", error);
+          }
+        }
 
     // Check user and load models
     const storedUser = localStorage.getItem("user");
@@ -152,7 +181,7 @@ export default function EmpAttendanceOpenCam() {
     if (detectionInterval) {
       clearInterval(detectionInterval);
     }
-
+  
     const interval = setInterval(async () => {
       if (webcamRef.current && webcamRef.current.video) {
         const video = webcamRef.current.video;
@@ -162,16 +191,19 @@ export default function EmpAttendanceOpenCam() {
               .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
               .withFaceLandmarks()
               .withFaceExpressions();
-
-            // Filter out invalid detections
-            const validDetections = detections.filter(
-              (det) =>
-                det.detection?.box &&
-                !Object.values(det.detection.box).some(
-                  (val) => val === null || val === undefined
-                )
-            );
-
+  
+            // Enhanced validation - check for valid bounding boxes
+            const validDetections = detections.filter(det => {
+              const box = det.detection?.box;
+              return box && 
+                     typeof box.x === 'number' && 
+                     typeof box.y === 'number' &&
+                     typeof box.width === 'number' && 
+                     typeof box.height === 'number' &&
+                     box.width > 0 && 
+                     box.height > 0;
+            });
+  
             if (validDetections.length === 1) {
               setFaceDetected(true);
               setMessage("Face detected, you can capture now.");
@@ -198,7 +230,7 @@ export default function EmpAttendanceOpenCam() {
         }
       }
     }, 1000);
-
+  
     setDetectionInterval(interval);
   };
 
@@ -258,6 +290,17 @@ export default function EmpAttendanceOpenCam() {
       const imgSrc = webcamRef.current.getScreenshot();
       setImage(imgSrc);
       setMessage("Image captured successfully!");
+      
+      // Photo captured successfully toast
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Photo captured successfully',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
     } else {
       setMessage("No face detected! Please try again.");
     }
@@ -309,6 +352,17 @@ export default function EmpAttendanceOpenCam() {
 
     setMessage("Processing check-in...");
 
+    // Processing Check-In toast
+    const processingToast = Swal.fire({
+      title: 'Processing Check-In',
+      html: 'Please wait while we process your check-in...',
+      timerProgressBar: true,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      allowOutsideClick: false
+    });
+
     const currentDateTime = new Date();
     const checkInDate = currentDateTime.toISOString().split("T")[0];
     const checkInTime = currentDateTime.toTimeString().split(" ")[0];
@@ -330,7 +384,20 @@ export default function EmpAttendanceOpenCam() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      await processingToast.close();
+
       if (response.data.success) {
+        // Check-in successful toast
+        await Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Check-in successful',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        });
+
         await Swal.fire({
           title: "Check-In Successful!",
           text: "You have successfully checked in.",
@@ -348,6 +415,7 @@ export default function EmpAttendanceOpenCam() {
         });
       }
     } catch (error) {
+      await processingToast.close();
       await Swal.fire({
         title: "Error",
         text: "Failed to check-in. Please try again later.",
