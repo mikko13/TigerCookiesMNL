@@ -61,7 +61,6 @@ const generatePayslipPDF = (record) => {
     });
     finalY = doc.lastAutoTable.finalY;
   } catch (e) {
-
     try {
       const { autoTable } = require("jspdf-autotable");
       autoTable(doc, {
@@ -85,9 +84,12 @@ const generatePayslipPDF = (record) => {
 
   const deductionsData = [
     ["Description", "Amount"],
-    ["Tax", formatCurrency(record.totalDeductions * 0.6)],
-    ["Insurance", formatCurrency(record.totalDeductions * 0.3)],
-    ["Other", formatCurrency(record.totalDeductions * 0.1)],
+    ["SSS", formatCurrency(record.sssDeduction)],
+    ["PhilHealth", formatCurrency(record.philhealthDeduction)],
+    ["Pag-IBIG", formatCurrency(record.pagibigDeduction)],
+    ["Withholding Tax", formatCurrency(record.withholdingTax)],
+    ["Other Deductions", formatCurrency(record.otherDeductions)],
+
     ["Total Deductions", formatCurrency(record.totalDeductions)],
   ];
 
@@ -115,7 +117,7 @@ const generatePayslipPDF = (record) => {
       });
       deductionsFinalY = doc.lastAutoTable.finalY;
     } catch (e2) {
-      deductionsFinalY = deductionsStartY + 40; 
+      deductionsFinalY = deductionsStartY + 40;
     }
   }
 
