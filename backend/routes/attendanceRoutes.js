@@ -7,6 +7,7 @@ const Attendance = require("../models/Attendance");
 const Account = require("../models/Employees");
 const multer = require("multer");
 const router = express.Router();
+const { handleAttendanceCheckout, handleOvertime } = require("../controllers/attendanceController");
 const path = require("path");
 const fs = require("fs");
 
@@ -443,5 +444,9 @@ router.put(
     }
   }
 );
+
+router.post("/attendance/checkout", handleAttendanceCheckout);
+
+router.post("/attendance/overtime", handleOvertime);
 
 module.exports = router;

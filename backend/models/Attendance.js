@@ -39,8 +39,21 @@ const AttendanceSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    overtimeStart: {
+      type: String,
+      required: false,
+    },
+    overtimeEnd: {
+      type: String,
+      required: false,
+    },
+    overtimeHours: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true, collection: "empAttendance" }
 );
+
 module.exports =
   mongoose.models.Attendance || mongoose.model("Attendance", AttendanceSchema);
