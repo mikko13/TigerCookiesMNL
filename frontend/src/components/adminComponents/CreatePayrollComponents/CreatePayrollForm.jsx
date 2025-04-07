@@ -175,15 +175,6 @@ export default function CreatePayrollForm() {
         }
       );
 
-      const overtimeResponse = await axios.get(`${backendURL}/api/overtime`, {
-        params: {
-          employeeID,
-          status: "Approved",
-          startDate: formattedStartDate,
-          endDate: formattedEndDate,
-        },
-      });
-
       const employee = employeesData[employeeID];
       if (!employee) {
         console.error("Employee not found");
@@ -191,32 +182,25 @@ export default function CreatePayrollForm() {
       }
 
       const hourlyRate = employee.ratePerHour || 0;
-      const overtimeRate = employee.overtimeRate || hourlyRate;
+      const overtimeRate = employee.overtimeRate || hourlyRate * 1.25; // Default to 1.25x if not specified
 
       let totalRegularHours = 0;
-      if (attendanceResponse.data && attendanceResponse.data.length > 0) {
-        totalRegularHours = attendanceResponse.data.reduce((sum, record) => {
-          const recordHours = record.totalHours || 0;
-          return sum + Math.min(recordHours);
-        }, 0);
-      }
-
       let totalOvertimeHours = 0;
-      if (overtimeResponse.data && overtimeResponse.data.length > 0) {
-        const approvedOvertimeRequests = overtimeResponse.data.filter(
-          (overtime) => overtime.status === "Approved"
-        );
 
-        totalOvertimeHours = approvedOvertimeRequests.reduce(
-          (total, overtime) => {
-            const overtimeDate = new Date(overtime.dateRequested);
-            if (overtimeDate >= startDate && overtimeDate <= endDate) {
-              return total + (overtime.overtimeTime || 0);
-            }
-            return total;
-          },
-          0
-        );
+      if (attendanceResponse.data && attendanceResponse.data.length > 0) {
+        attendanceResponse.data.forEach((record) => {
+          // Calculate regular hours
+          totalRegularHours += record.totalHours || 0;
+
+          // Calculate overtime hours
+          if (record.startOT && record.endOT) {
+            const start = new Date(`2000-01-01T${record.startOT}`);
+            const end = new Date(`2000-01-01T${record.endOT}`);
+            let diff = (end - start) / (1000 * 60 * 60); // Convert to hours
+            if (diff < 0) diff += 24; // Handle overnight overtime
+            totalOvertimeHours += Math.round(diff * 100) / 100; // Round to 2 decimal places
+          }
+        });
       }
 
       const calculatedBaseSalary = (totalRegularHours * hourlyRate).toFixed(2);
@@ -236,7 +220,7 @@ export default function CreatePayrollForm() {
         setFormErrors({ ...formErrors, regularHours: null });
       }
     } catch (error) {
-      console.error("Error fetching attendance/overtime data:", error);
+      console.error("Error fetching attendance data:", error);
       showToast("error", "Failed to calculate hours and overtime.");
     }
   }
