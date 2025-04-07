@@ -25,6 +25,8 @@ const { frontendURL } = require("./urls/URL");
 
 dotenv.config();
 connectDB();
+require("./jobs/autoCheckoutJob");
+
 
 const app = express();
 
