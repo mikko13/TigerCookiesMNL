@@ -51,6 +51,18 @@ const AttendanceSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    startOT: {  // New field for overtime start time
+      type: String,
+      required: false,
+    },
+    endOT: {  // New field for overtime end time
+      type: String,
+      required: false,
+    },
+    autoCheckoutScheduled: {  // New field to track if auto-checkout was scheduled
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true, collection: "empAttendance" }
 );

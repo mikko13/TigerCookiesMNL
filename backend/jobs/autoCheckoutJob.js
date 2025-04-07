@@ -3,6 +3,28 @@ const Attendance = require("../models/Attendance");
 const Overtime = require("../models/Overtime");
 const moment = require("moment-timezone");
 
+// Function to update attendance with the auto-checkout time
+const updateAttendanceOnAutoCheckout = async (attendanceID, checkoutTime) => {
+  try {
+    // Find the attendance record and update it with the auto-checkout time
+    const updatedAttendance = await Attendance.findByIdAndUpdate(
+      attendanceID,
+      {
+        $set: {
+          checkOutTime: checkoutTime, // Save the actual checkout time
+          sessionExpired: true, // Mark the session as expired
+        },
+      },
+      { new: true } // Return the updated attendance document
+    );
+    console.log(
+      `Attendance auto-checked out for employee: ${updatedAttendance.employeeID} at ${checkoutTime}`
+    );
+  } catch (error) {
+    console.error("Error updating attendance on auto checkout:", error);
+  }
+};
+
 const autoCheckoutIfNoOT = async () => {
   try {
     const today = moment().tz("Asia/Manila").format("MM/DD/YYYY");
@@ -14,7 +36,7 @@ const autoCheckoutIfNoOT = async () => {
     });
 
     for (const attendance of attendances) {
-      const { employeeID, shift } = attendance;
+      const { _id, employeeID, shift } = attendance;
 
       // Check for approved OT
       const approvedOT = await Overtime.findOne({
@@ -30,9 +52,10 @@ const autoCheckoutIfNoOT = async () => {
         continue; // skip auto-checkout if OT exists
       }
 
-      const shiftCutoff = shift === "Morning"
-        ? moment.tz("18:01", "HH:mm", "Asia/Manila")
-        : moment.tz("22:01", "HH:mm", "Asia/Manila");
+      const shiftCutoff =
+        shift === "Morning"
+          ? moment.tz("18:01", "HH:mm", "Asia/Manila")
+          : moment.tz("22:01", "HH:mm", "Asia/Manila");
 
       if (currentTime.isAfter(shiftCutoff)) {
         attendance.checkOutTime = shift === "Morning" ? "18:01" : "22:01";
@@ -44,6 +67,9 @@ const autoCheckoutIfNoOT = async () => {
 
         attendance.totalHours = parseFloat(totalHours.toFixed(2));
         await attendance.save();
+
+        // Call the function to mark attendance as "Expired"
+        await updateAttendanceOnAutoCheckout(_id, attendance.checkOutTime);
 
         console.log(`Auto-checked out: ${employeeID}`);
       }
@@ -67,7 +93,9 @@ const autoCheckoutOT = async () => {
   for (const ot of approvedOTs) {
     const employeeID = ot.employeeID;
     const hours = ot.overtimeTime;
-    const expectedOTEnd = moment(ot.reviewedAt).add(hours, "hours").add(5, "minutes");
+    const expectedOTEnd = moment(ot.reviewedAt)
+      .add(hours, "hours")
+      .add(5, "minutes");
 
     // Skip if it's not time yet
     if (currentTime.isBefore(expectedOTEnd)) continue;
@@ -90,18 +118,25 @@ const autoCheckoutOT = async () => {
       attendance.attendanceStatus = "Checked Out (OT Auto)";
 
       await attendance.save();
+
+      // Call the function to mark attendance as "Expired"
+      await updateAttendanceOnAutoCheckout(
+        attendance._id,
+        attendance.checkOutTime
+      );
+
       console.log(`Auto OT checkout done for Employee ${employeeID}`);
     }
   }
 };
 
-// Run both auto-checkout functions every 5 minutes
+// Run both auto-checkout functions every () minutes
 cron.schedule("*/5 * * * *", async () => {
   console.log("Running auto-checkout job...");
-  
+
   // First, check for normal checkouts
   await autoCheckoutIfNoOT();
-  
+
   // Then, handle overtime checkouts
   await autoCheckoutOT();
 });

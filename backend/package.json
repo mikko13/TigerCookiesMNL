@@ -12,7 +12,7 @@
     "fs-extra": "^11.3.0",
     "googleapis": "^144.0.0",
     "jsonwebtoken": "^9.0.2",
-    "luxon": "^3.5.0",
+    "luxon": "^3.6.1",
     "moment-timezone": "^0.5.48",
     "mongoose": "^8.9.5",
     "multer": "^1.4.5-lts.1",

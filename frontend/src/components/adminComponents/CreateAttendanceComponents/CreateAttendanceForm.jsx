@@ -21,7 +21,10 @@ export default function AdminCreateAttendanceForm() {
     checkInTime: "",
     checkOutTime: "",
     shift: "",
+    startOT: "",  
+    endOT: "",    
   });
+  
 
   const [checkInPhoto, setCheckInPhoto] = useState(null);
   const [checkOutPhoto, setCheckOutPhoto] = useState(null);
@@ -116,27 +119,27 @@ export default function AdminCreateAttendanceForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!validateForm()) {
       showToast("error", "Please fill all required fields.");
       return;
     }
-
+  
     setLoading(true);
     const formDataToSend = new FormData();
-
+  
     Object.entries(formData).forEach(([key, value]) => {
       if (value) formDataToSend.append(key, value);
     });
-
+  
     if (checkInPhoto) formDataToSend.append("checkInPhoto", checkInPhoto);
     if (checkOutPhoto) formDataToSend.append("checkOutPhoto", checkOutPhoto);
-
+  
     try {
       await axios.post(`${backendURL}/api/attendance/post`, formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
+  
       showToast("success", "Attendance recorded successfully!");
       resetForm();
     } catch (error) {
@@ -147,7 +150,7 @@ export default function AdminCreateAttendanceForm() {
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   const resetForm = () => {
     setFormData({
@@ -156,6 +159,9 @@ export default function AdminCreateAttendanceForm() {
       checkInTime: "",
       checkOutTime: "",
       shift: "",
+      startOT: "",
+      endOT: ""
+
     });
     setCheckInPhoto(null);
     setCheckOutPhoto(null);
@@ -166,21 +172,23 @@ export default function AdminCreateAttendanceForm() {
   };
 
   return (
-    <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
-        <h2 className="text-2xl font-bold text-white flex items-center">
-          <Clock className="mr-2" size={24} />
+    <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden">
+      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6 rounded-t-xl">
+        <h2 className="text-3xl font-bold text-white flex items-center">
+          <Clock className="mr-3" size={24} />
           Create Employee Attendance
         </h2>
-        <p className="text-yellow-50 mt-1 opacity-90">
+        <p className="text-yellow-50 mt-1 opacity-90 text-lg">
           Create a new attendance record for employees
         </p>
       </div>
-
-      <form onSubmit={handleSubmit} className="p-6">
+  
+      <form onSubmit={handleSubmit} className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  
+          {/* Employee Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Employee Name <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -188,11 +196,11 @@ export default function AdminCreateAttendanceForm() {
                 name="employeeID"
                 value={formData.employeeID}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 rounded-lg border ${
+                className={`w-full px-4 py-3 rounded-lg border shadow-sm ${
                   formErrors.employeeID
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300 bg-gray-50"
-                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
+                } focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all`}
               >
                 <option value="" disabled>
                   Select Employee
@@ -203,21 +211,6 @@ export default function AdminCreateAttendanceForm() {
                   </option>
                 ))}
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
               {formErrors.employeeID && (
                 <p className="mt-1 text-xs text-red-500 flex items-center">
                   <AlertTriangle className="w-3 h-3 mr-1" />{" "}
@@ -226,9 +219,10 @@ export default function AdminCreateAttendanceForm() {
               )}
             </div>
           </div>
-
+  
+          {/* Attendance Date */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Attendance Date <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -237,15 +231,12 @@ export default function AdminCreateAttendanceForm() {
                 name="attendanceDate"
                 value={formData.attendanceDate}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 rounded-lg border ${
+                className={`w-full px-4 py-3 rounded-lg border shadow-sm ${
                   formErrors.attendanceDate
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300 bg-gray-50"
-                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                } focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all`}
               />
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                <Calendar className="w-4 h-4 text-gray-500" />
-              </div>
               {formErrors.attendanceDate && (
                 <p className="mt-1 text-xs text-red-500 flex items-center">
                   <AlertTriangle className="w-3 h-3 mr-1" />{" "}
@@ -254,10 +245,10 @@ export default function AdminCreateAttendanceForm() {
               )}
             </div>
           </div>
-
-          {/* Added Shift Selection */}
+  
+          {/* Shift Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Shift <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -265,11 +256,11 @@ export default function AdminCreateAttendanceForm() {
                 name="shift"
                 value={formData.shift}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 rounded-lg border ${
+                className={`w-full px-4 py-3 rounded-lg border shadow-sm ${
                   formErrors.shift
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300 bg-gray-50"
-                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none`}
+                } focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all`}
               >
                 <option value="" disabled>
                   Select Shift
@@ -277,27 +268,6 @@ export default function AdminCreateAttendanceForm() {
                 <option value="Morning">Morning</option>
                 <option value="Afternoon">Afternoon</option>
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                {formData.shift === "Morning" ? (
-                  <Sun className="w-4 h-4 text-yellow-500" />
-                ) : formData.shift === "Afternoon" ? (
-                  <Sunset className="w-4 h-4 text-orange-500" />
-                ) : (
-                  <svg
-                    className="w-4 h-4 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                )}
-              </div>
               {formErrors.shift && (
                 <p className="mt-1 text-xs text-red-500 flex items-center">
                   <AlertTriangle className="w-3 h-3 mr-1" /> {formErrors.shift}
@@ -305,9 +275,10 @@ export default function AdminCreateAttendanceForm() {
               )}
             </div>
           </div>
-
+  
+          {/* Check-In Time */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Check-In Time <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -316,15 +287,12 @@ export default function AdminCreateAttendanceForm() {
                 name="checkInTime"
                 value={formData.checkInTime}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 rounded-lg border ${
+                className={`w-full px-4 py-3 rounded-lg border shadow-sm ${
                   formErrors.checkInTime
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300 bg-gray-50"
-                } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                } focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all`}
               />
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                <Clock className="w-4 h-4 text-gray-500" />
-              </div>
               {formErrors.checkInTime && (
                 <p className="mt-1 text-xs text-red-500 flex items-center">
                   <AlertTriangle className="w-3 h-3 mr-1" />{" "}
@@ -333,9 +301,10 @@ export default function AdminCreateAttendanceForm() {
               )}
             </div>
           </div>
-
+  
+          {/* Check-Out Time */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Check-Out Time
             </label>
             <div className="relative">
@@ -344,18 +313,70 @@ export default function AdminCreateAttendanceForm() {
                 name="checkOutTime"
                 value={formData.checkOutTime}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+                className="w-full px-4 py-3 rounded-lg border shadow-sm border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all"
               />
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                <Clock className="w-4 h-4 text-gray-500" />
-              </div>
             </div>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+  
+          {/* Start Overtime */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Start Overtime <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="time"
+                name="startOT"
+                value={formData.startOT}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 rounded-lg border shadow-sm ${
+                  formErrors.startOT
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 bg-gray-50"
+                } focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all`}
+              />
+              {formErrors.startOT && (
+                <p className="mt-1 text-xs text-red-500 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                  {formErrors.startOT}
+                </p>
+              )}
+            </div>
+          </div>
+  
+          {/* End Overtime */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              End Overtime <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="time"
+                name="endOT"
+                value={formData.endOT}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 rounded-lg border shadow-sm ${
+                  formErrors.endOT
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 bg-gray-50"
+                } focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all`}
+              />
+              {formErrors.endOT && (
+                <p className="mt-1 text-xs text-red-500 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                  {formErrors.endOT}
+                </p>
+              )}
+            </div>
+          </div>
+  
+        </div>
+  
+        {/* File Uploads */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          {/* Check-In Photo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Check-In Photo
             </label>
             <div
@@ -406,9 +427,10 @@ export default function AdminCreateAttendanceForm() {
               )}
             </div>
           </div>
-
+  
+          {/* Check-Out Photo */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Check-Out Photo
             </label>
             <div
@@ -451,11 +473,7 @@ export default function AdminCreateAttendanceForm() {
                     type="file"
                     accept="image/*"
                     onChange={(e) =>
-                      handlePictureChange(
-                        e,
-                        setCheckOutPhoto,
-                        setCheckOutPreview
-                      )
+                      handlePictureChange(e, setCheckOutPhoto, setCheckOutPreview)
                     }
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
@@ -464,7 +482,7 @@ export default function AdminCreateAttendanceForm() {
             </div>
           </div>
         </div>
-
+  
         <div className="mt-8 flex justify-end gap-4">
           <button
             type="button"
