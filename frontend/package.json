@@ -9,6 +9,7 @@
     "browserify-fs": "^1.0.0",
     "cra-template": "1.2.0",
     "crypto-browserify": "^3.12.1",
+    "date-fns": "^4.1.0",
     "face-api.js": "^0.22.2",
     "framer-motion": "^12.4.7",
     "fs": "^0.0.1-security",

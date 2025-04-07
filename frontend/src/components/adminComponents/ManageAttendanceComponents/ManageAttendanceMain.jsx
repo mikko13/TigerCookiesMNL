@@ -9,9 +9,18 @@ import {
   AlertTriangle,
   ChevronRight,
   Clock,
+  ChevronLeft,
+  ChevronRight as RightIcon,
 } from "lucide-react";
 import AttendanceSummaryCards from "./AttendanceSummaryCards";
 import PhotoModal from "./PhotoModal";
+import useEmployees from "./fetchEmployees";
+
+// Safe storage access utility
+const getAuthToken = () => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('token');
+};
 
 export default function ManageAttendanceMain({
   searchTerm,
@@ -19,7 +28,9 @@ export default function ManageAttendanceMain({
   filterDate,
   setFilterDate,
 }) {
-  const fetchedAttendance = useAttendance();
+  const [authToken] = useState(getAuthToken());
+  const fetchEmployees = useEmployees(authToken);
+  const fetchedAttendance = useAttendance(authToken);
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState(null);
@@ -28,6 +39,8 @@ export default function ManageAttendanceMain({
     isOpen: false,
     imageUrl: "",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage] = useState(10);
 
   useEffect(() => {
     if (fetchedAttendance.length > 0) {
@@ -37,6 +50,8 @@ export default function ManageAttendanceMain({
   }, [fetchedAttendance]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -46,10 +61,27 @@ export default function ManageAttendanceMain({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Calculate overtime hours
+  const calculateOvertimeHours = (startOT, endOT) => {
+    if (!startOT || !endOT) return 0;
+    
+    try {
+      const start = new Date(`2000-01-01T${startOT}`);
+      const end = new Date(`2000-01-01T${endOT}`);
+      
+      let diff = (end - start) / (1000 * 60 * 60); // Convert to hours
+      if (diff < 0) diff += 24; // Handle overnight overtime
+      
+      return Math.round(diff * 100) / 100; // Round to 2 decimal places
+    } catch (error) {
+      return 0;
+    }
+  };
+
   const filteredAttendance = attendance.filter((record) => {
     const nameMatch = record.employeeName
-      .toLowerCase()
-      .includes((searchTerm || "").toLowerCase());
+      ?.toLowerCase()
+      .includes((searchTerm || "").toLowerCase()) ?? false;
 
     let dateMatch = true;
     if (filterDate) {
@@ -69,13 +101,24 @@ export default function ManageAttendanceMain({
     return nameMatch && dateMatch;
   });
 
+  // Pagination logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = filteredAttendance.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(filteredAttendance.length / recordsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
   };
 
   const openPhotoModal = (photoId, type) => {
-    const url =
-      type === "checkin"
+    if (!photoId) return;
+    
+    const url = photoId.startsWith('http') || photoId.startsWith('/')
+      ? photoId
+      : type === "checkin"
         ? `/employee-checkin-photos/${photoId}`
         : `/employee-checkout-photos/${photoId}`;
 
@@ -95,6 +138,14 @@ export default function ManageAttendanceMain({
   const clearFilters = () => {
     if (setSearchTerm) setSearchTerm("");
     if (setFilterDate) setFilterDate("");
+    setCurrentPage(1);
+  };
+
+  const getPhotoUrl = (photoId, type) => {
+    if (!photoId) return null;
+    return photoId.startsWith('http') || photoId.startsWith('/')
+      ? photoId
+      : `/${type === 'checkin' ? 'employee-checkin-photos' : 'employee-checkout-photos'}/${photoId}`;
   };
 
   return (
@@ -143,247 +194,319 @@ export default function ManageAttendanceMain({
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {isMobile ? (
             <div className="divide-y divide-gray-200">
-              {filteredAttendance.map((record) => (
-                <div key={record._id} className="p-4">
-                  <div
-                    className="flex justify-between items-center cursor-pointer"
-                    onClick={() => toggleRow(record._id)}
-                  >
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        {record.employeeName}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {record.attendanceDate}
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getStatusClass(
-                          record.attendanceStatus
-                        )}`}
-                      >
-                        {record.attendanceStatus}
-                      </span>
-                      <ChevronRight
-                        size={20}
-                        className={`text-gray-400 transition-transform ${
-                          expandedRow === record._id ? "rotate-90" : ""
-                        }`}
-                      />
-                    </div>
-                  </div>
-
-                  {expandedRow === record._id && (
-                    <div className="mt-3 pl-2 border-l-2 border-gray-200">
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <p className="text-gray-500">Shift</p>
-                          <p className="font-medium">{record.shift}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Check In</p>
-                          <p className="font-medium">{record.checkinTime}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Check Out</p>
-                          <p className="font-medium">
-                            {record.checkoutTime || "Not checked out"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Check In Photo</p>
-                          {record.checkinPhoto ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openPhotoModal(record.checkinPhoto, "checkin");
-                              }}
-                              className="inline-flex items-center text-blue-600"
-                            >
-                              <Image size={16} className="mr-1" />
-                              <span>View</span>
-                            </button>
-                          ) : (
-                            <span className="text-gray-500">No photo</span>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Check Out Photo</p>
-                          {record.checkoutPhoto ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openPhotoModal(
-                                  record.checkoutPhoto,
-                                  "checkout"
-                                );
-                              }}
-                              className="inline-flex items-center text-blue-600"
-                            >
-                              <Image size={16} className="mr-1" />
-                              <span>View</span>
-                            </button>
-                          ) : (
-                            <span className="text-gray-500">No photo</span>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Total Hours</p>
-                          <p className="font-medium">
-                            {record.totalHours
-                              ? `${record.totalHours} hrs`
-                              : "N/A"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 flex gap-3">
-                        <Link
-                          to={`/UpdateEmployeeAttendance/${record._id}`}
-                          state={{ record }}
-                          className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
-                        >
-                          <Edit size={16} className="mr-1" />
-                          <span>Edit</span>
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            /* Desktop View */
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Employee
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Shift
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Check In
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Hours
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Check In Photo
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Check Out 
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Check Out Photo
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredAttendance.map((record) => (
-                    <tr
-                      key={record._id}
-                      className="hover:bg-gray-50 transition-colors duration-150"
+              {currentRecords.map((record) => {
+                const overtimeHours = calculateOvertimeHours(record.startOT, record.endOT);
+                
+                return (
+                  <div key={record._id} className="p-4">
+                    <div
+                      className="flex justify-between items-center cursor-pointer"
+                      onClick={() => toggleRow(record._id)}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
                         <div className="font-medium text-gray-900">
                           {record.employeeName}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {record.attendanceDate}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {record.shift}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {record.checkinTime}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        <div className="flex items-center">
-                          <Clock size={16} className="mr-1 text-gray-500" />
-                          {record.totalHours
-                            ? `${record.totalHours} hrs`
-                            : "N/A"}
+                        <div className="text-sm text-gray-600">
+                          {record.attendanceDate}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {record.checkinPhoto ? (
-                          <button
-                            onClick={() =>
-                              openPhotoModal(record.checkinPhoto, "checkin")
-                            }
-                            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-                          >
-                            <Image size={16} className="mr-1" />
-                            <span>View</span>
-                          </button>
-                        ) : (
-                          <span className="text-gray-500">No photo</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {record.checkoutTime || "Not checked out"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {record.checkoutPhoto ? (
-                          <button
-                            onClick={() =>
-                              openPhotoModal(record.checkoutPhoto, "checkout")
-                            }
-                            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-                          >
-                            <Image size={16} className="mr-1" />
-                            <span>View</span>
-                          </button>
-                        ) : (
-                          <span className="text-gray-500">No photo</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      </div>
+                      <div className="flex items-center">
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getStatusClass(
                             record.attendanceStatus
                           )}`}
                         >
                           {record.attendanceStatus}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        <div className="flex gap-3">
+                        <ChevronRight
+                          size={20}
+                          className={`text-gray-400 transition-transform ${
+                            expandedRow === record._id ? "rotate-90" : ""
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    {expandedRow === record._id && (
+                      <div className="mt-3 pl-2 border-l-2 border-gray-200">
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <p className="text-gray-500">Shift</p>
+                            <p className="font-medium">{record.shift}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Check In</p>
+                            <p className="font-medium">{record.checkInTime || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Check Out</p>
+                            <p className="font-medium">
+                              {record.checkOutTime || "Not checked out"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Total Hours</p>
+                            <p className="font-medium">
+                              {record.totalHours
+                                ? `${record.totalHours} hrs`
+                                : "N/A"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Overtime Hours</p>
+                            <p className="font-medium">
+                              {overtimeHours > 0 ? `${overtimeHours} hrs` : "N/A"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Check In Photo</p>
+                            {record.checkInPhoto ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openPhotoModal(record.checkInPhoto, "checkin");
+                                }}
+                                className="inline-flex items-center text-blue-600"
+                              >
+                                <Image size={16} className="mr-1" />
+                                <span>View</span>
+                              </button>
+                            ) : (
+                              <span className="text-gray-500">No photo</span>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-gray-500">Check Out Photo</p>
+                            {record.checkOutPhoto ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openPhotoModal(record.checkOutPhoto, "checkout");
+                                }}
+                                className="inline-flex items-center text-blue-600"
+                              >
+                                <Image size={16} className="mr-1" />
+                                <span>View</span>
+                              </button>
+                            ) : (
+                              <span className="text-gray-500">No photo</span>
+                            )}
+                          </div>
+                          {record.startOT && (
+                            <div>
+                              <p className="text-gray-500">Overtime Start</p>
+                              <p className="font-medium">{record.startOT}</p>
+                            </div>
+                          )}
+                          {record.endOT && (
+                            <div>
+                              <p className="text-gray-500">Overtime End</p>
+                              <p className="font-medium">{record.endOT}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-3 flex gap-3">
                           <Link
                             to={`/UpdateEmployeeAttendance/${record._id}`}
                             state={{ record }}
                             className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
-                            title="Edit"
                           >
                             <Edit size={16} className="mr-1" />
                             <span>Edit</span>
                           </Link>
+                          <button
+                            className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-red-500 hover:bg-red-600"
+                            onClick={() => {
+                              // Add delete functionality here
+                            }}
+                          >
+                            <Trash2 size={16} className="mr-1" />
+                            <span>Delete</span>
+                          </button>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          )}
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Employee
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Shift
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Check In
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Check Out
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Hours
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Overtime Hours
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Check In Photo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Check Out Photo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentRecords.map((record) => {
+                      const overtimeHours = calculateOvertimeHours(record.startOT, record.endOT);
+                      
+                      return (
+                        <tr
+                          key={record._id}
+                          className="hover:bg-gray-50 transition-colors duration-150"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="font-medium text-gray-900">
+                              {record.employeeName}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {record.attendanceDate}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {record.shift}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {record.checkInTime || "N/A"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {record.checkOutTime || "Not checked out"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <div className="flex items-center">
+                              <Clock size={16} className="mr-1 text-gray-500" />
+                              {record.totalHours
+                                ? `${record.totalHours} hrs`
+                                : "N/A"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <div className="flex items-center">
+                              <Clock size={16} className="mr-1 text-gray-500" />
+                              {overtimeHours > 0 ? `${overtimeHours} hrs` : "N/A"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(
+                                record.attendanceStatus
+                              )}`}
+                            >
+                              {record.attendanceStatus}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {record.checkInPhoto ? (
+                              <button
+                                onClick={() =>
+                                  openPhotoModal(record.checkInPhoto, "checkin")
+                                }
+                                className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+                              >
+                                <Image size={16} className="mr-1" />
+                                <span>View</span>
+                              </button>
+                            ) : (
+                              <span className="text-gray-500">No photo</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {record.checkOutPhoto ? (
+                              <button
+                                onClick={() =>
+                                  openPhotoModal(record.checkOutPhoto, "checkout")
+                                }
+                                className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+                              >
+                                <Image size={16} className="mr-1" />
+                                <span>View</span>
+                              </button>
+                            ) : (
+                              <span className="text-gray-500">No photo</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <div className="flex gap-3">
+                              <Link
+                                to={`/UpdateEmployeeAttendance/${record._id}`}
+                                state={{ record }}
+                                className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
+                                title="Edit"
+                              >
+                                <Edit size={16} className="mr-1" />
+                                <span>Edit</span>
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
-          <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-sm text-gray-600">
-            Showing {filteredAttendance.length} of {attendance.length} records
-          </div>
+              {/* Pagination */}
+              <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                <div className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1} to {Math.min(indexOfLastRecord, filteredAttendance.length)} of {filteredAttendance.length} records
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                    <button
+                      key={number}
+                      onClick={() => paginate(number)}
+                      className={`px-3 py-1 rounded-md ${currentPage === number ? 'bg-yellow-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    >
+                      {number}
+                    </button>
+                  ))}
+                  
+                  <button
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    <RightIcon size={20} />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

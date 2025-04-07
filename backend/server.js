@@ -20,6 +20,7 @@ const checkoutRoutes = require("./routes/checkoutRoutes");
 const authRoutes = require("./routes/authRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const overtimeRoutes = require("./routes/overtimeRoutes");
+const path = require('path'); 
 
 const { frontendURL } = require("./urls/URL");
 
@@ -81,6 +82,8 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/payroll", payrollRoutes);
 app.use("/api/overtime", overtimeRoutes);
 app.use("/api/login", authRoutes);
+app.use('/employee-checkin-photos', express.static(path.join(__dirname, 'public/employee-checkin-photos')));
+app.use('/employee-checkout-photos', express.static(path.join(__dirname, 'public/employee-checkout-photos')));
 
 
 const PORT = process.env.PORT || 5000;
