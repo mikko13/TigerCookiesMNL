@@ -28,6 +28,16 @@ export default function EmpAttendanceOpenCam() {
   const [shift, setShift] = useState("");
   const [detectionInterval, setDetectionInterval] = useState(null);
   const [shiftAvailable, setShiftAvailable] = useState(true);
+  const [facePositionValid, setFacePositionValid] = useState(false);
+  const [webcamDimensions, setWebcamDimensions] = useState({ width: 640, height: 480 });
+
+  // Define oval dimensions (relative to 640x480 canvas)
+  const ovalParams = {
+    centerX: 320,
+    centerY: 240,
+    radiusX: 120,
+    radiusY: 160
+  };
 
   // Define shift times (24-hour format)
   const shiftTimes = {
@@ -98,50 +108,50 @@ export default function EmpAttendanceOpenCam() {
     }
 
     async function loadModels() {
-          setMessage("Loading face detection models...");
-          try {
-            await Promise.all([
-              faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
-              faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
-              faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
-              faceapi.nets.faceExpressionNet.loadFromUri("/models"),
-            ]);
-    
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Face detection models loaded successfully',
-              showConfirmButton: false,
-              timer: 3000,
-              timerProgressBar: true,
-              didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-              }
-            });
-    
-            setMessage("Face detection ready. Please position yourself.");
-            startFaceDetection();
-          } catch (error) {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'error',
-              title: 'Failed to load face detection models',
-              showConfirmButton: false,
-              timer: 3000,
-              timerProgressBar: true,
-              didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-              }
-            });
-    
-            setMessage("Failed to load face detection models");
-            console.error("Model loading error:", error);
+      setMessage("Loading face detection models...");
+      try {
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
+          faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+          faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+          faceapi.nets.faceExpressionNet.loadFromUri("/models"),
+        ]);
+
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Face detection models loaded successfully',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
           }
-        }
+        });
+
+        setMessage("Face detection ready. Please position yourself.");
+        startFaceDetection();
+      } catch (error) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to load face detection models',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+          }
+        });
+
+        setMessage("Failed to load face detection models");
+        console.error("Model loading error:", error);
+      }
+    }
 
     // Check user and load models
     const storedUser = localStorage.getItem("user");
@@ -162,6 +172,17 @@ export default function EmpAttendanceOpenCam() {
     };
   }, [navigate, location.search]);
 
+  // Handle webcam video loaded - set dimensions for canvas
+  const handleVideoLoad = () => {
+    if (webcamRef.current && webcamRef.current.video) {
+      const video = webcamRef.current.video;
+      setWebcamDimensions({
+        width: video.videoWidth || 640,
+        height: video.videoHeight || 480
+      });
+    }
+  };
+
   const checkIfCheckedIn = async (id) => {
     try {
       const response = await axios.get(
@@ -176,109 +197,92 @@ export default function EmpAttendanceOpenCam() {
     setLoading(false);
   };
 
-  const startFaceDetection = () => {
-    // Clear any existing interval
-    if (detectionInterval) {
-      clearInterval(detectionInterval);
-    }
-  
-    const interval = setInterval(async () => {
-      if (webcamRef.current && webcamRef.current.video) {
-        const video = webcamRef.current.video;
-        if (video.readyState === 4) {
-          try {
-            const detections = await faceapi
-              .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-              .withFaceLandmarks()
-              .withFaceExpressions();
-  
-            // Enhanced validation - check for valid bounding boxes
-            const validDetections = detections.filter(det => {
-              const box = det.detection?.box;
-              return box && 
-                     typeof box.x === 'number' && 
-                     typeof box.y === 'number' &&
-                     typeof box.width === 'number' && 
-                     typeof box.height === 'number' &&
-                     box.width > 0 && 
-                     box.height > 0;
-            });
-  
-            if (validDetections.length === 1) {
-              setFaceDetected(true);
-              setMessage("Face detected, you can capture now.");
-              drawDetections(validDetections);
-            } else {
-              setFaceDetected(false);
-              setMessage(
-                validDetections.length > 1
-                  ? "Multiple faces detected. Please position only one person."
-                  : "No face detected. Please position yourself."
-              );
-              // Clear canvas if no valid detections
-              const canvas = canvasRef.current;
-              if (canvas) {
-                const context = canvas.getContext("2d");
-                context.clearRect(0, 0, canvas.width, canvas.height);
-              }
-            }
-          } catch (error) {
-            console.error("Face detection error:", error);
-            setFaceDetected(false);
-            setMessage("Face detection error. Please try again.");
-          }
-        }
-      }
-    }, 1000);
-  
-    setDetectionInterval(interval);
+  // Check if face is within the oval boundaries
+  const isFaceInOval = (detection) => {
+    const box = detection.detection.box;
+    if (!box) return false;
+
+    // Get face center coordinates
+    const faceCenterX = box.x + box.width / 2;
+    const faceCenterY = box.y + box.height / 2;
+
+    // Check if face center is within oval
+    const normalizedX = (faceCenterX - ovalParams.centerX) / ovalParams.radiusX;
+    const normalizedY = (faceCenterY - ovalParams.centerY) / ovalParams.radiusY;
+    const distance = normalizedX * normalizedX + normalizedY * normalizedY;
+
+    // Check if face size is appropriate (not too small or too large)
+    const faceArea = box.width * box.height;
+    const minFaceArea = 0.2 * ovalParams.radiusX * ovalParams.radiusY * Math.PI;
+    const maxFaceArea = 0.8 * ovalParams.radiusX * ovalParams.radiusY * Math.PI;
+
+    return distance <= 1 && faceArea >= minFaceArea && faceArea <= maxFaceArea;
   };
 
-  const drawDetections = (detections) => {
-    if (!detections || detections.length === 0 || !webcamRef.current?.video)
-      return;
-
-    const video = webcamRef.current.video;
+  const drawDetections = (detections, isInOval) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
+    
     const context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Only proceed if we have valid detections
-    const validDetections = detections.filter(
-      (det) =>
-        det.detection?.box &&
-        !Object.values(det.detection.box).some(
-          (val) => val === null || val === undefined
-        )
-    );
-
-    if (validDetections.length === 0) return;
-
-    // Resize detections to match video dimensions
-    const resizedDetections = faceapi.resizeResults(validDetections, {
-      width: video.videoWidth,
-      height: video.videoHeight,
-    });
-
-    // Draw with mirror effect
-    context.save();
-    context.scale(-1, 1);
-    context.translate(-canvas.width, 0);
-
-    resizedDetections.forEach((detection) => {
-      faceapi.draw.drawDetections(context, [detection]);
-      faceapi.draw.drawFaceLandmarks(context, [detection]);
-      faceapi.draw.drawFaceExpressions(context, [detection]);
-    });
-
-    context.restore();
   };
+  
+  // Remove all faceapi drawing calls from startFaceDetection
+  const startFaceDetection = () => {
+      if (detectionInterval) {
+        clearInterval(detectionInterval);
+      }
+    
+      const interval = setInterval(async () => {
+        if (webcamRef.current && webcamRef.current.video) {
+          const video = webcamRef.current.video;
+          if (video.readyState === 4) {
+            try {
+              const detections = await faceapi
+                .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                .withFaceLandmarks()
+                .withFaceExpressions();
+    
+              const validDetections = detections.filter(det => {
+                const box = det.detection?.box;
+                return box && 
+                      typeof box.x === 'number' && 
+                      typeof box.y === 'number' &&
+                      typeof box.width === 'number' && 
+                      typeof box.height === 'number' &&
+                      box.width > 0 && 
+                      box.height > 0;
+              });
+    
+              if (validDetections.length === 1) {
+                const isInOval = isFaceInOval(validDetections[0]);
+                setFacePositionValid(isInOval);
+                setFaceDetected(true);
+                setMessage(isInOval 
+                  ? "Face detected and properly positioned. You can capture now." 
+                  : "Face detected but not properly positioned. Center your face in the oval.");
+              } else {
+                setFaceDetected(false);
+                setFacePositionValid(false);
+                setMessage(
+                  validDetections.length > 1
+                    ? "Multiple faces detected. Please position only one person."
+                    : "No face detected. Please position yourself."
+                );
+              }
+            } catch (error) {
+              console.error("Face detection error:", error);
+              setFaceDetected(false);
+              setFacePositionValid(false);
+              setMessage("Face detection error. Please try again.");
+            }
+          }
+        }
+      }, 1000);
+    
+      setDetectionInterval(interval);
+    };
+  
 
   const capture = () => {
     if (!shiftAvailable) {
@@ -286,7 +290,14 @@ export default function EmpAttendanceOpenCam() {
       return;
     }
 
-    if (faceDetected) {
+    if (faceDetected && facePositionValid && webcamRef.current) {
+      // Ensure canvas dimensions match the video stream dimensions
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.width = webcamDimensions.width;
+        canvas.height = webcamDimensions.height;
+      }
+
       const imgSrc = webcamRef.current.getScreenshot();
       setImage(imgSrc);
       setMessage("Image captured successfully!");
@@ -301,6 +312,8 @@ export default function EmpAttendanceOpenCam() {
         timer: 2000,
         timerProgressBar: true,
       });
+    } else if (!facePositionValid) {
+      setMessage("Please position your face properly within the oval before capturing.");
     } else {
       setMessage("No face detected! Please try again.");
     }
@@ -488,8 +501,8 @@ export default function EmpAttendanceOpenCam() {
           <h1 className="text-2xl font-bold text-white text-center">
             Employee Check-In
           </h1>
-          <div className="flex justify-between items-center mt-2">
-            <div className="text-white text-sm">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-2">
+            <div className="text-white text-sm mb-2 sm:mb-0">
               <p>{getCurrentDate()}</p>
               <p>{getCurrentTime()}</p>
             </div>
@@ -500,7 +513,7 @@ export default function EmpAttendanceOpenCam() {
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {shift && (
             <div className="mb-4 p-3 bg-yellow-50 text-yellow-800 rounded-lg">
               <p className="font-medium">Selected Shift:</p>
@@ -508,67 +521,107 @@ export default function EmpAttendanceOpenCam() {
             </div>
           )}
 
-          <div className="relative w-full mb-6 bg-gray-100 rounded-lg overflow-hidden">
-            <div className="aspect-w-4 aspect-h-3 w-full">
-              {image ? (
-                <img
-                  src={image}
-                  alt="Captured Employee"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <>
-                  <Webcam
-                    ref={webcamRef}
-                    screenshotFormat="image/png"
-                    className="w-640px h-580px object-cover"
-                    mirrored={true}
-                  />
-                  <canvas
-                    ref={canvasRef}
-                    className="absolute top-0 left-0 w-full h-full"
-                  />
-                  {!faceDetected && !loading && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-black/50 rounded-full p-3">
-                        <User size={64} className="text-white opacity-50" />
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+          {image ? (
+            <div className="relative w-full aspect-[4/3] mb-4 mx-auto max-w-[640px]">
+              <img 
+                src={image} 
+                alt="Captured" 
+                className="w-full h-full object-cover rounded-lg"
+              />
             </div>
+          ) : (
+            <div className="relative w-full aspect-[4/3] mb-4 mx-auto max-w-[640px]">
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/png"
+                mirrored={true}
+                className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
+                videoConstraints={{
+                  facingMode: "user",
+                  width: 640,
+                  height: 480
+                }}
+                onUserMedia={handleVideoLoad}
+              />
 
-            <div
-              className={`absolute top-4 right-4 flex items-center px-3 py-1 rounded-full ${
-                faceDetected ? "bg-green-500" : "bg-yellow-500"
-              } text-white text-xs font-medium`}
-            >
-              <div
-                className={`w-2 h-2 rounded-full mr-2 ${
-                  faceDetected ? "bg-white animate-pulse" : "bg-white"
-                }`}
-              ></div>
-              {faceDetected ? "Face Detected" : "Waiting for Face"}
+              <canvas
+                ref={canvasRef}
+                width={webcamDimensions.width}
+                height={webcamDimensions.height}
+                className="absolute top-0 left-0 w-full h-full z-20"
+                style={{ display: 'none' }}
+              />
+
+              <div className="absolute top-0 left-0 w-full h-full z-30 pointer-events-none">
+                <div className="w-full h-full bg-black bg-opacity-50">
+                  <svg
+                    className="w-full h-full"
+                    viewBox="0 0 640 480"
+                    preserveAspectRatio="none"
+                  >
+                    <defs>
+                      <mask id="mask">
+                        <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                        <ellipse 
+                          cx={ovalParams.centerX} 
+                          cy={ovalParams.centerY} 
+                          rx={ovalParams.radiusX} 
+                          ry={ovalParams.radiusY} 
+                          fill="black" 
+                        />
+                      </mask>
+                    </defs>
+                    <rect
+                      x="0"
+                      y="0"
+                      width="100%"
+                      height="100%"
+                      fill="black"
+                      fillOpacity="0.6"
+                      mask="url(#mask)"
+                    />
+                    <ellipse
+                      cx={ovalParams.centerX}
+                      cy={ovalParams.centerY}
+                      rx={ovalParams.radiusX}
+                      ry={ovalParams.radiusY}
+                      fill="none"
+                      stroke="white"
+                      strokeDasharray="6 6"
+                      strokeWidth="3"
+                    />
+                  </svg>
+                </div>
+                <div className="absolute bottom-4 w-full text-center text-white px-4">
+                  <p className="text-xs sm:text-sm font-medium drop-shadow-md">
+                    Please place your face inside the oval and ensure it's properly centered
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-3">
             {!image ? (
               <button
                 onClick={capture}
-                disabled={!faceDetected || !shiftAvailable}
+                disabled={!facePositionValid || !shiftAvailable}
                 className={`flex items-center justify-center w-full py-3 px-4 rounded-lg text-white font-medium transition-all ${
-                  faceDetected && shiftAvailable
+                  facePositionValid && shiftAvailable
                     ? "bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700"
                     : "bg-gray-400 cursor-not-allowed"
                 }`}
               >
                 <Camera size={20} className="mr-2" />
-                {faceDetected ? "Capture Photo" : "Position Your Face"}
+                {faceDetected 
+                  ? facePositionValid 
+                    ? "Capture Photo" 
+                    : "Position Your Face Properly"
+                  : "Position Your Face"}
               </button>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   onClick={() => setImage(null)}
                   className="flex items-center justify-center py-3 px-4 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium transition-all"
@@ -601,6 +654,8 @@ export default function EmpAttendanceOpenCam() {
                     message.includes("failed") ||
                     message.includes("no longer available")
                   ? "bg-red-50 text-red-700"
+                  : message.includes("properly positioned")
+                  ? "bg-yellow-50 text-yellow-700"
                   : "bg-blue-50 text-blue-700"
               }`}
             >
@@ -616,8 +671,10 @@ export default function EmpAttendanceOpenCam() {
             <ul className="text-xs text-gray-500 space-y-1 list-disc pl-5">
               <li>Position yourself clearly in front of the camera</li>
               <li>Ensure good lighting for best results</li>
+              <li>Align your face within the oval guide</li>
               <li>Make sure only your face is visible in the frame</li>
               <li>After capturing, verify your image before checking in</li>
+              <li>Background must be visible and at the SHOP</li>
             </ul>
           </div>
         </div>

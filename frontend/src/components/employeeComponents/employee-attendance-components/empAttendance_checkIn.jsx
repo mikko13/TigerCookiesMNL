@@ -25,7 +25,7 @@ export default function EmpAttendanceCheckIn() {
   const shiftTimes = {
     morning: {
       start: { hour: 9, minute: 0 }, // 9:00 AM
-      available: { hour: 8, minute: 30 }, // 8:30 AM (30 min before)
+      available: { hour: 10, minute: 30 }, // 8:30 AM (30 min before)
       cutoff: { hour: 18, minute: 1 }, // 6:01 PM (cutoff time)
     },
     afternoon: {
