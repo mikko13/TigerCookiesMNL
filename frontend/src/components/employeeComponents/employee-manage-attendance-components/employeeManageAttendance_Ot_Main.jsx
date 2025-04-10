@@ -14,6 +14,10 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
   useEffect(() => {
     if (overtimeRecords.length > 0) {
       setLoading(false);
+    } else {
+      // If no records exist, set loading to false after a short delay
+      const timer = setTimeout(() => setLoading(false), 500);
+      return () => clearTimeout(timer);
     }
   }, [overtimeRecords]);
 
@@ -40,13 +44,16 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
     return employee ? `${employee.firstName} ${employee.lastName}` : "Unknown";
   };
 
-  const filteredRecords = overtimeRecords.filter(record => 
-    formatDate(record.dateRequested).includes(searchTerm || "")
-  );
+  const filteredRecords = overtimeRecords
+    .filter(record => formatDate(record.dateRequested).includes(searchTerm || ""))
+    .sort((a, b) => new Date(b.dateRequested) - new Date(a.dateRequested));
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
   };
+
+  // Check if there are no records (not just filtered ones)
+  const noRecords = overtimeRecords.length === 0;
 
   return (
     <div className="flex flex-col space-y-6">
@@ -54,6 +61,14 @@ export default function EmployeeManageAttendanceOT({ searchTerm, setSearchTerm }
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading overtime records...</p>
+        </div>
+      ) : noRecords ? (
+        <div className="bg-white rounded-lg shadow-md p-8 text-center flex flex-col items-center">
+          <AlertTriangle size={48} className="text-yellow-500 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-800">No Records Yet</h3>
+          <p className="text-gray-600 mt-2">
+            There are no overtime records available yet.
+          </p>
         </div>
       ) : filteredRecords.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center flex flex-col items-center">

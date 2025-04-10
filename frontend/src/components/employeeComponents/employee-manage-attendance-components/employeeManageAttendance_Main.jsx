@@ -24,6 +24,15 @@ export default function EmployeeManageAttendanceMain({
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage] = useState(5); // Fewer records per page for employee view
 
+  // Sorting function - newest first
+  const sortByNewestFirst = (records) => {
+    return [...records].sort((a, b) => {
+      const dateA = new Date(a.attendanceDate);
+      const dateB = new Date(b.attendanceDate);
+      return dateB - dateA; // For descending order (newest first)
+    });
+  };
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (loading) {
@@ -90,11 +99,14 @@ export default function EmployeeManageAttendanceMain({
       (filterDate ? record.attendanceDate === filterDate : true)
   );
 
+  // Sort attendance by date (newest first)
+  const sortedAttendance = sortByNewestFirst(filteredAttendance);
+
   // Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredAttendance.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(filteredAttendance.length / recordsPerPage);
+  const currentRecords = sortedAttendance.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(sortedAttendance.length / recordsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -410,7 +422,7 @@ export default function EmployeeManageAttendanceMain({
               {/* Pagination */}
               <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
                 <div className="text-sm text-gray-600">
-                  Showing {indexOfFirstRecord + 1} to {Math.min(indexOfLastRecord, filteredAttendance.length)} of {filteredAttendance.length} records
+                  Showing {indexOfFirstRecord + 1} to {Math.min(indexOfLastRecord, sortedAttendance.length)} of {sortedAttendance.length} records
                 </div>
                 <div className="flex space-x-2">
                   <button
