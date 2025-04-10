@@ -358,5 +358,19 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post('/change-password', async (req, res) => {
+  const { userId, password } = req.body;
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await User.findByIdAndUpdate(userId, { password: hashedPassword });
+
+  if (!user) {
+      return res.status(400).send('User not found');
+  }
+
+  res.status(200).send('Password updated successfully');
+});
+
 
 module.exports = router;
