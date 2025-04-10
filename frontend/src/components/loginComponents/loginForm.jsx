@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLoginState } from "./loginConstants";
 import PrivacyPolicyModal from "./privacypolicyModal";
+import FirstTimeLoginModal from "./FirstTimeLoginModal";
+import axios from "axios";
+import { backendURL } from "../../urls/URL";
 
 export default function LoginForm({ showToast }) {
   const {
@@ -13,10 +16,17 @@ export default function LoginForm({ showToast }) {
     handleLogin,
     error,
     success,
+    user,
+    setUser,
+    navigate,
+    isCheckingSession,
   } = useLoginState();
 
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [fadeEffect, setFadeEffect] = useState(false);
+  const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
+  const [firstTimeUser, setFirstTimeUser] = useState(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -40,9 +50,134 @@ export default function LoginForm({ showToast }) {
     setTimeout(() => setShowPrivacyPolicy(false), 300);
   };
 
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+
+    try {
+      // First check if this is a valid account
+      const checkResponse = await axios.post(
+        `${backendURL}/api/employees/check-email`,
+        { email }
+      );
+
+      if (!checkResponse.data.exists) {
+        // If account doesn't exist, proceed with normal login to get proper error
+        await handleLogin(e);
+        setIsLoggingIn(false);
+        return;
+      }
+
+      // If account exists, check status and if first-time login
+      const statusResponse = await axios.post(
+        `${backendURL}/api/employees/check-status`,
+        { email }
+      );
+
+      if (statusResponse.data.isActive === 0) {
+        showToast("error", "Access Denied: Your account has been deactivated");
+        setIsLoggingIn(false);
+        return;
+      }
+
+      // Perform login attempt
+      const loginResponse = await axios.post(
+        `${backendURL}/api/login`,
+        { email, password },
+        { withCredentials: true }
+      );
+
+      // If login successful, check if this is first-time login for employee
+      if (
+        loginResponse.data.user &&
+        loginResponse.data.user.role === "employee"
+      ) {
+        // Fetch full employee data to check isFirstTime flag
+        const employeeResponse = await axios.get(
+          `${backendURL}/api/employees/${loginResponse.data.user.id}`,
+          { withCredentials: true }
+        );
+
+        if (employeeResponse.data.isFirstTime === 1) {
+          // Store the user and show first-time login modal
+          setFirstTimeUser(employeeResponse.data);
+          setUser(loginResponse.data.user); // Set user state to maintain session
+          localStorage.setItem("user", JSON.stringify(loginResponse.data.user));
+          setShowFirstTimeModal(true);
+          setIsLoggingIn(false);
+          return;
+        }
+      }
+
+      // For admin or non-first-time employee, proceed normally
+      showToast("success", "Login Successful");
+      setUser(loginResponse.data.user);
+      localStorage.setItem("user", JSON.stringify(loginResponse.data.user));
+
+      // Navigate based on role
+      setTimeout(() => {
+        if (loginResponse.data.user.role === "admin") {
+          navigate("/ManageEmployeeAccounts", { replace: true });
+        } else {
+          navigate("/checkin", { replace: true });
+        }
+      }, 1000);
+    } catch (err) {
+      showToast("error", err.response?.data?.message || "Login failed");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleFirstTimeComplete = (updatedUser) => {
+    setShowFirstTimeModal(false);
+    showToast("success", "Profile updated successfully! Redirecting...");
+
+    // Important: Update the local user state with the updated user data
+    setUser({
+      ...user,
+      ...updatedUser,
+      isFirstTime: 0,
+    });
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        ...user,
+        ...updatedUser,
+        isFirstTime: 0,
+      })
+    );
+
+    // Use replace to prevent back navigation to login
+    setTimeout(() => {
+      navigate("/checkin", { replace: true });
+    }, 1500);
+  };
+
+  const handleFirstTimeCancel = () => {
+    setShowFirstTimeModal(false);
+    // Log out the user since they canceled the first-time setup
+    axios
+      .post(`${backendURL}/api/login/logout`, {}, { withCredentials: true })
+      .then(() => {
+        localStorage.removeItem("user");
+        setUser(null);
+        showToast("info", "Setup canceled. Please login again when ready.");
+      })
+      .catch((error) => {
+        console.error("Logout error:", error);
+      });
+  };
+
+  // If checking session, show loading or nothing
+  if (isCheckingSession) {
+    return null; // Or a loading spinner
+  }
+
   return (
     <div className="bg-white mt-0 md:mt-20 p-6 max-w-md shadow-lg rounded-lg border-t-4 border-yellow-400 transition-all duration-300 hover:shadow-2xl">
-      <form className="space-y-6" onSubmit={handleLogin}>
+      <form className="space-y-6" onSubmit={handleFormSubmit}>
         <div className="text-center mb-8">
           <h3 className="text-yellow-800 text-3xl font-bold tracking-wide">
             Welcome Back!
@@ -187,19 +322,31 @@ export default function LoginForm({ showToast }) {
 
         <button
           type="submit"
+          disabled={isLoggingIn}
           className="w-full py-3.5 px-4 mt-6 text-base tracking-wide rounded-lg text-yellow-900 font-bold 
           bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 hover:from-yellow-500 hover:via-yellow-400 hover:to-yellow-500
-          transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl"
+          transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl disabled:opacity-70"
         >
-          Sign in
+          {isLoggingIn ? "Signing in..." : "Sign in"}
         </button>
       </form>
 
+      {/* Privacy Policy Modal */}
       <PrivacyPolicyModal
         show={showPrivacyPolicy}
         fadeEffect={fadeEffect}
         closeModal={closeModal}
       />
+
+      {/* First Time Login Modal */}
+      {showFirstTimeModal && firstTimeUser && (
+        <FirstTimeLoginModal
+          user={firstTimeUser}
+          onComplete={handleFirstTimeComplete}
+          onCancel={handleFirstTimeCancel}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }

@@ -7,16 +7,15 @@ import {
   CheckCircle,
   Loader2,
   Mail,
-  Phone,
   Lock,
-  Home,
   User,
   Briefcase,
   PhilippinePeso,
   Calendar,
-  Clock,
   EyeIcon,
   EyeOff,
+  RefreshCw,
+  Hash,
 } from "lucide-react";
 import { backendURL } from "../../../urls/URL";
 
@@ -26,11 +25,8 @@ export default function CreateAccountForm({ onRoleChange }) {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
     password: "",
-    address: "",
-    gender: "",
-    dateOfBirth: "",
+    employeeID: "",
     hiredDate: "",
     position: "",
     ratePerHour: "",
@@ -43,6 +39,43 @@ export default function CreateAccountForm({ onRoleChange }) {
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [usingDefaultPassword, setUsingDefaultPassword] = useState(true);
+
+  useEffect(() => {
+    // Auto-generate password when firstName or lastName changes
+    if (usingDefaultPassword && formData.firstName && formData.lastName) {
+      const generatedPassword = `${formData.firstName}${formData.lastName}@123`;
+      setFormData((prev) => ({
+        ...prev,
+        password: generatedPassword,
+      }));
+    }
+  }, [formData.firstName, formData.lastName, usingDefaultPassword]);
+
+  const toggleDefaultPassword = () => {
+    setUsingDefaultPassword(!usingDefaultPassword);
+    if (!usingDefaultPassword) {
+      // Switching back to default password
+      if (formData.firstName && formData.lastName) {
+        const generatedPassword = `${formData.firstName}${formData.lastName}@123`;
+        setFormData((prev) => ({
+          ...prev,
+          password: generatedPassword,
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          password: "",
+        }));
+      }
+    } else {
+      // Switching to manual password - clear it
+      setFormData((prev) => ({
+        ...prev,
+        password: "",
+      }));
+    }
+  };
 
   const getPasswordStrength = () => {
     const password = formData.password;
@@ -155,24 +188,6 @@ export default function CreateAccountForm({ onRoleChange }) {
     today.setHours(0, 0, 0, 0);
 
     if (formData.role.toLowerCase() === "employee") {
-      if (formData.dateOfBirth) {
-        const dob = new Date(formData.dateOfBirth);
-
-        if (isNaN(dob.getTime())) {
-          errors.dateOfBirth = "Invalid date format";
-        } else {
-          if (dob > today) {
-            errors.dateOfBirth = "Date of birth cannot be in the future";
-          }
-
-          const minAgeDate = new Date();
-          minAgeDate.setFullYear(minAgeDate.getFullYear() - 16);
-          if (dob > minAgeDate) {
-            errors.dateOfBirth = "Employee must be at least 16 years old";
-          }
-        }
-      }
-
       if (formData.hiredDate) {
         const hiredDate = new Date(formData.hiredDate);
 
@@ -213,9 +228,7 @@ export default function CreateAccountForm({ onRoleChange }) {
     }
 
     if (!isAdmin) {
-      if (!formData.phone) errors.phone = "Phone number is required";
-      else if (!/^(\+63|0)9\d{9}$/.test(formData.phone))
-        errors.phone = "Phone number is invalid";
+      if (!formData.employeeID) errors.employeeID = "Employee ID is required";
       if (!formData.position) errors.position = "Position is required";
       if (!formData.hiredDate) errors.hiredDate = "Hired date is required";
 
@@ -282,11 +295,8 @@ export default function CreateAccountForm({ onRoleChange }) {
       firstName: "",
       lastName: "",
       email: "",
-      phone: "",
       password: "",
-      address: "",
-      gender: "",
-      dateOfBirth: "",
+      employeeID: "",
       hiredDate: "",
       position: "",
       ratePerHour: "",
@@ -300,6 +310,7 @@ export default function CreateAccountForm({ onRoleChange }) {
     setProfilePicture(null);
     setProfilePreview(null);
     setFormErrors({});
+    setUsingDefaultPassword(true);
   };
 
   useEffect(() => {
@@ -394,6 +405,38 @@ export default function CreateAccountForm({ onRoleChange }) {
           </div>
 
           <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Employee ID field - moved BEFORE firstName for employees only */}
+            {!isAdmin && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Employee ID <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="employeeID"
+                    value={formData.employeeID}
+                    onChange={handleInputChange}
+                    placeholder="Enter employee ID"
+                    className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                      formErrors.employeeID
+                        ? "border-red-500 bg-red-50"
+                        : "border-gray-300 bg-gray-50"
+                    } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                  />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Hash className="w-4 h-4 text-gray-500" />
+                  </div>
+                  {formErrors.employeeID && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center">
+                      <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                      {formErrors.employeeID}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 First Name <span className="text-red-500">*</span>
@@ -482,8 +525,24 @@ export default function CreateAccountForm({ onRoleChange }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password <span className="text-red-500">*</span>
+              <label className="flex justify-between items-center text-sm font-medium text-gray-700 mb-1">
+                <span>
+                  Password <span className="text-red-500">*</span>
+                </span>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={toggleDefaultPassword}
+                    className={`flex items-center text-xs px-2 py-1 rounded ${
+                      usingDefaultPassword
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    {usingDefaultPassword ? "Auto" : "Manual"}
+                  </button>
+                </div>
               </label>
               <div className="relative">
                 <input
@@ -492,6 +551,7 @@ export default function CreateAccountForm({ onRoleChange }) {
                   value={formData.password}
                   onChange={(e) => {
                     setFormData({ ...formData, password: e.target.value });
+                    if (usingDefaultPassword) setUsingDefaultPassword(false);
                     if (formErrors.password) {
                       setFormErrors({ ...formErrors, password: null });
                     }
@@ -502,6 +562,7 @@ export default function CreateAccountForm({ onRoleChange }) {
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 bg-gray-50"
                   } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                  disabled={usingDefaultPassword}
                 />
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Lock className="w-4 h-4 text-gray-500" />
@@ -545,138 +606,46 @@ export default function CreateAccountForm({ onRoleChange }) {
                   {formErrors.password}
                 </p>
               )}
+
+              {usingDefaultPassword &&
+                formData.firstName &&
+                formData.lastName && (
+                  <p className="mt-1 text-xs text-green-600">
+                    Default password: {formData.firstName}
+                    {formData.lastName}@123
+                  </p>
+                )}
             </div>
 
-            {/* Employee-specific fields */}
+            {/* Employee-specific fields - Hired Date moved here */}
             {!isAdmin && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 09171234567"
-                      className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                        formErrors.phone
-                          ? "border-red-500 bg-red-50"
-                          : "border-gray-300 bg-gray-50"
-                      } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
-                    />
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <Phone className="w-4 h-4 text-gray-500" />
-                    </div>
-                    {formErrors.phone && (
-                      <p className="mt-1 text-xs text-red-500 flex items-center">
-                        <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                        {formErrors.phone}
-                      </p>
-                    )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Hired Date <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    name="hiredDate"
+                    value={formData.hiredDate}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                      formErrors.hiredDate
+                        ? "border-red-500 bg-red-50"
+                        : "border-gray-300 bg-gray-50"
+                    } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                  />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Calendar className="w-4 h-4 text-gray-500" />
                   </div>
+                  {formErrors.hiredDate && (
+                    <p className="mt-1 text-xs text-red-500 flex items-center">
+                      <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                      {formErrors.hiredDate}
+                    </p>
+                  )}
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      placeholder="Enter address"
-                      className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
-                    />
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <Home className="w-4 h-4 text-gray-500" />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Gender
-                  </label>
-                  <div className="relative">
-                    <select
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all appearance-none"
-                    >
-                      <option value="" disabled>
-                        Select Gender
-                      </option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                    </select>
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <User className="w-4 h-4 text-gray-500" />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date of Birth
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      value={formData.dateOfBirth}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                        formErrors.dateOfBirth
-                          ? "border-red-500 bg-red-50"
-                          : "border-gray-300 bg-gray-50"
-                      } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
-                    />
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                    </div>
-                    {formErrors.dateOfBirth && (
-                      <p className="mt-1 text-xs text-red-500 flex items-center">
-                        <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                        {formErrors.dateOfBirth}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hired Date <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      name="hiredDate"
-                      value={formData.hiredDate}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 pl-10 rounded-lg border ${
-                        formErrors.hiredDate
-                          ? "border-red-500 bg-red-50"
-                          : "border-gray-300 bg-gray-50"
-                      } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
-                    />
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                    </div>
-                    {formErrors.hiredDate && (
-                      <p className="mt-1 text-xs text-red-500 flex items-center">
-                        <AlertTriangle className="w-3 h-3 mr-1" />{" "}
-                        {formErrors.hiredDate}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </>
+              </div>
             )}
           </div>
         </div>

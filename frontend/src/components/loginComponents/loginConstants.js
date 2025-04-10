@@ -10,10 +10,13 @@ export function useLoginState() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [user, setUser] = useState(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const navigate = useNavigate();
 
+  // Only check session on initial load
   useEffect(() => {
     const checkSession = async () => {
+      setIsCheckingSession(true);
       try {
         const res = await axios.get(`${backendURL}/api/login/session`, {
           withCredentials: true,
@@ -25,18 +28,30 @@ export function useLoginState() {
               {},
               { withCredentials: true }
             );
+            setIsCheckingSession(false);
             return;
           }
 
           setUser(res.data.user);
-          if (res.data.user.role === "admin") {
-            navigate("/ManageEmployeeAccounts");
-          } else {
-            navigate("/checkin");
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+
+          // Only navigate if we're on the login page
+          const isLoginPage =
+            window.location.pathname === "/" ||
+            window.location.pathname === "/login";
+
+          if (isLoginPage) {
+            if (res.data.user.role === "admin") {
+              navigate("/ManageEmployeeAccounts");
+            } else {
+              navigate("/checkin");
+            }
           }
         }
       } catch (error) {
         // Session check failed, do nothing
+      } finally {
+        setIsCheckingSession(false);
       }
     };
     checkSession();
@@ -64,10 +79,8 @@ export function useLoginState() {
         );
 
         if (accountResponse.data.isActive === 0) {
-          setError(
-            "Access Denied: Your account has been deactivated"
-          );
-          return; 
+          setError("Access Denied: Your account has been deactivated");
+          return;
         }
       }
 
@@ -79,9 +92,7 @@ export function useLoginState() {
 
       // Double-check isActive status from login response
       if (response.data.user && response.data.user.isActive === 0) {
-        setError(
-          "Access Denied: Your account has been deactivated"
-        );
+        setError("Access Denied: Your account has been deactivated");
 
         await axios.post(
           `${backendURL}/api/login/logout`,
@@ -96,9 +107,9 @@ export function useLoginState() {
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
       if (response.data.user.role === "admin") {
-        setTimeout(() => navigate("/ManageEmployeeAccounts"), 2000);
+        setTimeout(() => navigate("/ManageEmployeeAccounts"), 1000);
       } else {
-        setTimeout(() => navigate("/checkin"), 2000);
+        setTimeout(() => navigate("/checkin"), 1000);
       }
     } catch (err) {
       setError(err.response?.data?.message || "An error occurred");
@@ -122,5 +133,6 @@ export function useLoginState() {
     navigate,
     togglePasswordVisibility,
     handleLogin,
+    isCheckingSession,
   };
 }

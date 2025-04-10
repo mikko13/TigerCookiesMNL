@@ -38,6 +38,7 @@ const upload = multer({
 router.post("/", upload.single("profilePicture"), async (req, res) => {
   try {
     const {
+      employeeID,
       firstName,
       lastName,
       email,
@@ -57,6 +58,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const account = await Account.create({
+      employeeID,
       firstName,
       lastName,
       email,
@@ -112,22 +114,22 @@ router.post("/login", async (req, res) => {
     }
 
     if (account.isActive === 0) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Access Denied: Your account has been deactivated. Please contact your administrator for assistance.",
-        });
+      return res.status(403).json({
+        message:
+          "Access Denied: Your account has been deactivated. Please contact your administrator for assistance.",
+      });
     }
 
     req.session.user = {
       id: account._id,
+      employeeID: account.employeeID,
       firstName: account.firstName,
       lastName: account.lastName,
       email: account.email,
       phone: account.phone,
       role: account.role,
       isActive: account.isActive,
+      isFirstTime: account.isFirstTime, // Add this to track first-time login status
     };
 
     res.status(200).json({
@@ -148,6 +150,7 @@ router.post("/check-status", async (req, res) => {
     if (account) {
       return res.status(200).json({
         isActive: account.isActive,
+        isFirstTime: account.isFirstTime, // Add this to track first-time login status
         exists: true,
       });
     } else {
@@ -226,6 +229,10 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     overtimeRate,
     role,
     isActive,
+    isFirstTime,
+    sssNumber,
+    philhealthNumber,
+    pagibigNumber,
   } = req.body;
 
   try {
@@ -239,6 +246,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
       employee.password = hashedPassword;
     }
 
+    // Update all fields from the schema
     employee.firstName = firstName || employee.firstName;
     employee.lastName = lastName || employee.lastName;
     employee.email = email || employee.email;
@@ -252,6 +260,11 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     employee.overtimeRate = overtimeRate || employee.overtimeRate;
     employee.role = role || employee.role;
     employee.isActive = isActive !== undefined ? isActive : employee.isActive;
+    employee.isFirstTime =
+      isFirstTime !== undefined ? isFirstTime : employee.isFirstTime;
+    employee.sssNumber = sssNumber || employee.sssNumber;
+    employee.philhealthNumber = philhealthNumber || employee.philhealthNumber;
+    employee.pagibigNumber = pagibigNumber || employee.pagibigNumber;
 
     if (req.body.profilePicture === "") {
       const oldFilePath = path.join(
@@ -285,7 +298,9 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
       message: "Employee updated successfully",
       employee: {
         ...employee.toObject(),
-        profilePicture: `/employee-profile-pics/${employee.profilePicture}`,
+        profilePicture: employee.profilePicture
+          ? `/employee-profile-pics/${employee.profilePicture}`
+          : "",
       },
     });
   } catch (error) {
@@ -320,7 +335,6 @@ router.post("/check-email", async (req, res) => {
   }
 });
 
-
 router.get("/", async (req, res) => {
   try {
     const { checkedIn, isAdmin } = req.query;
@@ -328,49 +342,57 @@ router.get("/", async (req, res) => {
     let employees;
 
     if (checkedIn === "true") {
-      employees = await Attendance.find({ checkInTime: { $ne: null }, checkOutTime: null })
+      // This was using an undefined Attendance model and not returning employees properly
+      const attendanceRecords = await Attendance.find({
+        checkInTime: { $ne: null },
+        checkOutTime: null,
+      })
         .populate("employeeID", "firstName lastName email")
         .lean();
+
+      // Return the formatted records
+      return res.json(
+        attendanceRecords.map((record) => ({
+          _id: record._id,
+          employeeID: record.employeeID._id.toString(),
+          employeeName: record.employeeID
+            ? `${record.employeeID.firstName} ${record.employeeID.lastName}`
+            : "Unknown Employee",
+          attendanceDate: record.attendanceDate,
+          checkinTime: record.checkInTime,
+          checkinPhoto: record.checkInPhoto,
+          checkoutTime: record.checkOutTime,
+          checkoutPhoto: record.checkOutPhoto,
+          attendanceStatus: record.attendanceStatus,
+          shift: record.shift,
+        }))
+      );
     } else if (isAdmin === "true") {
       employees = await Account.find();
+      return res.status(200).json(employees);
     } else {
-      return res.status(400).json({ error: "Invalid request parameters" });
+      employees = await Account.find();
+      return res.status(200).json(employees);
     }
-
-    const formattedRecords = attendanceRecords.map((record) => ({
-      _id: record._id,
-      employeeID: record.employeeID._id.toString(),
-      employeeName: record.employeeID
-        ? `${record.employeeID.firstName} ${record.employeeID.lastName}`
-        : "Unknown Employee",
-      attendanceDate: record.attendanceDate,
-      checkinTime: record.checkInTime,
-      checkinPhoto: record.checkInPhoto,
-      checkoutTime: record.checkOutTime,
-      checkoutPhoto: record.checkOutPhoto,
-      attendanceStatus: record.attendanceStatus,
-      shift: record.shift,
-    }));
-
-    res.json(formattedRecords);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch attendance records" });
+    res.status(500).json({ error: "Failed to fetch employees" });
   }
 });
 
-router.post('/change-password', async (req, res) => {
+router.post("/change-password", async (req, res) => {
   const { userId, password } = req.body;
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const user = await User.findByIdAndUpdate(userId, { password: hashedPassword });
+  const user = await User.findByIdAndUpdate(userId, {
+    password: hashedPassword,
+  });
 
   if (!user) {
-      return res.status(400).send('User not found');
+    return res.status(400).send("User not found");
   }
 
-  res.status(200).send('Password updated successfully');
+  res.status(200).send("Password updated successfully");
 });
-
 
 module.exports = router;
