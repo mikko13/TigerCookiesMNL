@@ -78,7 +78,18 @@ export default function ManageAttendanceMain({
     }
   };
 
-  const filteredAttendance = attendance.filter((record) => {
+ // Add this sorting function near your other utility functions
+const sortByNewestFirst = (records) => {
+  return [...records].sort((a, b) => {
+    const dateA = new Date(a.attendanceDate);
+    const dateB = new Date(b.attendanceDate);
+    return dateB - dateA; // For descending order (newest first)
+  });
+};
+
+// Then update your filteredAttendance calculation:
+const filteredAttendance = sortByNewestFirst(
+  attendance.filter((record) => {
     const nameMatch = record.employeeName
       ?.toLowerCase()
       .includes((searchTerm || "").toLowerCase()) ?? false;
@@ -99,7 +110,8 @@ export default function ManageAttendanceMain({
     }
 
     return nameMatch && dateMatch;
-  });
+  })
+);
 
   // Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;

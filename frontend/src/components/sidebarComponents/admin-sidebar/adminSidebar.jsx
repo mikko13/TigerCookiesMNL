@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
+import { io } from "socket.io-client";
 
 export default function AdminSidebar({
   isExpanded = true,
@@ -22,47 +23,92 @@ export default function AdminSidebar({
   const navigate = useNavigate();
   const [admin, setAdmin] = useState(null);
   const [profilePicUrl, setProfilePicUrl] = useState(null);
+  const [pendingOvertimeCount, setPendingOvertimeCount] = useState(0);
 
+  // Load admin info and profile picture
   useEffect(() => {
     const storedAdmin = localStorage.getItem("user");
     if (storedAdmin) {
       const parsedAdmin = JSON.parse(storedAdmin);
       setAdmin(parsedAdmin);
-
-      // Check if admin profile picture exists
       checkProfilePicture(parsedAdmin.id);
     }
   }, []);
 
-  // Function to check and set profile picture URL
-  const checkProfilePicture = async (adminId) => {
-    // List of common image extensions to try
-    const fileExtensions = ["png", "jpg", "jpeg", "gif", "webp", "bmp"];
+  // Fetch pending overtime count
+  const fetchPendingOvertimeCount = async () => {
+    try {
+      const response = await axios.get(`${backendURL}/api/overtime/pending-count`, {
+        withCredentials: true,
+      });
+      setPendingOvertimeCount(response.data.count);
+    } catch (error) {
+      console.error("Error details:", {
+        message: error.message,
+        url: error.config?.url,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+    }
+  };
 
+  // Initial fetch and polling every 30s
+  useEffect(() => {
+    fetchPendingOvertimeCount();
+
+    const intervalId = setInterval(fetchPendingOvertimeCount, 30000); // every 30s
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Socket for real-time updates
+  useEffect(() => {
+    const socket = io(backendURL, {
+      withCredentials: true,
+      transports: ["websocket"],
+    });
+
+    socket.on("connect", () => {
+      console.log("Connected to socket server");
+      socket.emit("subscribeToOvertime");
+    });
+
+    socket.on("overtimeUpdate", (count) => {
+      setPendingOvertimeCount(count);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from socket server");
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  // Reset notification if actually on /ManageOvertime
+  useEffect(() => {
+    if (location.pathname === "/ManageOvertime") {
+      setPendingOvertimeCount(0);
+    }
+  }, [location.pathname]);
+
+  const checkProfilePicture = async (adminId) => {
+    const fileExtensions = ["png", "jpg", "jpeg", "gif", "webp", "bmp"];
     for (const ext of fileExtensions) {
       const imgUrl = `/admin-profile-pics/${adminId}_profilepic.${ext}`;
-
       try {
-        // Create a temporary image element to check if the file exists
         const img = new Image();
         img.src = imgUrl;
-
-        // Wait for the image to load or fail
         await new Promise((resolve, reject) => {
           img.onload = () => {
             setProfilePicUrl(imgUrl);
             resolve();
           };
           img.onerror = () => reject();
-
-          // Add a timeout to prevent hanging if the image takes too long
           setTimeout(reject, 1000);
         });
-
-        // If we found a valid image, break the loop
         break;
-      } catch (error) {
-        // Continue to the next extension if this one fails
+      } catch {
         continue;
       }
     }
@@ -75,21 +121,15 @@ export default function AdminSidebar({
         {},
         { withCredentials: true }
       );
-
       localStorage.removeItem("admin");
       setAdmin(null);
       navigate("/");
     } catch (error) {
-      console.error(
-        "Logout failed:",
-        error.response?.data?.message || error.message
-      );
+      console.error("Logout failed:", error.response?.data?.message || error.message);
     }
   };
 
-  const isActiveRoute = (route) => {
-    return location.pathname === route;
-  };
+  const isActiveRoute = (route) => location.pathname === route;
 
   const sidebarLinks = [
     {
@@ -111,6 +151,7 @@ export default function AdminSidebar({
       path: "/ManageOvertime",
       name: "Manage Overtime Requests",
       icon: <ClockAlert size={20} />,
+      notificationCount: pendingOvertimeCount,
     },
     {
       path: "/ManageEmployeePayroll",
@@ -171,27 +212,39 @@ export default function AdminSidebar({
         <div className="h-px bg-yellow-600/30 w-full my-4" />
 
         <nav className="flex-1 mt-2 overflow-y-auto no-scrollbar">
-          <ul className="space-y-1">
-            {sidebarLinks.map((link) => (
-              <li key={link.path}>
-                <Link
-                  to={link.path}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                    isActiveRoute(link.path)
-                      ? "bg-yellow-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-yellow-200"
-                  } ${!isExpanded && "justify-center px-2"}`}
-                  title={!isExpanded ? link.name : ""}
-                  onClick={isMobile ? toggleVisibility : undefined}
-                >
-                  <span className="flex items-center justify-center w-6">
-                    {link.icon}
-                  </span>
-                  {isExpanded && <span>{link.name}</span>}
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <ul className="space-y-1">
+  {sidebarLinks.map((link) => {
+    const isActive = isActiveRoute(link.path);
+    const showBadge =
+      link.path === "/ManageOvertime" && pendingOvertimeCount > 0;
+
+    return (
+      <li key={link.path}>
+        <Link
+          to={link.path}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all relative ${
+            isActive ? "bg-yellow-600 text-white shadow-md" : "text-gray-700 hover:bg-yellow-200"
+          } ${!isExpanded ? "justify-center px-2" : ""}`}
+          title={!isExpanded ? link.name : ""}
+          onClick={() => {
+            if (isMobile) toggleVisibility();
+          }}
+        >
+          <div className="relative flex items-center justify-center w-6 h-6">
+            {link.icon}
+            {showBadge && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center animate-pulse">
+                {pendingOvertimeCount > 9 ? "9+" : pendingOvertimeCount}
+              </span>
+            )}
+          </div>
+          {isExpanded && <span>{link.name}</span>}
+        </Link>
+      </li>
+    );
+  })}
+</ul>
+
         </nav>
 
         <div className="mt-auto">

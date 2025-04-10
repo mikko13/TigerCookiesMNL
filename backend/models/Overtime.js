@@ -26,9 +26,11 @@ const OvertimeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    status: {
-      type: String,
-      required: true,
+    status: { 
+      type: String, 
+      enum: ['Pending', 'Approved', 'Rejected'], 
+      default: 'Pending',
+      required: true
     },
     reviewedBy: {
       adminId: {

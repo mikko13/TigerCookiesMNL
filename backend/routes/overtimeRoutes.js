@@ -150,4 +150,16 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 
+// Count pending overtime requests
+router.get('/pending-count', async (req, res) => {
+  try {
+    const count = await Overtime.countDocuments({ status: 'Pending' });
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting pending overtime:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 module.exports = router;
