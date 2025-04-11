@@ -22,19 +22,19 @@ export default function EmpAttendanceOpenCamCheckOut() {
   const [facePositionValid, setFacePositionValid] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
-    height: window.innerHeight
+    height: window.innerHeight,
   });
 
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
       });
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -51,16 +51,16 @@ export default function EmpAttendanceOpenCamCheckOut() {
 
         Swal.fire({
           toast: true,
-          position: 'top-end',
-          icon: 'success',
-          title: 'Face detection models loaded successfully',
+          position: "top-end",
+          icon: "success",
+          title: "Face detection models loaded successfully",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
           didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer)
-            toast.addEventListener('mouseleave', Swal.resumeTimer)
-          }
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
         });
 
         setMessage("Face detection ready. Please position yourself.");
@@ -68,16 +68,16 @@ export default function EmpAttendanceOpenCamCheckOut() {
       } catch (error) {
         Swal.fire({
           toast: true,
-          position: 'top-end',
-          icon: 'error',
-          title: 'Failed to load face detection models',
+          position: "top-end",
+          icon: "error",
+          title: "Failed to load face detection models",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
           didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer)
-            toast.addEventListener('mouseleave', Swal.resumeTimer)
-          }
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
         });
 
         setMessage("Failed to load face detection models");
@@ -112,9 +112,9 @@ export default function EmpAttendanceOpenCamCheckOut() {
       if (!checkInResponse.data.checkedIn) {
         await Swal.fire({
           toast: true,
-          position: 'top-end',
-          icon: 'warning',
-          title: 'You need to check in first',
+          position: "top-end",
+          icon: "warning",
+          title: "You need to check in first",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
@@ -130,9 +130,9 @@ export default function EmpAttendanceOpenCamCheckOut() {
       if (checkOutResponse.data.checkedOut) {
         await Swal.fire({
           toast: true,
-          position: 'top-end',
-          icon: 'info',
-          title: 'You have already checked out',
+          position: "top-end",
+          icon: "info",
+          title: "You have already checked out",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
@@ -143,9 +143,9 @@ export default function EmpAttendanceOpenCamCheckOut() {
     } catch (error) {
       await Swal.fire({
         toast: true,
-        position: 'top-end',
-        icon: 'error',
-        title: 'Error checking attendance status',
+        position: "top-end",
+        icon: "error",
+        title: "Error checking attendance status",
         showConfirmButton: false,
         timer: 3000,
         timerProgressBar: true,
@@ -159,7 +159,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
     centerX: 320,
     centerY: 240,
     radiusX: 120,
-    radiusY: 160
+    radiusY: 160,
   };
 
   const isFaceInOval = (detection) => {
@@ -183,16 +183,16 @@ export default function EmpAttendanceOpenCamCheckOut() {
   const drawDetections = (detections, isInOval) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
   };
-  
+
   const startFaceDetection = () => {
     if (detectionInterval) {
       clearInterval(detectionInterval);
     }
-  
+
     const interval = setInterval(async () => {
       if (webcamRef.current && webcamRef.current.video) {
         const video = webcamRef.current.video;
@@ -202,25 +202,29 @@ export default function EmpAttendanceOpenCamCheckOut() {
               .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
               .withFaceLandmarks()
               .withFaceExpressions();
-  
-            const validDetections = detections.filter(det => {
+
+            const validDetections = detections.filter((det) => {
               const box = det.detection?.box;
-              return box && 
-                    typeof box.x === 'number' && 
-                    typeof box.y === 'number' &&
-                    typeof box.width === 'number' && 
-                    typeof box.height === 'number' &&
-                    box.width > 0 && 
-                    box.height > 0;
+              return (
+                box &&
+                typeof box.x === "number" &&
+                typeof box.y === "number" &&
+                typeof box.width === "number" &&
+                typeof box.height === "number" &&
+                box.width > 0 &&
+                box.height > 0
+              );
             });
-  
+
             if (validDetections.length === 1) {
               const isInOval = isFaceInOval(validDetections[0]);
               setFacePositionValid(isInOval);
               setFaceDetected(true);
-              setMessage(isInOval 
-                ? "Face detected and properly positioned. You can capture now." 
-                : "Face detected but not properly positioned. Center your face in the oval.");
+              setMessage(
+                isInOval
+                  ? "Face detected and properly positioned. You can capture now."
+                  : "Face detected but not properly positioned. Center your face in the oval."
+              );
             } else {
               setFaceDetected(false);
               setFacePositionValid(false);
@@ -239,7 +243,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
         }
       }
     }, 1000);
-  
+
     setDetectionInterval(interval);
   };
 
@@ -248,18 +252,20 @@ export default function EmpAttendanceOpenCamCheckOut() {
       const imgSrc = webcamRef.current.getScreenshot();
       setImage(imgSrc);
       setMessage("Image captured successfully!");
-      
+
       Swal.fire({
         toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'Photo captured successfully',
+        position: "top-end",
+        icon: "success",
+        title: "Photo captured successfully",
         showConfirmButton: false,
         timer: 2000,
         timerProgressBar: true,
       });
     } else if (!facePositionValid) {
-      setMessage("Please position your face properly within the oval before capturing.");
+      setMessage(
+        "Please position your face properly within the oval before capturing."
+      );
     } else {
       setMessage("No face detected! Please try again.");
     }
@@ -291,12 +297,12 @@ export default function EmpAttendanceOpenCamCheckOut() {
     setMessage("Processing check-out...");
 
     const processingToast = Swal.fire({
-      title: 'Processing Check-Out',
-      html: 'Please wait while we process your check-out...',
+      title: "Processing Check-Out",
+      html: "Please wait while we process your check-out...",
       timerProgressBar: true,
       didOpen: () => {
         Swal.showLoading();
-      }
+      },
     });
 
     const currentDateTime = new Date();
@@ -328,9 +334,9 @@ export default function EmpAttendanceOpenCamCheckOut() {
       if (response.data.success) {
         await Swal.fire({
           toast: true,
-          position: 'top-end',
-          icon: 'success',
-          title: 'Check-out successful!',
+          position: "top-end",
+          icon: "success",
+          title: "Check-out successful!",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
@@ -354,7 +360,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
       }
     } catch (error) {
       await processingToast.close();
-      
+
       await Swal.fire({
         title: "Error",
         text: "Error checking out. Please try again later.",
@@ -415,15 +421,15 @@ export default function EmpAttendanceOpenCamCheckOut() {
         <div className="p-6">
           <div className="relative w-full mb-6 bg-gray-100 rounded-lg overflow-hidden">
             {image ? (
-              <div className="relative w-full h-auto">
-                <img 
-                  src={image} 
-                  alt="Captured" 
+              <div className="relative w-full max-w-[90vw] sm:max-w-[640px] min-h-[240px] sm:min-h-[480px] aspect-[4/3] mb-4 mx-auto">
+                <img
+                  src={image}
+                  alt="Captured"
                   className="w-full h-auto max-h-[480px] object-cover rounded-lg"
                 />
               </div>
             ) : (
-              <div className="relative" style={{ paddingBottom: '75%' }}>
+              <div className="relative w-full max-w-[90vw] sm:max-w-[640px] min-h-[240px] sm:min-h-[480px] aspect-[4/3] mb-4 mx-auto">
                 <Webcam
                   audio={false}
                   ref={webcamRef}
@@ -441,7 +447,7 @@ export default function EmpAttendanceOpenCamCheckOut() {
                 <canvas
                   ref={canvasRef}
                   className="absolute top-0 left-0 w-full h-full z-20"
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                 />
 
                 <div className="absolute top-0 left-0 w-full h-full z-30 pointer-events-none">
@@ -453,13 +459,19 @@ export default function EmpAttendanceOpenCamCheckOut() {
                     >
                       <defs>
                         <mask id="mask">
-                          <rect x="0" y="0" width="100%" height="100%" fill="white" />
-                          <ellipse 
-                            cx={ovalParams.centerX} 
-                            cy={ovalParams.centerY} 
-                            rx={ovalParams.radiusX} 
-                            ry={ovalParams.radiusY} 
-                            fill="black" 
+                          <rect
+                            x="0"
+                            y="0"
+                            width="100%"
+                            height="100%"
+                            fill="white"
+                          />
+                          <ellipse
+                            cx={ovalParams.centerX}
+                            cy={ovalParams.centerY}
+                            rx={ovalParams.radiusX}
+                            ry={ovalParams.radiusY}
+                            fill="black"
                           />
                         </mask>
                       </defs>
@@ -486,7 +498,8 @@ export default function EmpAttendanceOpenCamCheckOut() {
                   </div>
                   <div className="absolute bottom-4 w-full text-center text-white px-4">
                     <p className="text-sm font-medium drop-shadow-md">
-                      Please place your face inside the oval and ensure it's properly centered
+                      Please place your face inside the oval and ensure it's
+                      properly centered
                     </p>
                   </div>
                 </div>
@@ -506,9 +519,9 @@ export default function EmpAttendanceOpenCamCheckOut() {
                 }`}
               >
                 <Camera size={20} className="mr-2" />
-                {faceDetected 
-                  ? facePositionValid 
-                    ? "Capture Photo" 
+                {faceDetected
+                  ? facePositionValid
+                    ? "Capture Photo"
                     : "Position Your Face Properly"
                   : "Position Your Face"}
               </button>
