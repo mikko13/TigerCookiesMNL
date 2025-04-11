@@ -665,10 +665,10 @@ export default function EmpAttendanceOpenCam() {
           )}
 
           <div className="mt-6 border-t border-gray-200 pt-4">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">
+            <h3 className="text-m font-medium text-gray-500 mb-2">
               Instructions:
             </h3>
-            <ul className="text-xs text-gray-500 space-y-1 list-disc pl-5">
+            <ul className="text-sm text-gray-500 space-y-1 list-disc pl-5">
               <li>Position yourself clearly in front of the camera</li>
               <li>Ensure good lighting for best results</li>
               <li>Align your face within the oval guide</li>

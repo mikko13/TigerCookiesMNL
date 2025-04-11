@@ -25,6 +25,7 @@ const checkoutRoutes = require("./routes/checkoutRoutes");
 const authRoutes = require("./routes/authRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const overtimeRoutes = require("./routes/overtimeRoutes");
+const testRoutes = require("./routes/testRoutes");
 
 const { frontendURL, backendURL } = require("./urls/URL");
 
@@ -92,6 +93,7 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/payroll", payrollRoutes);
 app.use("/api/overtime", overtimeRoutes);
 app.use("/api/login", authRoutes);
+app.use("/api", testRoutes);
 
 // --- API for Pending Overtime Count ---
 app.get("/api/overtime/pending-count", async (req, res) => {

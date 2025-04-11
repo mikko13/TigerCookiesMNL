@@ -5,6 +5,8 @@ const bcrypt = require("bcryptjs");
 const Account = require("../models/Employees");
 const router = express.Router();
 const fs = require("fs");
+const nodemailer = require("nodemailer");
+const { sendAccountCreatedEmail } = require("../services/emailNotification");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -34,6 +36,7 @@ const upload = multer({
   },
   limits: { fileSize: 5 * 1024 * 1024 },
 });
+
 
 router.post("/", upload.single("profilePicture"), async (req, res) => {
   try {
@@ -75,21 +78,48 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       isActive,
     });
 
+    // Handle profile picture if uploaded
     if (req.file) {
-      const newFilename = `${account._id}_profilepic${path.extname(
-        req.file.originalname
-      )}`;
+      const newFilename = `${account._id}_profilepic${path.extname(req.file.originalname)}`;
       const newFilePath = path.join(path.dirname(req.file.path), newFilename);
       fs.renameSync(req.file.path, newFilePath);
       account.profilePicture = newFilename;
       await account.save();
     }
 
+    // Prepare email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Welcome to the Team!',
+      html: `
+        <p>Hi ${firstName},</p>
+        <p>You are now part of the team!</p>
+        <p>Your work email is: ${email}</p>
+        <p>Your default password is: ${password}</p>
+        <p><a href="http://localhost:3000/">Click here</a> to change your password.</p>
+        <p>After logging in, please fill out your personal information.</p>
+      `,
+    };
+
+    // Send welcome email
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log("Email sent successfully");
+    } catch (emailError) {
+      console.error("Error sending email:", emailError);
+      // Don't fail the request just because email failed
+    }
+
+    // Send response
     res.status(201).json(account);
+
   } catch (error) {
+    console.error("Error creating account:", error);
     res.status(400).json({ message: error.message });
   }
 });
+
 
 router.get("/", async (req, res) => {
   try {
@@ -295,7 +325,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
 
     await employee.save();
     res.status(200).json({
-      message: "Employee updated successfully",
+      message: "Employee updated successfully.",
       employee: {
         ...employee.toObject(),
         profilePicture: employee.profilePicture

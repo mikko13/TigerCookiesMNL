@@ -2,6 +2,15 @@ require("dotenv").config();
 const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 
+const transporter = nodemailer.createTransport({
+  service: process.env.EMAIL_SERVICE || 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_APP_PASSWORD,
+  },
+});
+
+
 class emailNotification {
   constructor() {
     this.oauth2Client = new google.auth.OAuth2(
@@ -63,6 +72,43 @@ class emailNotification {
       await transporter.sendMail(mailOptions);
     } catch (error) {}
   }
+
+  async sendAccountCreatedEmail(employeeEmail, employeeName, defaultPassword, passwordChangeLink) {
+    const htmlContent = `
+      <div style="max-width: 600px; margin: auto; padding: 20px; font-family: Arial, sans-serif; background-color: #f9f9f9; border-radius: 10px; text-align: center; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);">
+        <div style="background-color: #4CAF50; padding: 15px; border-radius: 10px 10px 0 0;">
+          <h1 style="margin: 0; font-size: 24px; color: #ffffff;">🎉 Welcome to the Team!</h1>
+        </div>
+        <div style="padding: 20px; background-color: #ffffff;">
+          <p style="font-size: 18px; color: #555;">Hello ${employeeName},</p>
+          <p style="font-size: 16px; color: #777;">
+            You are now officially part of <strong>Tiger Cookies MNL</strong>! 🎉
+          </p>
+          <div style="margin: 20px 0; text-align: left;">
+            <p style="font-size: 16px; color: #555;">
+              <strong>Work Email:</strong> ${employeeEmail}<br>
+              <strong>Temporary Password:</strong> ${defaultPassword}
+            </p>
+          </div>
+          <p style="font-size: 16px; color: #777;">Use the credentials above to log in to the system.</p>
+          <p style="font-size: 16px; color: #777;">For your security, please update your password immediately by clicking the button below:</p>
+          <a href="${passwordChangeLink}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">Change Your Password</a>
+          <p style="font-size: 14px; color: #777; margin-top: 30px;">After logging in, please complete your profile with your personal information.</p>
+          <p style="font-size: 14px; color: #ff0000; font-weight: bold;">This is an automated message. Please do not reply.</p>
+        </div>
+        <div style="padding: 15px; background-color: #f0f0f0; border-radius: 0 0 10px 10px;">
+          <p style="margin: 0; font-size: 14px; color: #777;">© ${new Date().getFullYear()} Tiger Cookies MNL</p>
+        </div>
+      </div>
+    `;
+
+    return this.sendEmail(
+      employeeEmail,
+      "🎉 Welcome to Tiger Cookies MNL!",
+      htmlContent
+    );
+  }
+
 
   async sendOvertimeRequestEmail(
     adminEmail,
@@ -155,3 +201,4 @@ class emailNotification {
 }
 
 module.exports = new emailNotification();
+

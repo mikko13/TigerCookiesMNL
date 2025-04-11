@@ -240,54 +240,56 @@ export default function CreateAccountForm({ onRoleChange }) {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      showToast("error", "Please correct the errors in the form.");
-      return;
+  // In your CreateAccountForm component
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) {
+    showToast("error", "Please correct the errors in the form.");
+    return;
+  }
+  setLoading(true);
+
+  try {
+    const formDataToSend = new FormData();
+    const isAdmin = formData.role.toLowerCase() === "admin";
+
+    // Append all form data
+    Object.keys(formData).forEach(key => {
+      formDataToSend.append(key, formData[key]);
+    });
+
+    if (profilePicture) {
+      formDataToSend.append("profilePicture", profilePicture);
     }
-    setLoading(true);
 
-    try {
-      const formDataToSend = new FormData();
-      const isAdmin = formData.role.toLowerCase() === "admin";
-
-      const fieldsToInclude = isAdmin
-        ? ["firstName", "lastName", "email", "password", "role"]
-        : Object.keys(formData);
-
-      fieldsToInclude.forEach((key) => {
-        formDataToSend.append(key, formData[key]);
-      });
-
-      if (profilePicture) {
-        formDataToSend.append("profilePicture", profilePicture);
+    const endpoint = isAdmin ? "admins" : "employees";
+    const response = await fetch(`${backendURL}/api/${endpoint}`, {
+      method: "POST",
+      body: formDataToSend,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
+    });
 
-      const endpoint = isAdmin ? "admins" : "employees";
-      const successMessage = isAdmin
-        ? "Admin account created successfully!"
-        : "Employee account created successfully!";
+    const data = await response.json();
 
-      const response = await fetch(`${backendURL}/api/${endpoint}`, {
-        method: "POST",
-        body: formDataToSend,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create account");
-      }
-
-      await response.json();
-      showToast("success", successMessage);
-      resetForm();
-    } catch (error) {
-      showToast("error", error.message || "Failed to create account.");
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to create account");
     }
-  };
+
+    showToast("success", 
+      isAdmin 
+        ? "Admin account created successfully!" 
+        : "Employee account created successfully! Welcome email sent."
+    );
+    
+    resetForm();
+  } catch (error) {
+    showToast("error", error.message || "Failed to create account.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const resetForm = () => {
     setFormData({
