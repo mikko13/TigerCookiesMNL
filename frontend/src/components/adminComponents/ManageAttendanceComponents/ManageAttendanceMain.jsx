@@ -18,8 +18,8 @@ import useEmployees from "./fetchEmployees";
 
 // Safe storage access utility
 const getAuthToken = () => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("token");
 };
 
 export default function ManageAttendanceMain({
@@ -27,6 +27,7 @@ export default function ManageAttendanceMain({
   setSearchTerm,
   filterDate,
   setFilterDate,
+  sortOption,
 }) {
   const [authToken] = useState(getAuthToken());
   const fetchEmployees = useEmployees(authToken);
@@ -50,7 +51,7 @@ export default function ManageAttendanceMain({
   }, [fetchedAttendance]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -64,59 +65,116 @@ export default function ManageAttendanceMain({
   // Calculate overtime hours
   const calculateOvertimeHours = (startOT, endOT) => {
     if (!startOT || !endOT) return 0;
-    
+
     try {
       const start = new Date(`2000-01-01T${startOT}`);
       const end = new Date(`2000-01-01T${endOT}`);
-      
+
       let diff = (end - start) / (1000 * 60 * 60); // Convert to hours
       if (diff < 0) diff += 24; // Handle overnight overtime
-      
+
       return Math.round(diff * 100) / 100; // Round to 2 decimal places
     } catch (error) {
       return 0;
     }
   };
 
- // Add this sorting function near your other utility functions
-const sortByNewestFirst = (records) => {
-  return [...records].sort((a, b) => {
-    const dateA = new Date(a.attendanceDate);
-    const dateB = new Date(b.attendanceDate);
-    return dateB - dateA; // For descending order (newest first)
-  });
-};
+  // Add this sorting function near your other utility functions
+  const sortByNewestFirst = (records) => {
+    return [...records].sort((a, b) => {
+      const dateA = new Date(a.attendanceDate);
+      const dateB = new Date(b.attendanceDate);
+      return dateB - dateA; // For descending order (newest first)
+    });
+  };
 
-// Then update your filteredAttendance calculation:
-const filteredAttendance = sortByNewestFirst(
-  attendance.filter((record) => {
-    const nameMatch = record.employeeName
-      ?.toLowerCase()
-      .includes((searchTerm || "").toLowerCase()) ?? false;
+  // Add this sorting function near your other utility functions
+  const sortAttendance = (records, option) => {
+    const sortedRecords = [...records];
 
-    let dateMatch = true;
-    if (filterDate) {
-      try {
-        const recordDate = new Date(record.attendanceDate);
-        const filterDateObj = new Date(filterDate);
+    switch (option) {
+      case "recent":
+        return sortedRecords.sort((a, b) => {
+          const dateA = new Date(a.attendanceDate);
+          const dateB = new Date(b.attendanceDate);
+          return dateB - dateA; // Newest first
+        });
 
-        dateMatch =
-          recordDate.getFullYear() === filterDateObj.getFullYear() &&
-          recordDate.getMonth() === filterDateObj.getMonth() &&
-          recordDate.getDate() === filterDateObj.getDate();
-      } catch (error) {
-        dateMatch = record.attendanceDate === filterDate;
-      }
+      case "oldest":
+        return sortedRecords.sort((a, b) => {
+          const dateA = new Date(a.attendanceDate);
+          const dateB = new Date(b.attendanceDate);
+          return dateA - dateB; // Oldest first
+        });
+
+      case "name-asc":
+        return sortedRecords.sort((a, b) =>
+          a.employeeName?.localeCompare(b.employeeName)
+        );
+
+      case "name-desc":
+        return sortedRecords.sort((a, b) =>
+          b.employeeName?.localeCompare(a.employeeName)
+        );
+
+      case "early-in":
+        return sortedRecords.sort((a, b) => {
+          if (!a.checkInTime || !b.checkInTime) return 0;
+          return a.checkInTime.localeCompare(b.checkInTime);
+        });
+
+      case "late-in":
+        return sortedRecords.sort((a, b) => {
+          if (!a.checkInTime || !b.checkInTime) return 0;
+          return b.checkInTime.localeCompare(a.checkInTime);
+        });
+
+      case "long-hours":
+        return sortedRecords.sort((a, b) => {
+          const hoursA = parseFloat(a.totalHours) || 0;
+          const hoursB = parseFloat(b.totalHours) || 0;
+          return hoursB - hoursA;
+        });
+
+      default:
+        return sortedRecords;
     }
+  };
 
-    return nameMatch && dateMatch;
-  })
-);
+  const filteredAttendance = sortAttendance(
+    attendance.filter((record) => {
+      const nameMatch =
+        record.employeeName
+          ?.toLowerCase()
+          .includes((searchTerm || "").toLowerCase()) ?? false;
+
+      let dateMatch = true;
+      if (filterDate) {
+        try {
+          const recordDate = new Date(record.attendanceDate);
+          const filterDateObj = new Date(filterDate);
+
+          dateMatch =
+            recordDate.getFullYear() === filterDateObj.getFullYear() &&
+            recordDate.getMonth() === filterDateObj.getMonth() &&
+            recordDate.getDate() === filterDateObj.getDate();
+        } catch (error) {
+          dateMatch = record.attendanceDate === filterDate;
+        }
+      }
+
+      return nameMatch && dateMatch;
+    }),
+    sortOption // Pass the sortOption to the sorting function
+  );
 
   // Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredAttendance.slice(indexOfFirstRecord, indexOfLastRecord);
+  const currentRecords = filteredAttendance.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
   const totalPages = Math.ceil(filteredAttendance.length / recordsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -127,10 +185,11 @@ const filteredAttendance = sortByNewestFirst(
 
   const openPhotoModal = (photoId, type) => {
     if (!photoId) return;
-    
-    const url = photoId.startsWith('http') || photoId.startsWith('/')
-      ? photoId
-      : type === "checkin"
+
+    const url =
+      photoId.startsWith("http") || photoId.startsWith("/")
+        ? photoId
+        : type === "checkin"
         ? `/employee-checkin-photos/${photoId}`
         : `/employee-checkout-photos/${photoId}`;
 
@@ -155,9 +214,13 @@ const filteredAttendance = sortByNewestFirst(
 
   const getPhotoUrl = (photoId, type) => {
     if (!photoId) return null;
-    return photoId.startsWith('http') || photoId.startsWith('/')
+    return photoId.startsWith("http") || photoId.startsWith("/")
       ? photoId
-      : `/${type === 'checkin' ? 'employee-checkin-photos' : 'employee-checkout-photos'}/${photoId}`;
+      : `/${
+          type === "checkin"
+            ? "employee-checkin-photos"
+            : "employee-checkout-photos"
+        }/${photoId}`;
   };
 
   return (
@@ -207,8 +270,11 @@ const filteredAttendance = sortByNewestFirst(
           {isMobile ? (
             <div className="divide-y divide-gray-200">
               {currentRecords.map((record) => {
-                const overtimeHours = calculateOvertimeHours(record.startOT, record.endOT);
-                
+                const overtimeHours = calculateOvertimeHours(
+                  record.startOT,
+                  record.endOT
+                );
+
                 return (
                   <div key={record._id} className="p-4">
                     <div
@@ -249,7 +315,9 @@ const filteredAttendance = sortByNewestFirst(
                           </div>
                           <div>
                             <p className="text-gray-500">Check In</p>
-                            <p className="font-medium">{record.checkInTime || "N/A"}</p>
+                            <p className="font-medium">
+                              {record.checkInTime || "N/A"}
+                            </p>
                           </div>
                           <div>
                             <p className="text-gray-500">Check Out</p>
@@ -268,7 +336,9 @@ const filteredAttendance = sortByNewestFirst(
                           <div>
                             <p className="text-gray-500">Overtime Hours</p>
                             <p className="font-medium">
-                              {overtimeHours > 0 ? `${overtimeHours} hrs` : "N/A"}
+                              {overtimeHours > 0
+                                ? `${overtimeHours} hrs`
+                                : "N/A"}
                             </p>
                           </div>
                           <div>
@@ -277,7 +347,10 @@ const filteredAttendance = sortByNewestFirst(
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  openPhotoModal(record.checkInPhoto, "checkin");
+                                  openPhotoModal(
+                                    record.checkInPhoto,
+                                    "checkin"
+                                  );
                                 }}
                                 className="inline-flex items-center text-blue-600"
                               >
@@ -294,7 +367,10 @@ const filteredAttendance = sortByNewestFirst(
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  openPhotoModal(record.checkOutPhoto, "checkout");
+                                  openPhotoModal(
+                                    record.checkOutPhoto,
+                                    "checkout"
+                                  );
                                 }}
                                 className="inline-flex items-center text-blue-600"
                               >
@@ -387,8 +463,11 @@ const filteredAttendance = sortByNewestFirst(
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentRecords.map((record) => {
-                      const overtimeHours = calculateOvertimeHours(record.startOT, record.endOT);
-                      
+                      const overtimeHours = calculateOvertimeHours(
+                        record.startOT,
+                        record.endOT
+                      );
+
                       return (
                         <tr
                           key={record._id}
@@ -422,7 +501,9 @@ const filteredAttendance = sortByNewestFirst(
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                             <div className="flex items-center">
                               <Clock size={16} className="mr-1 text-gray-500" />
-                              {overtimeHours > 0 ? `${overtimeHours} hrs` : "N/A"}
+                              {overtimeHours > 0
+                                ? `${overtimeHours} hrs`
+                                : "N/A"}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -453,7 +534,10 @@ const filteredAttendance = sortByNewestFirst(
                             {record.checkOutPhoto ? (
                               <button
                                 onClick={() =>
-                                  openPhotoModal(record.checkOutPhoto, "checkout")
+                                  openPhotoModal(
+                                    record.checkOutPhoto,
+                                    "checkout"
+                                  )
                                 }
                                 className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
                               >
@@ -487,31 +571,47 @@ const filteredAttendance = sortByNewestFirst(
               {/* Pagination */}
               <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
                 <div className="text-sm text-gray-600">
-                  Showing {indexOfFirstRecord + 1} to {Math.min(indexOfLastRecord, filteredAttendance.length)} of {filteredAttendance.length} records
+                  Showing {indexOfFirstRecord + 1} to{" "}
+                  {Math.min(indexOfLastRecord, filteredAttendance.length)} of{" "}
+                  {filteredAttendance.length} records
                 </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => paginate(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
                   >
                     <ChevronLeft size={20} />
                   </button>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-                    <button
-                      key={number}
-                      onClick={() => paginate(number)}
-                      className={`px-3 py-1 rounded-md ${currentPage === number ? 'bg-yellow-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-                    >
-                      {number}
-                    </button>
-                  ))}
-                  
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (number) => (
+                      <button
+                        key={number}
+                        onClick={() => paginate(number)}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === number
+                            ? "bg-yellow-500 text-white"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        {number}
+                      </button>
+                    )
+                  )}
+
                   <button
                     onClick={() => paginate(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
                   >
                     <RightIcon size={20} />
                   </button>

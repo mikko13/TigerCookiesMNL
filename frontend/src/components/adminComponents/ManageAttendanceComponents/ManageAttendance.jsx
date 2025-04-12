@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import ManageAttendanceMain from "./ManageAttendanceMain";
 import AdminSidebar from "../../sidebarComponents/admin-sidebar/adminSidebar";
 import Background from "../../images/background.png";
-import { Search, Calendar, Plus, Menu } from "lucide-react";
+import { Search, Calendar, Plus, Menu, X, ChevronDown } from "lucide-react";
 
 export default function ManageAttendance() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  const [sortOption, setSortOption] = useState("recent"); // Default sort: most recent date
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sidebarState, setSidebarState] = useState({
     isVisible: true,
     isExpanded: true,
@@ -43,6 +45,15 @@ export default function ManageAttendance() {
     }));
   };
 
+  const toggleFilterDropdown = () => {
+    setIsFilterOpen(!isFilterOpen);
+  };
+
+  const handleSortChange = (option) => {
+    setSortOption(option);
+    setIsFilterOpen(false);
+  };
+
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -54,20 +65,41 @@ export default function ManageAttendance() {
   const clearFilters = () => {
     setSearchTerm("");
     setFilterDate("");
+    setSortOption("recent");
+  };
+
+  // Get label for the current sort option
+  const getSortLabel = () => {
+    switch (sortOption) {
+      case "recent":
+        return "Most Recent";
+      case "oldest":
+        return "Oldest First";
+      case "name-asc":
+        return "Name (A-Z)";
+      case "name-desc":
+        return "Name (Z-A)";
+      case "early-in":
+        return "Early Arrival First";
+      case "late-in":
+        return "Late Arrival First";
+      case "long-hours":
+        return "Longest Hours First";
+      default:
+        return "Most Recent";
+    }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 overflow-hidden relative">
-      <div
-        className="fixed inset-0 z-0"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${Background})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundAttachment: "fixed",
-        }}
-      />
-
+    <div
+      className="flex min-h-screen bg-gray-50 overflow-hidden relative"
+      style={{
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${Background})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}
+    >
       {isMobile && !sidebarState.isVisible && (
         <button
           onClick={toggleSidebarVisibility}
@@ -86,13 +118,13 @@ export default function ManageAttendance() {
       )}
 
       <div
-        className={`fixed top-0 left-0 h-screen z-40 transition-all duration-300 ease-in-out ${
+        className={`transition-all duration-300 ease-in-out ${
           !sidebarState.isVisible
             ? "w-0 min-w-0 opacity-0 pointer-events-none"
             : isMobile
             ? "w-[250px] min-w-[250px]"
             : "w-[250px] min-w-[250px]"
-        }`}
+        } ${isMobile ? "fixed h-full z-40" : "fixed h-screen z-30"}`}
       >
         {sidebarState.isVisible && (
           <AdminSidebar
@@ -104,8 +136,8 @@ export default function ManageAttendance() {
       </div>
 
       <main
-        className={`relative z-10 min-h-screen w-full transition-all duration-300 ease-in-out ${
-          !isMobile && sidebarState.isVisible ? "ml-[250px]" : "ml-0"
+        className={`flex-1 transition-all duration-300 ease-in-out overflow-y-auto ${
+          isMobile ? "w-full" : sidebarState.isVisible ? "pl-[250px]" : ""
         }`}
       >
         <div className="max-w-7xl mx-auto p-4">
@@ -145,6 +177,99 @@ export default function ManageAttendance() {
                 />
               </div>
 
+              {/* Filter Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={toggleFilterDropdown}
+                  className="flex items-center justify-between gap-2 bg-white border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-md transition-colors duration-200 shadow-sm w-full sm:w-auto"
+                >
+                  <span className="text-gray-700">{getSortLabel()}</span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-gray-500 transition-transform ${
+                      isFilterOpen ? "transform rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {isFilterOpen && (
+                  <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                    <div className="py-1">
+                      <button
+                        onClick={() => handleSortChange("recent")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "recent"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Most Recent
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("oldest")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "oldest"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Oldest First
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("name-asc")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "name-asc"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Name (A-Z)
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("name-desc")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "name-desc"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Name (Z-A)
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("early-in")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "early-in"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Early Arrival First
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("late-in")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "late-in"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Late Arrival First
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("long-hours")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "long-hours"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Longest Hours First
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <a
                 href="/CreateEmployeeAttendance"
                 className="flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors duration-200 shadow-sm"
@@ -168,10 +293,10 @@ export default function ManageAttendance() {
               </ol>
             </nav>
           </div>
-
           <ManageAttendanceMain
             searchTerm={searchTerm}
             filterDate={filterDate}
+            sortOption={sortOption}
             setSearchTerm={setSearchTerm}
             setFilterDate={setFilterDate}
           />

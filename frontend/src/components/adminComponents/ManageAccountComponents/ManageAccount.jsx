@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import ManageAccountMain from "./ManageAccountMain";
 import AdminSidebar from "../../sidebarComponents/admin-sidebar/adminSidebar";
 import Background from "../../images/background.png";
-import { Search, Calendar, Plus, Menu, X } from "lucide-react";
+import { Search, Calendar, Plus, Menu, X, ChevronDown } from "lucide-react";
 
 export default function ManageAccount() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortOption, setSortOption] = useState("recent"); // Default sort: most recent hires
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sidebarState, setSidebarState] = useState({
     isVisible: true,
     isExpanded: true,
@@ -40,6 +42,35 @@ export default function ManageAccount() {
       ...prev,
       isVisible: !prev.isVisible,
     }));
+  };
+
+  const toggleFilterDropdown = () => {
+    setIsFilterOpen(!isFilterOpen);
+  };
+
+  const handleSortChange = (option) => {
+    setSortOption(option);
+    setIsFilterOpen(false);
+  };
+
+  // Get label for the current sort option
+  const getSortLabel = () => {
+    switch (sortOption) {
+      case "recent":
+        return "Most Recent";
+      case "oldest":
+        return "Oldest First";
+      case "name-asc":
+        return "Name (A-Z)";
+      case "name-desc":
+        return "Name (Z-A)";
+      case "active":
+        return "Active First";
+      case "inactive":
+        return "Inactive First";
+      default:
+        return "Most Recent";
+    }
   };
 
   return (
@@ -117,6 +148,89 @@ export default function ManageAccount() {
                 />
               </div>
 
+              {/* Filter Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={toggleFilterDropdown}
+                  className="flex items-center justify-between gap-2 bg-white border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-md transition-colors duration-200 shadow-sm w-full sm:w-auto"
+                >
+                  <span className="text-gray-700">{getSortLabel()}</span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-gray-500 transition-transform ${
+                      isFilterOpen ? "transform rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {isFilterOpen && (
+                  <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                    <div className="py-1">
+                      <button
+                        onClick={() => handleSortChange("recent")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "recent"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Most Recent
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("oldest")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "oldest"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Oldest First
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("name-asc")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "name-asc"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Name (A-Z)
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("name-desc")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "name-desc"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Name (Z-A)
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("active")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "active"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Active First
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("inactive")}
+                        className={`block px-4 py-2 text-sm w-full text-left ${
+                          sortOption === "inactive"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Inactive First
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <a
                 href="/CreateEmployeeAccount"
                 className="flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors duration-200 shadow-sm"
@@ -140,7 +254,7 @@ export default function ManageAccount() {
               </ol>
             </nav>
           </div>
-          <ManageAccountMain searchTerm={searchTerm} />
+          <ManageAccountMain searchTerm={searchTerm} sortOption={sortOption} />
         </div>
       </main>
     </div>

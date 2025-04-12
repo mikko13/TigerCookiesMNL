@@ -16,7 +16,10 @@ import { backendURL } from "../../../urls/URL";
 import Swal from "sweetalert2";
 import EmployeeSummaryCards from "./EmployeeSummaryCards";
 
-export default function ManageAccountMain({ searchTerm }) {
+export default function ManageAccountMain({
+  searchTerm,
+  sortOption = "recent",
+}) {
   const fetchedEmployees = useEmployees();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,14 +76,50 @@ export default function ManageAccountMain({ searchTerm }) {
     );
   });
 
+  // Apply sorting based on sortOption
+  const sortedEmployees = [...filteredEmployees].sort((a, b) => {
+    switch (sortOption) {
+      case "recent":
+        // Sort by hired date descending (most recent first)
+        return new Date(b.hiredDate || 0) - new Date(a.hiredDate || 0);
+      case "oldest":
+        // Sort by hired date ascending (oldest first)
+        return new Date(a.hiredDate || 0) - new Date(b.hiredDate || 0);
+      case "name-asc":
+        // Sort by name ascending (A-Z)
+        return `${a.firstName} ${a.lastName}`.localeCompare(
+          `${b.firstName} ${b.lastName}`
+        );
+      case "name-desc":
+        // Sort by name descending (Z-A)
+        return `${b.firstName} ${b.lastName}`.localeCompare(
+          `${a.firstName} ${a.lastName}`
+        );
+      case "active":
+        // Sort by status (active first)
+        return (b.isActive || 0) - (a.isActive || 0);
+      case "inactive":
+        // Sort by status (inactive first)
+        return (a.isActive || 0) - (b.isActive || 0);
+      default:
+        // Default to most recent
+        return new Date(b.hiredDate || 0) - new Date(a.hiredDate || 0);
+    }
+  });
+
   // Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredEmployees.slice(
+  const currentRecords = sortedEmployees.slice(
     indexOfFirstRecord,
     indexOfLastRecord
   );
-  const totalPages = Math.ceil(filteredEmployees.length / recordsPerPage);
+  const totalPages = Math.ceil(sortedEmployees.length / recordsPerPage);
+
+  // Reset to first page when sort option changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortOption]);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -222,7 +261,7 @@ export default function ManageAccountMain({ searchTerm }) {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading employee accounts...</p>
         </div>
-      ) : filteredEmployees.length === 0 ? (
+      ) : sortedEmployees.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center flex flex-col items-center">
           <AlertTriangle size={48} className="text-yellow-500 mb-4" />
           <h3 className="text-lg font-semibold text-gray-800">
@@ -287,6 +326,10 @@ export default function ManageAccountMain({ searchTerm }) {
                   {expandedRow === employee._id && (
                     <div className="mt-3 pl-2 border-l-2 border-gray-200">
                       <div className="grid grid-cols-1 gap-3 text-sm">
+                        <div>
+                          <p className="text-gray-500">Employee ID</p>
+                          <p className="font-medium">{employee.employeeID}</p>
+                        </div>
                         <div>
                           <p className="text-gray-500">Email</p>
                           <p className="font-medium">{employee.email}</p>
@@ -376,8 +419,8 @@ export default function ManageAccountMain({ searchTerm }) {
               <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200">
                 <div className="text-sm text-gray-600">
                   Showing {indexOfFirstRecord + 1} to{" "}
-                  {Math.min(indexOfLastRecord, filteredEmployees.length)} of{" "}
-                  {filteredEmployees.length} accounts
+                  {Math.min(indexOfLastRecord, sortedEmployees.length)} of{" "}
+                  {sortedEmployees.length} accounts
                 </div>
                 <div className="flex space-x-2">
                   <button
@@ -439,6 +482,9 @@ export default function ManageAccountMain({ searchTerm }) {
                         Profile
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Employee ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Name
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -486,6 +532,9 @@ export default function ManageAccountMain({ searchTerm }) {
                               <UserCircle className="h-10 w-10 text-gray-500" />
                             </div>
                           </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap font-bold text-sm text-gray-700">
+                          {employee.employeeID}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="font-medium text-gray-900">

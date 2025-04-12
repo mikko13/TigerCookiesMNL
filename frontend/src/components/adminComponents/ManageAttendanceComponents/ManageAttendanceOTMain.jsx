@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
@@ -38,6 +39,8 @@ const useEmployeeOvertime = () => {
 export default function EmployeeManageAttendanceOT({
   searchTerm,
   setSearchTerm,
+  filterDate,
+  sortOption,
 }) {
   const {
     overtime: overtimeRecords,
@@ -120,18 +123,55 @@ export default function EmployeeManageAttendanceOT({
     }
   };
 
-  const filteredRecords = overtimeRecords.filter((record) =>
-    formatDate(record.dateRequested).includes(searchTerm || "")
-  );
+  // Filter records based on search term and date filter
+  const filteredRecords = overtimeRecords.filter((record) => {
+    const matchesSearch = getEmployeeName(record.employeeID)
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
 
+    const matchesDate = filterDate
+      ? formatDate(record.dateRequested) === filterDate
+      : true;
+
+    return matchesSearch && matchesDate;
+  });
+
+  // Sort records based on sortOption
   const sortedRecords = [...filteredRecords].sort((a, b) => {
-    const aIsPending = !a.status || a.status === "Pending";
-    const bIsPending = !b.status || b.status === "Pending";
+    const dateA = new Date(a.dateRequested);
+    const dateB = new Date(b.dateRequested);
+    const nameA = getEmployeeName(a.employeeID).toLowerCase();
+    const nameB = getEmployeeName(b.employeeID).toLowerCase();
+    const statusA = a.status || "Pending";
+    const statusB = b.status || "Pending";
 
-    if (aIsPending && !bIsPending) return -1;
-    if (!aIsPending && bIsPending) return 1;
-
-    return new Date(b.dateRequested) - new Date(a.dateRequested);
+    switch (sortOption) {
+      case "recent":
+        return dateB - dateA; // Newest first
+      case "oldest":
+        return dateA - dateB; // Oldest first
+      case "name-asc":
+        return nameA.localeCompare(nameB); // A-Z
+      case "name-desc":
+        return nameB.localeCompare(nameA); // Z-A
+      case "pending":
+        // Pending first, then by date (newest first)
+        if (statusA === "Pending" && statusB !== "Pending") return -1;
+        if (statusA !== "Pending" && statusB === "Pending") return 1;
+        return dateB - dateA;
+      case "approved":
+        // Approved first, then by date (newest first)
+        if (statusA === "Approved" && statusB !== "Approved") return -1;
+        if (statusA !== "Approved" && statusB === "Approved") return 1;
+        return dateB - dateA;
+      case "rejected":
+        // Rejected first, then by date (newest first)
+        if (statusA === "Rejected" && statusB !== "Rejected") return -1;
+        if (statusA !== "Rejected" && statusB === "Rejected") return 1;
+        return dateB - dateA;
+      default:
+        return dateB - dateA; // Default: newest first
+    }
   });
 
   // Pagination logic
@@ -165,16 +205,19 @@ export default function EmployeeManageAttendanceOT({
             No Records Found
           </h3>
           <p className="text-gray-600 mt-2">
-            {searchTerm
+            {searchTerm || filterDate
               ? "No overtime records match your search criteria."
               : "No overtime records available yet."}
           </p>
-          {searchTerm && (
+          {(searchTerm || filterDate) && (
             <button
-              onClick={() => setSearchTerm("")}
+              onClick={() => {
+                setSearchTerm("");
+                setFilterDate("");
+              }}
               className="mt-4 text-yellow-600 hover:text-yellow-700 font-medium"
             >
-              Clear search
+              Clear filters
             </button>
           )}
         </div>
@@ -315,8 +358,8 @@ export default function EmployeeManageAttendanceOT({
                         {isPending(record.status) && (
                           <>
                             <button
-                              onClick={() =>
-                                updateOvertimeStatus(record._id, "Approved")
+                              onClick={(e) =>
+                                updateOvertimeStatus(record._id, "Approved", e)
                               }
                               className="text-green-600 hover:text-green-700"
                               title="Approve"
@@ -324,8 +367,8 @@ export default function EmployeeManageAttendanceOT({
                               <Check size={18} />
                             </button>
                             <button
-                              onClick={() =>
-                                updateOvertimeStatus(record._id, "Rejected")
+                              onClick={(e) =>
+                                updateOvertimeStatus(record._id, "Rejected", e)
                               }
                               className="text-red-600 hover:text-red-700"
                               title="Reject"
