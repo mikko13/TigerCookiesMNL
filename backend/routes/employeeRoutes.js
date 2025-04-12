@@ -78,6 +78,14 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
       isActive,
     });
 
+    const transporter = nodemailer.createTransport({
+      service: 'gmail', // or your email provider
+      auth: {
+        user: process.env.EMAIL_USER,     // your email
+        pass: process.env.EMAIL_APP_PASSWORD, // your app password
+      },
+    });
+
     // Handle profile picture if uploaded
     if (req.file) {
       const newFilename = `${account._id}_profilepic${path.extname(req.file.originalname)}`;
