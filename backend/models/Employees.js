@@ -14,8 +14,6 @@ const accountSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      unique: true,
-      sparse: true, // Allows multiple null values
       match: [
         /^(\+63|0)9\d{9}$/,
         "Please provide a valid Philippine phone number",
