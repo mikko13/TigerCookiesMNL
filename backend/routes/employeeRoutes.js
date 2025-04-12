@@ -97,16 +97,38 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
 
     // Prepare email
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `Tiger Cookies MNL <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Welcome to the Team!',
       html: `
-        <p>Hi ${firstName},</p>
-        <p>You are now part of the team!</p>
-        <p>Your work email is: ${email}</p>
-        <p>Your default password is: ${password}</p>
-        <p><a href="http://localhost:3000/">Click here</a> to change your password.</p>
-        <p>After logging in, please fill out your personal information.</p>
+          <div style="max-width: 600px; margin: auto; padding: 20px; font-family: Arial, sans-serif; background-color: #f9f9f9; border-radius: 10px; text-align: center; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);">
+        <div style="background-color: #ffcc00; padding: 15px; border-radius: 10px 10px 0 0;">
+          <h1 style="margin: 0; font-size: 24px; color: #333;">🎉 Account Created</h1>
+        </div>
+        <div style="padding: 20px; background-color: #ffffff;">
+          <p style="font-size: 18px; color: #555;">Hello ${firstName},</p>
+          <p style="font-size: 16px; color: #777;">
+            Welcome to <strong>Tiger Cookies MNL</strong>! Your account has been successfully created.
+          </p>
+          <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left;">
+            <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #856404;">📝 Account Details</h2>
+            <p style="font-size: 16px; color: #333;">
+              <strong>Work Email:</strong> ${email}<br>
+              <strong>Temporary Password:</strong> ${password}
+            </p>
+          </div>
+          <p style="font-size: 16px; color: #555;">Please use the above credentials to log in.</p>
+          <p style="font-size: 16px; color: #555;">
+            For your security, update your password immediately using the button below:
+          </p>
+          <a href="http://localhost:3000/" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px;">🔐 Change Your Password</a>
+          <p style="font-size: 14px; color: #777; margin-top: 25px;">After logging in, please complete your profile with your personal information.</p>
+          <p style="font-size: 14px; color: #ff0000; font-weight: bold;">This is an automated message. Please do not reply.</p>
+        </div>
+        <div style="padding: 15px; background-color: #f0f0f0; border-radius: 0 0 10px 10px;">
+          <p style="margin: 0; font-size: 14px; color: #777;">© ${new Date().getFullYear()} Tiger Cookies MNL</p>
+        </div>
+      </div>
       `,
     };
 
