@@ -37,7 +37,6 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-
 router.post("/", upload.single("profilePicture"), async (req, res) => {
   try {
     const {
@@ -79,16 +78,21 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
     });
 
     const transporter = nodemailer.createTransport({
-      service: 'gmail', // or your email provider
+      service: "gmail", // or your email provider
       auth: {
-        user: process.env.EMAIL_USER,     // your email
+        user: process.env.EMAIL_USER, // your email
         pass: process.env.EMAIL_APP_PASSWORD, // your app password
+      },
+      tls: {
+        rejectUnauthorized: false,
       },
     });
 
     // Handle profile picture if uploaded
     if (req.file) {
-      const newFilename = `${account._id}_profilepic${path.extname(req.file.originalname)}`;
+      const newFilename = `${account._id}_profilepic${path.extname(
+        req.file.originalname
+      )}`;
       const newFilePath = path.join(path.dirname(req.file.path), newFilename);
       fs.renameSync(req.file.path, newFilePath);
       account.profilePicture = newFilename;
@@ -99,7 +103,7 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
     const mailOptions = {
       from: `Tiger Cookies MNL <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Welcome to the Team!',
+      subject: "Welcome to the Team!",
       html: `
           <div style="max-width: 600px; margin: auto; padding: 20px; font-family: Arial, sans-serif; background-color: #f9f9f9; border-radius: 10px; text-align: center; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);">
         <div style="background-color: #ffcc00; padding: 15px; border-radius: 10px 10px 0 0;">
@@ -119,9 +123,8 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
           </div>
           <p style="font-size: 16px; color: #555;">Please use the above credentials to log in.</p>
           <p style="font-size: 16px; color: #555;">
-            For your security, update your password immediately using the button below:
-          </p>
-          <a href="http://localhost:3000/" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px;">🔐 Change Your Password</a>
+For your security, we recommend changing your password immediately. Click the button below to proceed to login. Additionally, please ready your SSS, PhilHealth, and Pag-IBIG information accessible.          </p>
+          <a href="http://localhost:3000/" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px;">🔐 Setup Your Account</a>
           <p style="font-size: 14px; color: #777; margin-top: 25px;">After logging in, please complete your profile with your personal information.</p>
           <p style="font-size: 14px; color: #ff0000; font-weight: bold;">This is an automated message. Please do not reply.</p>
         </div>
@@ -143,13 +146,11 @@ router.post("/", upload.single("profilePicture"), async (req, res) => {
 
     // Send response
     res.status(201).json(account);
-
   } catch (error) {
     console.error("Error creating account:", error);
     res.status(400).json({ message: error.message });
   }
 });
-
 
 router.get("/", async (req, res) => {
   try {
@@ -275,6 +276,7 @@ router.delete("/:id", async (req, res) => {
 router.put("/:id", upload.single("profilePicture"), async (req, res) => {
   const { id } = req.params;
   const {
+    employeeID,
     firstName,
     lastName,
     email,
@@ -307,6 +309,7 @@ router.put("/:id", upload.single("profilePicture"), async (req, res) => {
     }
 
     // Update all fields from the schema
+    employee.employeeID = employeeID || employee.employeeID;
     employee.firstName = firstName || employee.firstName;
     employee.lastName = lastName || employee.lastName;
     employee.email = email || employee.email;

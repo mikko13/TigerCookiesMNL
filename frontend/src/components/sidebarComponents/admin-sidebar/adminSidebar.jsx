@@ -121,7 +121,7 @@ export default function AdminSidebar({
         {},
         { withCredentials: true }
       );
-      localStorage.removeItem("admin");
+      localStorage.removeItem("user");
       setAdmin(null);
       navigate("/");
     } catch (error) {

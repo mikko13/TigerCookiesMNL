@@ -114,7 +114,7 @@ export default function LoginForm({ showToast }) {
       setUser(loginResponse.data.user);
       localStorage.setItem("user", JSON.stringify(loginResponse.data.user));
 
-      // Navigate based on role
+      // Add a 1-second delay, then refresh the page
       setTimeout(() => {
         if (loginResponse.data.user.role === "admin") {
           navigate("/ManageEmployeeAccounts", { replace: true });
@@ -126,6 +126,9 @@ export default function LoginForm({ showToast }) {
       showToast("error", err.response?.data?.message || "Login failed");
     } finally {
       setIsLoggingIn(false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     }
   };
 
@@ -152,6 +155,10 @@ export default function LoginForm({ showToast }) {
     // Use replace to prevent back navigation to login
     setTimeout(() => {
       navigate("/checkin", { replace: true });
+      // Add page refresh after navigation
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     }, 1500);
   };
 

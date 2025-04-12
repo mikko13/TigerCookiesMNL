@@ -9,6 +9,7 @@ import {
   UserCircle,
   CheckCircle2,
   XCircle,
+  ChevronLeft,
 } from "lucide-react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
@@ -22,6 +23,9 @@ export default function ManageAccountMain({ searchTerm }) {
   const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [toggleLoading, setToggleLoading] = useState(null);
+  // Add pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage] = useState(10);
 
   useEffect(() => {
     if (fetchedEmployees.length > 0) {
@@ -68,6 +72,17 @@ export default function ManageAccountMain({ searchTerm }) {
       (employee.isActive?.toString() || "").includes(lowerQuery)
     );
   });
+
+  // Pagination logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = filteredEmployees.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(filteredEmployees.length / recordsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const toggleRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
@@ -238,7 +253,7 @@ export default function ManageAccountMain({ searchTerm }) {
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {isMobile ? (
             <div className="divide-y divide-gray-200">
-              {filteredEmployees.map((employee) => (
+              {currentRecords.map((employee) => (
                 <div key={employee._id} className="p-4">
                   <div
                     className="flex justify-between items-center cursor-pointer"
@@ -356,154 +371,258 @@ export default function ManageAccountMain({ searchTerm }) {
                   )}
                 </div>
               ))}
+
+              {/* Mobile Pagination */}
+              <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200">
+                <div className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1} to{" "}
+                  {Math.min(indexOfLastRecord, filteredEmployees.length)} of{" "}
+                  {filteredEmployees.length} accounts
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((num) => {
+                      // On mobile, just show a limited set of page numbers
+                      if (totalPages <= 3) return true;
+                      if (num === 1 || num === totalPages) return true;
+                      if (Math.abs(num - currentPage) <= 1) return true;
+                      return false;
+                    })
+                    .map((number) => (
+                      <button
+                        key={number}
+                        onClick={() => paginate(number)}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === number
+                            ? "bg-yellow-500 text-white"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        {number}
+                      </button>
+                    ))}
+
+                  <button
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             /* Desktop View */
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Profile
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Phone Number
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Gender
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date of Birth
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Position
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Hired Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rate
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Overtime Rate
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredEmployees.map((employee) => (
-                    <tr
-                      key={employee._id}
-                      className="hover:bg-gray-50 transition-colors duration-150"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {renderProfileImage(employee.profilePicture)}
-                          <div className="hidden">
-                            <UserCircle className="h-10 w-10 text-gray-500" />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">
-                          {employee.firstName} {employee.lastName}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {employee.address}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {employee.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {employee.phone}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {employee.gender}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {employee.dateOfBirth}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {employee.position}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {employee.hiredDate}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {employee.ratePerHour}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {employee.overtimeRate}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {renderStatusIndicator(employee.isActive)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        <div className="flex gap-3 items-center">
-                          <Link
-                            to={`/ModifyEmployeeAccount/${employee._id}`}
-                            state={{ employee }}
-                            className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
-                            title="Edit"
-                          >
-                            <Edit size={16} className="mr-1" />
-                            <span>Edit</span>
-                          </Link>
-                          <button
-                            onClick={() =>
-                              confirmToggleStatus(
-                                employee._id,
-                                employee.isActive,
-                                `${employee.firstName} ${employee.lastName}`
-                              )
-                            }
-                            disabled={toggleLoading === employee._id}
-                            className={`flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all ${
-                              toggleLoading === employee._id
-                                ? "bg-gray-400 cursor-not-allowed"
-                                : getButtonColorClass(employee.isActive)
-                            }`}
-                            title={
-                              employee.isActive === 1
-                                ? "Deactivate"
-                                : "Activate"
-                            }
-                          >
-                            {toggleLoading === employee._id ? (
-                              <div className="animate-spin h-4 w-4 border-2 border-t-transparent border-white rounded-full mr-1"></div>
-                            ) : (
-                              <Power size={16} className="mr-1" />
-                            )}
-                            <span>
-                              {employee.isActive === 1
-                                ? "Deactivate"
-                                : "Activate"}
-                            </span>
-                          </button>
-                        </div>
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Profile
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phone Number
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Gender
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date of Birth
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Position
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Hired Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Rate
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Overtime Rate
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentRecords.map((employee) => (
+                      <tr
+                        key={employee._id}
+                        className="hover:bg-gray-50 transition-colors duration-150"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            {renderProfileImage(employee.profilePicture)}
+                            <div className="hidden">
+                              <UserCircle className="h-10 w-10 text-gray-500" />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-medium text-gray-900">
+                            {employee.firstName} {employee.lastName}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {employee.address}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {employee.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {employee.phone}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {employee.gender}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {employee.dateOfBirth}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {employee.position}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {employee.hiredDate}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {employee.ratePerHour}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {employee.overtimeRate}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {renderStatusIndicator(employee.isActive)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          <div className="flex gap-3 items-center">
+                            <Link
+                              to={`/ModifyEmployeeAccount/${employee._id}`}
+                              state={{ employee }}
+                              className="flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all bg-yellow-500 hover:bg-yellow-600"
+                              title="Edit"
+                            >
+                              <Edit size={16} className="mr-1" />
+                              <span>Edit</span>
+                            </Link>
+                            <button
+                              onClick={() =>
+                                confirmToggleStatus(
+                                  employee._id,
+                                  employee.isActive,
+                                  `${employee.firstName} ${employee.lastName}`
+                                )
+                              }
+                              disabled={toggleLoading === employee._id}
+                              className={`flex items-center px-3 py-1 rounded-md text-white font-medium shadow-sm transition-all ${
+                                toggleLoading === employee._id
+                                  ? "bg-gray-400 cursor-not-allowed"
+                                  : getButtonColorClass(employee.isActive)
+                              }`}
+                              title={
+                                employee.isActive === 1
+                                  ? "Deactivate"
+                                  : "Activate"
+                              }
+                            >
+                              {toggleLoading === employee._id ? (
+                                <div className="animate-spin h-4 w-4 border-2 border-t-transparent border-white rounded-full mr-1"></div>
+                              ) : (
+                                <Power size={16} className="mr-1" />
+                              )}
+                              <span>
+                                {employee.isActive === 1
+                                  ? "Deactivate"
+                                  : "Activate"}
+                              </span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-          <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-sm text-gray-600">
-            Showing {filteredEmployees.length} of {employees.length} accounts
-          </div>
+              {/* Desktop Pagination */}
+              <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                <div className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1} to{" "}
+                  {Math.min(indexOfLastRecord, filteredEmployees.length)} of{" "}
+                  {filteredEmployees.length} accounts
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (number) => (
+                      <button
+                        key={number}
+                        onClick={() => paginate(number)}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === number
+                            ? "bg-yellow-500 text-white"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        {number}
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

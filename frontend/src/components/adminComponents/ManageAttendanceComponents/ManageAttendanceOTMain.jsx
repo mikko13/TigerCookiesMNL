@@ -3,7 +3,13 @@ import axios from "axios";
 import { backendURL } from "../../../urls/URL";
 import useEmployees from "./fetchEmployees";
 import { getStatusClass } from "./getStatusClass";
-import { AlertTriangle, Check, X, Trash2, ChevronRight } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  X,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react";
 import Swal from "sweetalert2";
 import OvertimeSummaryCards from "./OvertimeSummaryCards";
 
@@ -41,6 +47,9 @@ export default function EmployeeManageAttendanceOT({
   const employeeRecords = useEmployees();
   const [expandedRow, setExpandedRow] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage] = useState(10);
 
   useEffect(() => {
     const handleResize = () => {
@@ -125,6 +134,17 @@ export default function EmployeeManageAttendanceOT({
     return new Date(b.dateRequested) - new Date(a.dateRequested);
   });
 
+  // Pagination logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = sortedRecords.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(sortedRecords.length / recordsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   const isPending = (status) => {
     return !status || status === "Pending";
   };
@@ -162,7 +182,7 @@ export default function EmployeeManageAttendanceOT({
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {isMobile ? (
             <div className="divide-y divide-gray-200">
-              {sortedRecords.map((record) => (
+              {currentRecords.map((record) => (
                 <div key={record._id} className="p-4">
                   <div
                     className="flex justify-between items-center cursor-pointer"
@@ -265,7 +285,7 @@ export default function EmployeeManageAttendanceOT({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {sortedRecords.map((record) => (
+                  {currentRecords.map((record) => (
                     <tr
                       key={record._id}
                       className="hover:bg-gray-50 transition-colors duration-150"
@@ -321,8 +341,55 @@ export default function EmployeeManageAttendanceOT({
               </table>
             </div>
           )}
-          <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-sm text-gray-600">
-            Showing {sortedRecords.length} of {overtimeRecords.length} records
+
+          {/* Pagination */}
+          <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
+            <div className="text-sm text-gray-600">
+              Showing {indexOfFirstRecord + 1} to{" "}
+              {Math.min(indexOfLastRecord, sortedRecords.length)} of{" "}
+              {sortedRecords.length} records
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded-md ${
+                  currentPage === 1
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (number) => (
+                  <button
+                    key={number}
+                    onClick={() => paginate(number)}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === number
+                        ? "bg-yellow-500 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {number}
+                  </button>
+                )
+              )}
+
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded-md ${
+                  currentPage === totalPages
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
         </div>
       )}

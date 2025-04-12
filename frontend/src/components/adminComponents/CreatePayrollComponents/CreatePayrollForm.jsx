@@ -39,6 +39,7 @@ export default function CreatePayrollForm() {
     totalEarnings: 0,
     totalDeductions: 0,
     netPay: 0,
+    taxableIncome: 0,
   });
 
   const [employees, setEmployees] = useState([]);
@@ -121,6 +122,178 @@ export default function CreatePayrollForm() {
     }
   }, [formData.regularHours, formData.hourlyRate]);
 
+  // Calculate SSS contributions based on the latest SSS contribution table (2024)
+  const calculateSSS = (monthlyIncome) => {
+    // Converting semi-monthly income to monthly
+    const monthly = monthlyIncome * 2;
+    
+    // 2023-2024 SSS Contribution Table
+    if (monthly <= 4000) return 180;
+    if (monthly <= 4750) return 202.50;
+    if (monthly <= 5250) return 225;
+    if (monthly <= 5750) return 247.50;
+    if (monthly <= 6250) return 270;
+    if (monthly <= 6750) return 292.50;
+    if (monthly <= 7250) return 315;
+    if (monthly <= 7750) return 337.50;
+    if (monthly <= 8250) return 360;
+    if (monthly <= 8750) return 382.50;
+    if (monthly <= 9250) return 405;
+    if (monthly <= 9750) return 427.50;
+    if (monthly <= 10250) return 450;
+    if (monthly <= 10750) return 472.50;
+    if (monthly <= 11250) return 495;
+    if (monthly <= 11750) return 517.50;
+    if (monthly <= 12250) return 540;
+    if (monthly <= 12750) return 562.50;
+    if (monthly <= 13250) return 585;
+    if (monthly <= 13750) return 607.50;
+    if (monthly <= 14250) return 630;
+    if (monthly <= 14750) return 652.50;
+    if (monthly <= 15250) return 675;
+    if (monthly <= 15750) return 697.50;
+    if (monthly <= 16250) return 720;
+    if (monthly <= 16750) return 742.50;
+    if (monthly <= 17250) return 765;
+    if (monthly <= 17750) return 787.50;
+    if (monthly <= 18250) return 810;
+    if (monthly <= 18750) return 832.50;
+    if (monthly <= 19250) return 855;
+    if (monthly <= 19750) return 877.50;
+    if (monthly <= 20250) return 900;
+    if (monthly <= 20750) return 922.50;
+    if (monthly <= 21250) return 945;
+    if (monthly <= 21750) return 967.50;
+    if (monthly <= 22250) return 990;
+    if (monthly <= 22750) return 1012.50;
+    if (monthly <= 23250) return 1035;
+    if (monthly <= 23750) return 1057.50;
+    if (monthly <= 24250) return 1080;
+    if (monthly <= 24750) return 1102.50;
+    return 1125;
+  };
+
+  // Calculate PhilHealth contributions (2024 rates)
+  const calculatePhilHealth = (monthlyIncome) => {
+    // Converting semi-monthly income to monthly
+    const monthly = monthlyIncome * 2;
+    
+    // PhilHealth premium is 4% of monthly income
+    // Employee pays 2%, employer pays 2%
+    const rate = 0.02; // 2% employee share
+    
+    if (monthly <= 10000) {
+      // Minimum contribution
+      return 200 / 2; // 200 PHP monthly, half for semi-monthly
+    } else if (monthly >= 90000) {
+      // Maximum contribution (cap at 90,000)
+      return 1800 / 2; // 1800 PHP monthly, half for semi-monthly
+    } else {
+      // Regular computation: 2% of monthly income, divided by 2 for semi-monthly
+      return (monthly * rate) / 2;
+    }
+  };
+
+  // Calculate Pag-IBIG contributions (2024 rates)
+  const calculatePagibig = (monthlyIncome) => {
+    // Converting semi-monthly income to monthly
+    const monthly = monthlyIncome * 2;
+    
+    // Employee contribution is 2% for monthly compensation up to 5,000
+    // and 3% for those earning more than 5,000
+    if (monthly <= 5000) {
+      return (monthly * 0.02) / 2; // 2% contribution, divided by 2 for semi-monthly
+    } else {
+      return 100 / 2; // Maximum 100 PHP monthly, half for semi-monthly
+    }
+  };
+
+  // Calculate withholding tax based on BIR's withholding tax table (2023-2024)
+  const calculateWithholdingTax = (monthlyIncome) => {
+    // Calculate taxable income: gross income minus contributions
+    const sss = calculateSSS(monthlyIncome);
+    const philhealth = calculatePhilHealth(monthlyIncome);
+    const pagibig = calculatePagibig(monthlyIncome);
+    
+    // Total semi-monthly deductions
+    const totalContributions = sss + philhealth + pagibig;
+    
+    // Taxable income = Monthly Income * 2 - total contributions * 2
+    // Then converted back to semi-monthly
+    const monthlyTaxableIncome = (monthlyIncome * 2) - (totalContributions * 2);
+    const semiMonthlyTaxableIncome = monthlyTaxableIncome / 2;
+    
+    // Store taxable income for reference
+    setCalculations(prev => ({
+      ...prev,
+      taxableIncome: semiMonthlyTaxableIncome
+    }));
+    
+    // 2023-2024 Semi-monthly Withholding Tax Table
+    if (semiMonthlyTaxableIncome <= 10417) {
+      return 0; // Non-taxable
+    } else if (semiMonthlyTaxableIncome <= 16667) {
+      return ((semiMonthlyTaxableIncome - 10417) * 0.15);
+    } else if (semiMonthlyTaxableIncome <= 33333) {
+      return ((semiMonthlyTaxableIncome - 16667) * 0.20) + 937.50;
+    } else if (semiMonthlyTaxableIncome <= 83333) {
+      return ((semiMonthlyTaxableIncome - 33333) * 0.25) + 4270.83;
+    } else if (semiMonthlyTaxableIncome <= 333333) {
+      return ((semiMonthlyTaxableIncome - 83333) * 0.30) + 16770.83;
+    } else {
+      return ((semiMonthlyTaxableIncome - 333333) * 0.35) + 91770.83;
+    }
+  };
+
+  // Auto-calculate all deductions whenever income changes
+  const calculateAllDeductions = () => {
+    const totalEarnings =
+      parseFloat(formData.baseSalary || 0) +
+      parseFloat(formData.holidayPay ||
+      0) +
+      parseFloat(formData.overtimePay || 0) +
+      parseFloat(formData.nightDiffPay || 0) +
+      parseFloat(formData.incentives || 0);
+    
+    // 13th month pay is tax-exempt, so we exclude it from tax calculations
+    const taxableEarnings = totalEarnings;
+    
+    // Calculate mandatory contributions
+    const sss = calculateSSS(taxableEarnings);
+    const philhealth = calculatePhilHealth(taxableEarnings);
+    const pagibig = calculatePagibig(taxableEarnings);
+    const tax = calculateWithholdingTax(taxableEarnings);
+    
+    // Round to 2 decimal places
+    const roundedSSS = Math.round(sss * 100) / 100;
+    const roundedPhilHealth = Math.round(philhealth * 100) / 100;
+    const roundedPagibig = Math.round(pagibig * 100) / 100;
+    const roundedTax = Math.round(tax * 100) / 100;
+    
+    // Update form data with calculated deductions
+    setFormData(prev => ({
+      ...prev,
+      sssDeduction: roundedSSS.toFixed(2),
+      philhealthDeduction: roundedPhilHealth.toFixed(2),
+      pagibigDeduction: roundedPagibig.toFixed(2),
+      withholdingTax: roundedTax.toFixed(2)
+    }));
+  };
+
+  useEffect(() => {
+    // Calculate all deductions whenever earnings change
+    const hasIncome = parseFloat(formData.baseSalary || 0) > 0;
+    if (hasIncome) {
+      calculateAllDeductions();
+    }
+  }, [
+    formData.baseSalary,
+    formData.holidayPay,
+    formData.overtimePay,
+    formData.nightDiffPay,
+    formData.incentives
+  ]);
+
   useEffect(() => {
     const earnings =
       parseFloat(formData.baseSalary || 0) +
@@ -139,11 +312,12 @@ export default function CreatePayrollForm() {
 
     const netPay = earnings - deductions;
 
-    setCalculations({
+    setCalculations(prev => ({
+      ...prev,
       totalEarnings: earnings,
       totalDeductions: deductions,
       netPay: netPay,
-    });
+    }));
   }, [formData]);
 
   async function fetchAndCalculateHours(employeeID, payPeriodDate) {
@@ -361,6 +535,12 @@ export default function CreatePayrollForm() {
     }).format(amount);
   };
 
+  // Manual recalculation feature
+  const recalculateDeductions = () => {
+    calculateAllDeductions();
+    showToast("success", "Tax deductions recalculated!");
+  };
+
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden">
       <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
@@ -369,7 +549,7 @@ export default function CreatePayrollForm() {
           Create Employee Payroll
         </h2>
         <p className="text-yellow-50 mt-1 opacity-90">
-          Generate a new payroll record for an employee
+          Generate a new payroll record with automatic tax calculations
         </p>
       </div>
 

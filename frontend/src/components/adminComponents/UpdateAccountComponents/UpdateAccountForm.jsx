@@ -9,6 +9,7 @@ import {
   CheckCircle,
   Loader2,
   Upload,
+  Hash,
   DollarSign,
   Briefcase,
   Mail,
@@ -28,6 +29,7 @@ export default function UpdateAccountForm() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    employeeID: "",
     firstName: "",
     lastName: "",
     email: "",
@@ -321,6 +323,34 @@ export default function UpdateAccountForm() {
           </div>
 
           <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Employee ID <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="employeeID"
+                  value={formData.employeeID}
+                  onChange={handleInputChange}
+                  placeholder="Enter employee ID"
+                  className={`w-full px-4 py-3 pl-10 rounded-lg border ${
+                    formErrors.employeeID
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-gray-50"
+                  } focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all`}
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Hash className="w-4 h-4 text-gray-500" />
+                </div>
+                {formErrors.employeeID && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center">
+                    <AlertTriangle className="w-3 h-3 mr-1" />{" "}
+                    {formErrors.employeeID}
+                  </p>
+                )}
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 First Name <span className="text-red-500">*</span>
