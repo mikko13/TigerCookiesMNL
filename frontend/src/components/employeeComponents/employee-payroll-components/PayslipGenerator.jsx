@@ -4,161 +4,240 @@ import "jspdf-autotable";
 import { Download } from "lucide-react";
 
 const generatePayslipPDF = (record) => {
-  const doc = new jsPDF();
+  // Create PDF with portrait orientation to optimize vertical space
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
 
-  doc.setFillColor(40, 96, 144);
-  doc.rect(0, 0, 210, 40, "F");
-
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
-  doc.text("EMPLOYEE PAYSLIP", 105, 20, { align: "center" });
-  doc.setFontSize(12);
-  doc.text(`Pay Period: ${record.payPeriod}`, 105, 30, { align: "center" });
-
+  // Set all elements to black/white color scheme
   doc.setTextColor(0, 0, 0);
-  doc.setFontSize(12);
+
+  // Header - more compact
   doc.setFont("helvetica", "bold");
-  doc.text("Employee Information", 14, 50);
+  doc.setFontSize(14);
+  doc.text("Tiger Cookies MNL", 105, 15, { align: "center" });
+  doc.setFontSize(9);
+  doc.text(`Pay Period: ${record.payPeriod}`, 105, 20, { align: "center" });
 
-  doc.setFont("helvetica", "normal");
+  // Simple divider
+  doc.setLineWidth(0.3);
+  doc.line(15, 22, 195, 22);
+
+  // Employee Information - more compact
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.text("Employee Information", 15, 28);
+
+  // Get employee details with safer access
+  let employeeID = "N/A";
+  let firstName = "";
+  let lastName = "";
+
+  if (record.employeeID) {
+    if (typeof record.employeeID === "object") {
+      // Try different possible property paths
+      employeeID =
+        record.employeeID.employeeID ||
+        (record.employeeID._doc && record.employeeID._doc.employeeID) ||
+        "N/A";
+
+      firstName =
+        record.employeeID.firstName ||
+        (record.employeeID._doc && record.employeeID._doc.firstName) ||
+        "";
+
+      lastName =
+        record.employeeID.lastName ||
+        (record.employeeID._doc && record.employeeID._doc.lastName) ||
+        "";
+    }
+  }
+
   const employeeName =
-    typeof record.employeeID === "object"
-      ? `${record.employeeID.firstName} ${record.employeeID.lastName}`
-      : "N/A";
+    firstName && lastName ? `${firstName} ${lastName}` : "N/A";
 
-  doc.setFontSize(10);
-  doc.text(`Name: ${employeeName}`, 14, 60);
-  doc.text(`Issue Date: ${new Date().toLocaleDateString()}`, 14, 70);
+  // Display employee info in a single row to save space
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text(
+    `ID: ${employeeID} | Name: ${employeeName} | Date: ${new Date().toLocaleDateString()}`,
+    15,
+    32
+  );
 
   const formatCurrency = (amount) => {
     return `P ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
   };
 
-  doc.setFontSize(12);
+  // Side-by-side tables for earnings and deductions
+  const leftColumn = 15;
+  const rightColumn = 105;
+  const tableY = 38;
+  const tableWidth = 85;
+
+  // Earnings Section
+  doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("Earnings", 14, 85);
+  doc.text("Earnings", leftColumn, tableY - 3);
 
   const earningsData = [
     ["Description", "Amount"],
     ["Base Salary", formatCurrency(record.baseSalary)],
     ["Overtime Pay", formatCurrency(record.overtimePay)],
     ["Holiday Pay", formatCurrency(record.holidayPay)],
-    ["Night Differential", formatCurrency(record.nightDiffPay)],
-    ["Total Hours", `${record.regularHours} hrs`],
+    ["Night Diff", formatCurrency(record.nightDiffPay)],
+    ["Hours", `${record.regularHours} hrs`],
     ["Hourly Rate", formatCurrency(record.hourlyRate)],
   ];
 
-  let finalY = 0;
   try {
     doc.autoTable({
-      startY: 90,
+      startY: tableY,
       head: [earningsData[0]],
       body: earningsData.slice(1),
-      theme: "striped",
-      headStyles: { fillColor: [60, 130, 190], textColor: [255, 255, 255] },
-      styles: { fontSize: 10 },
+      theme: "plain",
+      headStyles: {
+        fontStyle: "bold",
+        fillColor: false,
+        textColor: 0,
+        lineWidth: 0.1,
+        lineColor: [220, 220, 220],
+      },
+      styles: {
+        fontSize: 8,
+        lineColor: [240, 240, 240],
+        lineWidth: 0.1,
+        cellPadding: 1, // Reduced padding
+      },
+      margin: { left: leftColumn },
+      tableWidth: tableWidth,
     });
-    finalY = doc.lastAutoTable.finalY;
   } catch (e) {
     try {
       const { autoTable } = require("jspdf-autotable");
       autoTable(doc, {
-        startY: 90,
+        startY: tableY,
         head: [earningsData[0]],
         body: earningsData.slice(1),
-        theme: "striped",
-        headStyles: { fillColor: [60, 130, 190], textColor: [255, 255, 255] },
-        styles: { fontSize: 10 },
+        theme: "plain",
+        headStyles: {
+          fontStyle: "bold",
+          fillColor: false,
+          textColor: 0,
+          lineWidth: 0.1,
+          lineColor: [220, 220, 220],
+        },
+        styles: {
+          fontSize: 8,
+          lineColor: [240, 240, 240],
+          lineWidth: 0.1,
+          cellPadding: 1,
+        },
+        margin: { left: leftColumn },
+        tableWidth: tableWidth,
       });
-      finalY = doc.lastAutoTable.finalY;
     } catch (e2) {
-      finalY = 140;
+      // Fallback handling
     }
   }
 
-  const deductionsStartY = finalY + 10;
-  doc.setFontSize(12);
+  // Deductions Section
+  doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("Deductions", 14, deductionsStartY);
+  doc.text("Deductions", rightColumn, tableY - 3);
 
   const deductionsData = [
     ["Description", "Amount"],
     ["SSS", formatCurrency(record.sssDeduction)],
     ["PhilHealth", formatCurrency(record.philhealthDeduction)],
     ["Pag-IBIG", formatCurrency(record.pagibigDeduction)],
-    ["Withholding Tax", formatCurrency(record.withholdingTax)],
-    ["Other Deductions", formatCurrency(record.otherDeductions)],
-
+    ["W/H Tax", formatCurrency(record.withholdingTax)],
+    ["Other", formatCurrency(record.otherDeductions)],
     ["Total Deductions", formatCurrency(record.totalDeductions)],
   ];
 
-  let deductionsFinalY = 0;
   try {
     doc.autoTable({
-      startY: deductionsStartY + 5,
+      startY: tableY,
       head: [deductionsData[0]],
       body: deductionsData.slice(1),
-      theme: "striped",
-      headStyles: { fillColor: [60, 130, 190], textColor: [255, 255, 255] },
-      styles: { fontSize: 10 },
+      theme: "plain",
+      headStyles: {
+        fontStyle: "bold",
+        fillColor: false,
+        textColor: 0,
+        lineWidth: 0.1,
+        lineColor: [220, 220, 220],
+      },
+      styles: {
+        fontSize: 8,
+        lineColor: [240, 240, 240],
+        lineWidth: 0.1,
+        cellPadding: 1, // Reduced padding
+      },
+      margin: { left: rightColumn },
+      tableWidth: tableWidth,
     });
-    deductionsFinalY = doc.lastAutoTable.finalY;
   } catch (e) {
     try {
       const { autoTable } = require("jspdf-autotable");
       autoTable(doc, {
-        startY: deductionsStartY + 5,
+        startY: tableY,
         head: [deductionsData[0]],
         body: deductionsData.slice(1),
-        theme: "striped",
-        headStyles: { fillColor: [60, 130, 190], textColor: [255, 255, 255] },
-        styles: { fontSize: 10 },
+        theme: "plain",
+        headStyles: {
+          fontStyle: "bold",
+          fillColor: false,
+          textColor: 0,
+          lineWidth: 0.1,
+          lineColor: [220, 220, 220],
+        },
+        styles: {
+          fontSize: 8,
+          lineColor: [240, 240, 240],
+          lineWidth: 0.1,
+          cellPadding: 1,
+        },
+        margin: { left: rightColumn },
+        tableWidth: tableWidth,
       });
-      deductionsFinalY = doc.lastAutoTable.finalY;
     } catch (e2) {
-      deductionsFinalY = deductionsStartY + 40;
+      // Fallback handling
     }
   }
 
-  const summaryStartY = deductionsFinalY + 15;
-  doc.setFillColor(240, 240, 240);
-  doc.rect(105, summaryStartY, 90, 25, "F");
+  // Summary at the bottom
+  const finalY = Math.max(
+    doc.lastAutoTable?.finalY || 100,
+    doc.lastAutoTable?.finalY || 100
+  );
 
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text("Summary", 150, summaryStartY + 10, { align: "center" });
+  // Summary box
+  doc.setLineWidth(0.5);
+  doc.rect(rightColumn, finalY + 3, tableWidth, 14);
 
-  doc.setFontSize(10);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
   doc.text(
     `Total Earnings: ${formatCurrency(record.totalEarnings)}`,
-    110,
-    summaryStartY + 18
+    rightColumn + 2,
+    finalY + 7
   );
   doc.text(
     `Total Deductions: ${formatCurrency(record.totalDeductions)}`,
-    110,
-    summaryStartY + 23
+    rightColumn + 2,
+    finalY + 11
   );
 
-  doc.setFontSize(12);
-  doc.setTextColor(0, 128, 0);
+  doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.text(
     `NET PAY: ${formatCurrency(record.netPay)}`,
-    150,
-    summaryStartY + 30,
-    { align: "center" }
-  );
-
-  doc.setFontSize(8);
-  doc.setTextColor(128, 128, 128);
-  doc.setFont("helvetica", "italic");
-  doc.text(
-    "This is an electronically generated payslip and does not require signature.",
-    105,
-    280,
-    { align: "center" }
+    rightColumn + 2,
+    finalY + 15
   );
 
   doc.save(`Payslip-${record.payPeriod}.pdf`);
@@ -173,8 +252,8 @@ const PayslipDownloadButton = ({ record, isMobile }) => {
       }}
       className={
         isMobile
-          ? "inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1 px-3 rounded-md"
-          : "text-blue-600 hover:text-blue-800 transition-colors flex items-center"
+          ? "inline-flex items-center bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium py-1 px-3 rounded-md"
+          : "text-gray-600 hover:text-gray-800 transition-colors flex items-center"
       }
       title="Download Payslip"
     >

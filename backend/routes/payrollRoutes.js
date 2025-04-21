@@ -6,7 +6,7 @@ const router = express.Router();
 // Get all payroll records
 router.get("/", async (req, res) => {
   try {
-    const payrolls = await Payroll.find().populate("employeeID", "firstName lastName salary");
+    const payrolls = await Payroll.find().populate("employeeID", "employeeID firstName lastName salary");
     res.status(200).json(payrolls);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
 // Get a single payroll record by ID
 router.get("/:id", async (req, res) => {
   try {
-    const payroll = await Payroll.findById(req.params.id).populate("employeeID", "firstName lastName salary");
+    const payroll = await Payroll.findById(req.params.id).populate("employeeID", "employeeID firstName lastName salary");
     if (!payroll) return res.status(404).json({ message: "Payroll not found" });
     res.status(200).json(payroll);
   } catch (error) {
