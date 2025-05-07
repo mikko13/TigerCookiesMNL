@@ -35,7 +35,6 @@ require("./jobs/autoCheckoutJob");
 const app = express();
 const server = http.createServer(app); 
 
-// --- Schedule Payroll Job ---
 const processPayroll = async () => {
   try {
     console.log("Processing payroll...");
@@ -51,7 +50,6 @@ cron.schedule("0 0 5,20 * *", () => {
   processPayroll();
 });
 
-// --- Middlewares ---
 app.use(
   cors({
     origin: frontendURL,
