@@ -12,7 +12,7 @@ const axios = require("axios");
 const path = require("path");
 const http = require("http");
 
-const Payroll = require("./models/Payroll");
+
 const Employee = require("./models/Employees");
 const Attendance = require("./models/Attendance");
 const Admin = require("./models/Admin");
