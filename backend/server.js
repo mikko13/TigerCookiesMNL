@@ -33,7 +33,7 @@ connectDB();
 require("./jobs/autoCheckoutJob");
 
 const app = express();
-const server = http.createServer(app); 
+const server = http.createServer(app);
 
 const processPayroll = async () => {
   try {
@@ -77,8 +77,14 @@ app.use(
 );
 
 // --- Static Assets ---
-app.use('/employee-checkin-photos', express.static(path.join(__dirname, 'public/employee-checkin-photos')));
-app.use('/employee-checkout-photos', express.static(path.join(__dirname, 'public/employee-checkout-photos')));
+app.use(
+  "/employee-checkin-photos",
+  express.static(path.join(__dirname, "public/employee-checkin-photos"))
+);
+app.use(
+  "/employee-checkout-photos",
+  express.static(path.join(__dirname, "public/employee-checkout-photos"))
+);
 
 // --- Routes ---
 app.use("/api/admins", adminRoutes);
@@ -89,7 +95,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/payroll", payrollRoutes);
 app.use("/api/overtime", overtimeRoutes);
-app.use("/api/login", authRoutes)
+app.use("/api/login", authRoutes);
 
 // --- API for Pending Overtime Count ---
 app.get("/api/overtime/pending-count", async (req, res) => {
