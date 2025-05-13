@@ -1,4 +1,4 @@
-const frontendURL = "http://localhost:3000";
-const backendURL = "http://localhost:5000";
+const frontendURL = "https://tigercookiesmnl.onrender.com";
+const backendURL = "https://tigercookiesmnl-backend.onrender.com";
 
 module.exports = { frontendURL, backendURL };
