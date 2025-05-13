@@ -4,6 +4,7 @@ import PrivacyPolicyModal from "./privacypolicyModal";
 import FirstTimeLoginModal from "./FirstTimeLoginModal";
 import axios from "axios";
 import { backendURL } from "../../urls/URL";
+import { Link } from "react-router-dom";
 
 export default function LoginForm({ showToast }) {
   const {
@@ -318,13 +319,13 @@ export default function LoginForm({ showToast }) {
           </button>
 
           <div className="text-sm">
-            <a
-              href="./forgotpassword"
-              className="text-yellow-600 hover:text-yellow-800 hover:underline font-semibold transition-all duration-300"
-            >
-              Forgot your password?
-            </a>
-          </div>
+  <Link
+    to="/ForgotPassword"
+    className="text-yellow-600 hover:text-yellow-800 hover:underline font-semibold transition-all duration-300"
+  >
+    Forgot your password?
+  </Link>
+</div>
         </div>
 
         <button
