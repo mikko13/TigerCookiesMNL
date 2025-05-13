@@ -127,9 +127,6 @@ export default function LoginForm({ showToast }) {
       showToast("error", err.response?.data?.message || "Login failed");
     } finally {
       setIsLoggingIn(false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
     }
   };
 
