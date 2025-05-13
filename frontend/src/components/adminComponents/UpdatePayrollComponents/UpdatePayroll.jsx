@@ -3,6 +3,7 @@ import UpdatePayrollForm from "./UpdatePayrollForm";
 import AdminSidebar from "../../sidebarComponents/admin-sidebar/adminSidebar";
 import Background from "../../images/background.png";
 import { Menu, DollarSign } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function UpdatePayroll() {
   const [sidebarState, setSidebarState] = useState({
@@ -111,12 +112,12 @@ export default function UpdatePayroll() {
               <ol className="inline-flex items-center space-x-1 md:space-x-3">
                 <li>
                   <div className="flex items-center">
-                    <a
-                      href="/ManagePayroll"
-                      className="text-gray-700 hover:text-yellow-600 text-sm font-medium"
-                    >
-                      Payroll
-                    </a>
+                  <Link
+  to="/ManagePayroll"
+  className="text-gray-700 hover:text-yellow-600 text-sm font-medium"
+>
+  Payroll
+</Link>
                   </div>
                 </li>
                 <li aria-current="page">

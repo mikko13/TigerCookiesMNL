@@ -3,6 +3,7 @@ import ManageAttendanceMain from "./ManageAttendanceMain";
 import AdminSidebar from "../../sidebarComponents/admin-sidebar/adminSidebar";
 import Background from "../../images/background.png";
 import { Search, Calendar, Plus, Menu, X, ChevronDown } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function ManageAttendance() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -270,13 +271,14 @@ export default function ManageAttendance() {
                 )}
               </div>
 
-              <a
-                href="/CreateEmployeeAttendance"
-                className="flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors duration-200 shadow-sm"
-              >
-                <Plus size={18} />
-                <span>New Record</span>
-              </a>
+              
+<Link
+  to="/CreateEmployeeAttendance"
+  className="flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors duration-200 shadow-sm"
+>
+  <Plus size={18} />
+  <span>New Record</span>
+</Link>
             </div>
           </div>
 

@@ -3,6 +3,7 @@ import UpdateAccountForm from "./UpdateAccountForm";
 import AdminSidebar from "../../sidebarComponents/admin-sidebar/adminSidebar";
 import Background from "../../images/background.png";
 import { Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function UpdateAccount() {
   const [sidebarState, setSidebarState] = useState({
@@ -110,12 +111,12 @@ export default function UpdateAccount() {
               <ol className="inline-flex items-center space-x-1 md:space-x-3">
                 <li>
                   <div className="flex items-center">
-                    <a
-                      href="/ManageEmployeeAccounts"
-                      className="text-gray-700 hover:text-yellow-600 text-sm font-medium"
-                    >
-                      Employees
-                    </a>
+                  <Link
+  to="/ManageEmployeeAccounts"
+  className="text-gray-700 hover:text-yellow-600 text-sm font-medium"
+>
+  Employees
+</Link>
                   </div>
                 </li>
                 <li aria-current="page">

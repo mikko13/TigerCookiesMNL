@@ -3,6 +3,8 @@ import UpdateAdminAccountForm from "./UpdateAdminAccountForm";
 import AdminSidebar from "../../sidebarComponents/admin-sidebar/adminSidebar";
 import Background from "../../images/background.png";
 import { Menu } from "lucide-react";
+import { Link } from "react-router-dom";
+
 
 export default function UpdateAdminAccount() {
   const [sidebarState, setSidebarState] = useState({
@@ -108,12 +110,12 @@ export default function UpdateAdminAccount() {
               <ol className="inline-flex items-center space-x-1 md:space-x-3">
                 <li>
                   <div className="flex items-center">
-                    <a
-                      href="/ManageAdminAccounts"
-                      className="text-gray-700 hover:text-yellow-600 text-sm font-medium"
-                    >
-                      Admins
-                    </a>
+                  <Link
+  to="/ManageAdminAccounts"
+  className="text-gray-700 hover:text-yellow-600 text-sm font-medium"
+>
+  Admins
+</Link>
                   </div>
                 </li>
                 <li aria-current="page">

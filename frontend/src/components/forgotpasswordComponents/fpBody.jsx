@@ -3,11 +3,13 @@ import axios from "axios";
 import "./ToastStyles.css";
 import { backendURL } from "../../urls/URL";
 import { EnvelopeIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function FPBody({ showToast }) {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const navigate = useNavigate(); 
 
   const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
@@ -27,9 +29,7 @@ export default function FPBody({ showToast }) {
   const handleEmailCheck = async (e) => {
     e.preventDefault();
 
-    if (!validateEmail()) {
-      return;
-    }
+    if (!validateEmail()) return;
 
     setIsLoading(true);
 
@@ -50,13 +50,10 @@ export default function FPBody({ showToast }) {
           sessionStorage.setItem("emailForOTP", email);
 
           setTimeout(() => {
-            window.location.href = "./forgotpasswordotp";
+            navigate("/forgotpasswordotp"); 
           }, 1000);
         } else {
-          showToast(
-            "error",
-            "Failed to send verification code. Please try again."
-          );
+          showToast("error", "Failed to send verification code. Please try again.");
         }
       } else {
         setEmailError("Email not found in our records");
@@ -132,7 +129,7 @@ export default function FPBody({ showToast }) {
           )}
         </button>
 
-        <a href="./" className="block mt-4">
+        <Link to="/" className="block mt-4">
           <button
             type="button"
             className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg flex justify-center items-center gap-2 transition-all duration-200"
@@ -140,7 +137,7 @@ export default function FPBody({ showToast }) {
             <ArrowLeftIcon className="h-4 w-4" />
             Back to Login
           </button>
-        </a>
+        </Link>
       </form>
     </div>
   );
