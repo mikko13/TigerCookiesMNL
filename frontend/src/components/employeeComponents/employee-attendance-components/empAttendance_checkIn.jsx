@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { backendURL } from "../../../urls/URL";
 import {
   Clock,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 
 export default function EmpAttendanceCheckIn() {
+  const navigate = useNavigate();
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -126,7 +128,7 @@ export default function EmpAttendanceCheckIn() {
 
   const handleShiftSelect = (shift) => {
     setSelectedShift(shift);
-    window.location.href = `./opencam?shift=${encodeURIComponent(shift)}`;
+    navigate(`/opencam?shift=${encodeURIComponent(shift)}`);
   };
 
   const getTimeUntilAvailable = (shiftKey) => {

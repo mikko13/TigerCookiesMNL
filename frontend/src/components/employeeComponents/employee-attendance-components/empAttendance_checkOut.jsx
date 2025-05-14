@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { backendURL } from "../../../urls/URL";
 import { Clock, CheckCircle, Loader, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function EmpAttendanceCheckOut() {
+  const navigate = useNavigate();
   const [alreadyCheckedOut, setAlreadyCheckedOut] = useState(false);
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -59,6 +61,17 @@ export default function EmpAttendanceCheckOut() {
       day: "numeric",
     });
   };
+
+
+const handleCheckout = () => {
+  if (!hasCheckedIn || alreadyCheckedOut || loading) return;
+  navigate("/opencamcheckout");
+};
+
+const handleRequestOvertime = () => {
+  if (!hasCheckedIn || alreadyCheckedOut || loading) return;
+  navigate("/requestovertime");
+};
 
   return (
     <div className="w-full max-w-lg px-6 py-8">
@@ -118,22 +131,24 @@ export default function EmpAttendanceCheckOut() {
               }`}
             >
               <button
-                type="button"
-                disabled={!hasCheckedIn || alreadyCheckedOut || loading}
-                className={`px-6 py-4 w-full rounded-lg text-white font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  !hasCheckedIn || alreadyCheckedOut || loading
-                    ? "bg-gray-400"
-                    : "bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 focus:ring-yellow-500"
-                }`}
-              >
-                {loading
-                  ? "Checking..."
-                  : !hasCheckedIn
-                  ? "Check In First"
-                  : alreadyCheckedOut
-                  ? "Already Checked Out"
-                  : "Check Out Now"}
-              </button>
+  type="button"
+  onClick={handleCheckout}
+  disabled={!hasCheckedIn || alreadyCheckedOut || loading}
+  className={`px-6 py-4 w-full rounded-lg text-white font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+    !hasCheckedIn || alreadyCheckedOut || loading
+      ? "bg-gray-400 cursor-not-allowed opacity-50"
+      : "bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 focus:ring-yellow-500"
+  }`}
+>
+  {loading
+    ? "Checking..."
+    : !hasCheckedIn
+    ? "Check In First"
+    : alreadyCheckedOut
+    ? "Already Checked Out"
+    : "Check Out Now"}
+</button>
+
             </a>
             
             <a 
@@ -145,22 +160,24 @@ export default function EmpAttendanceCheckOut() {
               }`}
             >
               <button
-                type="button"
-                disabled={!hasCheckedIn || alreadyCheckedOut || loading}
-                className={`px-6 py-4 w-full rounded-lg text-white font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  !hasCheckedIn || alreadyCheckedOut || loading
-                    ? "bg-gray-400"
-                    : "bg-gray-700 hover:bg-gray-800 active:bg-gray-900 focus:ring-gray-700"
-                }`}
-              >
-                {loading
-                  ? "Checking..."
-                  : !hasCheckedIn
-                  ? "Check In First"
-                  : alreadyCheckedOut
-                  ? "Cannot Request Overtime"
-                  : "Request Overtime"}
-              </button>
+  type="button"
+  onClick={handleRequestOvertime}
+  disabled={!hasCheckedIn || alreadyCheckedOut || loading}
+  className={`block w-full px-6 py-4 rounded-lg text-white font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+    !hasCheckedIn || alreadyCheckedOut || loading
+      ? "bg-gray-400 cursor-not-allowed opacity-50"
+      : "bg-gray-700 hover:bg-gray-800 active:bg-gray-900 focus:ring-gray-700"
+  }`}
+>
+  {loading
+    ? "Checking..."
+    : !hasCheckedIn
+    ? "Check In First"
+    : alreadyCheckedOut
+    ? "Cannot Request Overtime"
+    : "Request Overtime"}
+</button>
+
             </a>
           </div>
           
